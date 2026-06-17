@@ -1,0 +1,38 @@
+# Flutter
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+*.iml
+*.iws
+.idea/
+.vscode/
+.DS_Store
+
+# Android
+android/
+*.apk
+*.aab
+
+# iOS
+ios/
+Podfile
+Podfile.lock
+Pods/
+
+# Windows
+windows/
+
+# macOS
+macos/
+
+# Linux
+linux/
+
+# Web
+web/
+
+# Dependencies
+packages/
+pub-cache/
