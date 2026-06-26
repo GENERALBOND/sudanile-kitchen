@@ -108,3 +108,7 @@ SIMPLE_JWT = {
 # Email Configuration - Console Backend (prints to terminal)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@sudanile.com'
+
+# Templates Configuration
+import os
+TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
