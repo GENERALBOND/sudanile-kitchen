@@ -20,15 +20,21 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _selectedCategory;
   String? _selectedDifficulty;
   List<Category> _categories = [];
+  List<Recipe> _suggestions = [];
+  List<Recipe> _allRecipes = [];
+  bool _showSuggestions = false;
   final PagingController<int, Recipe> _pagingController = PagingController(firstPageKey: 1);
   String? _currentSearch;
   String? _currentOrdering = '-created_at';
   bool _isLoadingCategories = true;
+  bool _isSearching = false;
+  bool _isLoadingAllRecipes = false;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _loadAllRecipes();
     _pagingController.addPageRequestListener((pageKey) {
       _fetchRecipes(pageKey);
     });
@@ -36,6 +42,17 @@ class _SearchScreenState extends State<SearchScreen> {
     if (widget.initialCategory != null) {
       _selectedCategory = widget.initialCategory;
     }
+    
+    _searchController.addListener(() {
+      _updateSuggestions();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pagingController.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCategories() async {
@@ -43,6 +60,46 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _categories = categories;
       _isLoadingCategories = false;
+    });
+  }
+
+  Future<void> _loadAllRecipes() async {
+    setState(() => _isLoadingAllRecipes = true);
+    _allRecipes = await _recipeService.getRecipes();
+    setState(() => _isLoadingAllRecipes = false);
+  }
+
+  void _updateSuggestions() {
+    final query = _searchController.text.toLowerCase().trim();
+    
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+    
+    // First, match recipes that start with the typed letters
+    final startsWith = _allRecipes.where((recipe) {
+      return recipe.title.toLowerCase().startsWith(query) ||
+             recipe.categoryName.toLowerCase().startsWith(query);
+    }).toList();
+    
+    // Then, match recipes that contain the typed letters anywhere
+    final contains = _allRecipes.where((recipe) {
+      return (recipe.title.toLowerCase().contains(query) ||
+             recipe.categoryName.toLowerCase().contains(query)) &&
+             !startsWith.contains(recipe);
+    }).toList();
+    
+    // Combine: starts with first, then contains
+    final combined = [...startsWith, ...contains];
+    
+    // Limit to 10 suggestions
+    setState(() {
+      _suggestions = combined.take(10).toList();
+      _showSuggestions = _suggestions.isNotEmpty;
     });
   }
 
@@ -66,9 +123,25 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _performSearch() {
+  void _performSearch(String query) {
     setState(() {
-      _currentSearch = _searchController.text.isNotEmpty ? _searchController.text : null;
+      _currentSearch = query.isNotEmpty ? query : null;
+      _showSuggestions = false;
+      _isSearching = true;
+      _pagingController.refresh();
+    });
+    
+    // Close keyboard
+    FocusScope.of(context).unfocus();
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _searchController.clear();
+      _suggestions = [];
+      _showSuggestions = false;
+      _currentSearch = null;
+      _isSearching = false;
       _pagingController.refresh();
     });
   }
@@ -79,7 +152,10 @@ class _SearchScreenState extends State<SearchScreen> {
       _selectedDifficulty = null;
       _currentOrdering = '-created_at';
       _currentSearch = null;
+      _isSearching = false;
       _searchController.clear();
+      _suggestions = [];
+      _showSuggestions = false;
       _pagingController.refresh();
     });
   }
@@ -99,13 +175,12 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: InputDecoration(
                 hintText: 'Search by name, ingredient, or keyword...',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    _performSearch();
-                  },
-                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: _clearSearch,
+                      )
+                    : null,
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -113,14 +188,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
-              onSubmitted: (_) => _performSearch(),
+              onSubmitted: (value) => _performSearch(value),
             ),
           ),
         ),
       ),
       body: Column(
         children: [
-          // Filters
+          // Categories and Filters
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.all(12),
@@ -220,38 +295,101 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           
-          // Results
-          Expanded(
-            child: PagedListView<int, Recipe>(
-              pagingController: _pagingController,
-              builderDelegate: PagedChildBuilderDelegate<Recipe>(
-                itemBuilder: (context, recipe, index) => RecipeCard(
-                  recipe: recipe,
-                  horizontal: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => RecipeDetailScreen(recipe: recipe),
+          // Suggestions List (appears when typing)
+          if (_showSuggestions && _suggestions.isNotEmpty)
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: 300,
+              ),
+              color: Colors.white,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _suggestions.length,
+                itemBuilder: (context, index) {
+                  final recipe = _suggestions[index];
+                  return ListTile(
+                    leading: const Icon(Icons.restaurant, color: Colors.orange),
+                    title: Text(
+                      recipe.title,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    subtitle: Text(
+                      recipe.categoryName,
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                        const SizedBox(width: 4),
+                        Text(
+                          recipe.averageRating.toString(),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      // Navigate to recipe detail
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RecipeDetailScreen(recipe: recipe),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          
+          // Results with Lazy Loading
+          if (!_showSuggestions)
+            Expanded(
+              child: PagedListView<int, Recipe>(
+                pagingController: _pagingController,
+                builderDelegate: PagedChildBuilderDelegate<Recipe>(
+                  itemBuilder: (context, recipe, index) => RecipeCard(
+                    recipe: recipe,
+                    horizontal: true,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RecipeDetailScreen(recipe: recipe),
+                        ),
+                      );
+                    },
+                  ),
+                  firstPageProgressIndicatorBuilder: (_) => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  newPageProgressIndicatorBuilder: (_) => const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                    );
-                  },
-                ),
-                firstPageProgressIndicatorBuilder: (_) => const Center(child: CircularProgressIndicator()),
-                noItemsFoundIndicatorBuilder: (_) => const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No recipes found', style: TextStyle(fontSize: 18)),
-                      Text('Try adjusting your search', style: TextStyle(color: Colors.grey)),
-                    ],
+                    ),
+                  ),
+                  noItemsFoundIndicatorBuilder: (_) => const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('No recipes found', style: TextStyle(fontSize: 18)),
+                        Text('Try adjusting your search', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
