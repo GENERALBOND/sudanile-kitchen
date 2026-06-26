@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sudanile Kitchen Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --border-success: #9bcfaa;
+      --border-danger: #f4b8b8;
+      --border-warning: #f5d48a;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --border-success: #1e5e30;
+        --border-danger: #7a2020;
+        --border-warning: #6b4209;
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .dash { max-width: 1100px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px; background: #E8650A;
+    }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.75); }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    .main { display: flex; background: var(--surface-0); }
+
+    .sidebar {
+      width: 210px; flex-shrink: 0;
+      background: var(--surface-2);
+      border-right: 0.5px solid var(--border);
+      padding: 16px 0;
+      display: flex; flex-direction: column; gap: 4px;
+      min-height: calc(100vh - 80px);
+    }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 10px 10px 4px;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: var(--radius);
+      font-size: 12px; color: var(--text-secondary);
+      text-decoration: none; cursor: pointer;
+      border: none; background: none; width: 100%; text-align: left;
+      transition: background 0.12s, color 0.12s;
+      border-left: 2px solid transparent;
+    }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-system { opacity: 0.72; }
+
+    .content { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+
+    .section-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+      color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;
+    }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .stat-card {
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .stat-val { font-size: 24px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+    .stat-lbl { font-size: 11px; color: var(--text-muted); }
+    .stat-trend { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .panel {
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+    }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .panel-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .panel-link { font-size: 12px; color: #E8650A; text-decoration: none; }
+    .panel-link:hover { text-decoration: underline; }
+
+    .sub-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+    .sub-row:last-of-type { border-bottom: none; }
+    .sub-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #fff3e0; color: #E8650A;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; flex-shrink: 0;
+    }
+    .sub-info { flex: 1; min-width: 0; }
+    .sub-title { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-meta { font-size: 11px; color: var(--text-muted); }
+    .sub-actions { display: flex; gap: 5px; flex-shrink: 0; }
+    .sub-btn {
+      font-size: 11px; padding: 4px 10px; border-radius: var(--radius);
+      border: 0.5px solid var(--border); background: var(--surface-1);
+      color: var(--text-secondary); cursor: pointer; transition: opacity 0.12s;
+    }
+    .sub-btn:hover { opacity: 0.8; }
+    .sub-btn.approve { background: var(--bg-success); color: var(--text-success); border-color: var(--border-success); }
+    .sub-btn.reject { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+    .empty-state { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+
+    .action-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+    .action-row:last-child { border-bottom: none; }
+    .action-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+    .dot-del { background: var(--bg-danger); color: var(--text-danger); }
+    .dot-edit { background: #fff3e0; color: #E8650A; }
+    .action-info { flex: 1; min-width: 0; }
+    .action-email { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .action-sub { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+    .action-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+    .badge-pending {
+      font-size: 10px; background: #fff3e0; color: #E8650A;
+      border: 0.5px solid #fcd5a8; border-radius: 20px;
+      padding: 2px 7px; font-weight: 500;
+    }
+
+    .modules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mod-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .mod-header {
+      padding: 9px 14px; display: flex; align-items: center; gap: 8px;
+      border-bottom: 0.5px solid var(--border); background: var(--surface-1);
+    }
+    .mod-icon { font-size: 14px; color: #E8650A; }
+    .mod-name { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+    .mod-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 0.5px solid var(--border); }
+    .mod-row:last-child { border-bottom: none; }
+    .mod-item { font-size: 12px; color: var(--text-primary); }
+    .mod-actions { display: flex; align-items: center; gap: 4px; }
+    .mod-btn {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 11px; padding: 3px 8px; border-radius: var(--radius);
+      border: 0.5px solid var(--border); background: var(--surface-1);
+      color: var(--text-secondary); cursor: pointer; transition: background 0.12s;
+      text-decoration: none;
+    }
+    .mod-btn:hover { background: var(--surface-0); border-color: var(--border-strong); }
+    .mod-btn.add { color: #E8650A; border-color: #fcd5a8; background: #fff9f5; }
+    .mod-btn.add:hover { background: #fff3e0; }
+    .mod-btn.del { color: var(--text-danger); border-color: var(--border-danger); background: var(--bg-danger); }
+    .mod-btn i { font-size: 11px; }
+
+    .footer {
+      text-align: center; font-size: 11px; color: var(--text-muted);
+      padding: 14px 0 2px; border-top: 0.5px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col { grid-template-columns: 1fr; }
+      .modules-grid { grid-template-columns: 1fr; }
+      .topbar-user { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dash">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+        Sudanile Kitchen Admin
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-user">{{ user_email }}</span>
+        <nav class="topbar-nav" aria-label="Top navigation">
+          <a href="/">View site</a><span class="sep">·</span>
+          <a href="/admin/password_change/">Change password</a><span class="sep">·</span>
+          <a href="/admin/logout/">Log out</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="main">
+      <nav class="sidebar" aria-label="Admin navigation">
+        <div class="sidebar-section">
+          <div class="sidebar-label">Content</div>
+          <a class="sidebar-item active" href="/admin/"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+          <a class="sidebar-item" href="/admin/django/recipes/recipe/"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+          <a class="sidebar-item" href="/admin/django/recipes/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+          <a class="sidebar-item" href="/admin/django/submissions/recipesubmission/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+          <a class="sidebar-item" href="/admin/django/reviews/review/"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+          <a class="sidebar-item" href="/admin/django/favorites/favorite/"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Users</div>
+          <a class="sidebar-item" href="/admin/django/users/user/"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+          <a class="sidebar-item" href="/admin/django/users/user/add/"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section sidebar-system">
+          <div class="sidebar-label">System</div>
+          <a class="sidebar-item" href="/admin/django/auth/group/"><i class="ti ti-shield-lock" aria-hidden="true"></i>Auth &amp; groups</a>
+        </div>
+      </nav>
+
+      <main class="content">
+        <!-- Stats -->
+        <section aria-label="Overview">
+          <div class="section-label">Overview</div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#fff3e0;color:#E8650A;"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i></div>
+              <div class="stat-val">{{ total_recipes }}</div>
+              <div class="stat-lbl">Recipes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--bg-accent);color:var(--text-accent);"><i class="ti ti-users" aria-hidden="true"></i></div>
+              <div class="stat-val">{{ total_users }}</div>
+              <div class="stat-lbl">Users</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--bg-warning);color:var(--text-warning);"><i class="ti ti-clock-hour-4" aria-hidden="true"></i></div>
+              <div class="stat-val">{{ pending_submissions }}</div>
+              <div class="stat-lbl">Pending</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--bg-success);color:var(--text-success);"><i class="ti ti-star" aria-hidden="true"></i></div>
+              <div class="stat-val">{{ total_reviews }}</div>
+              <div class="stat-lbl">Reviews</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--bg-danger);color:var(--text-danger);"><i class="ti ti-heart" aria-hidden="true"></i></div>
+              <div class="stat-val">{{ total_favorites }}</div>
+              <div class="stat-lbl">Favorites</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Submissions + Actions -->
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Pending submissions</span>
+              <a href="/admin/django/submissions/recipesubmission/?status__exact=pending" class="panel-link">View all</a>
+            </div>
+            {% if pending_submissions_list %}
+              {% for submission in pending_submissions_list|slice:":3" %}
+              <div class="sub-row">
+                <div class="sub-avatar">{{ submission.user.username|slice:":2"|upper }}</div>
+                <div class="sub-info">
+                  <div class="sub-title">{{ submission.title }} – {{ submission.user.email }}</div>
+                  <div class="sub-meta">Submitted {{ submission.submitted_at|timesince }} ago · Recipe submission</div>
+                </div>
+                <div class="sub-actions">
+                  <a href="/admin/django/submissions/recipesubmission/{{ submission.id }}/change/" class="sub-btn approve">Review</a>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <i class="ti ti-check" style="font-size:15px;color:var(--text-muted);" aria-hidden="true"></i>
+                <span style="font-size:12px;color:var(--text-muted);">No submissions waiting for review.</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Recent actions</span>
+              <a href="#" class="panel-link">See all</a>
+            </div>
+            {% if recent_actions %}
+              {% for action in recent_actions|slice:":5" %}
+              <div class="action-row">
+                <div class="action-dot {% if action.action_type == 'delete' %}dot-del{% else %}dot-edit{% endif %}">
+                  <i class="ti {% if action.action_type == 'delete' %}ti-x{% else %}ti-edit{% endif %}" aria-hidden="true"></i>
+                </div>
+                <div class="action-info">
+                  <div class="action-email">{{ action.user_email }}</div>
+                  <div class="action-sub">
+                    {{ action.description }}
+                    {% if action.status == 'pending' %}
+                      <span class="badge-pending">pending</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="action-time">{{ action.time }}</div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state">
+                <i class="ti ti-clock" style="font-size:15px;color:var(--text-muted);" aria-hidden="true"></i>
+                <span style="font-size:12px;color:var(--text-muted);">No recent actions.</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Modules -->
+        <section aria-label="Site modules">
+          <div class="section-label">Site modules</div>
+          <div class="modules-grid">
+
+            <div class="mod-card">
+              <div class="mod-header">
+                <i class="ti ti-tools-kitchen-2 mod-icon" aria-hidden="true"></i>
+                <span class="mod-name">Recipes</span>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Categories</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/recipes/category/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="/admin/django/recipes/category/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Recipes</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/recipes/recipe/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="/admin/django/recipes/recipe/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card">
+              <div class="mod-header">
+                <i class="ti ti-send mod-icon" aria-hidden="true"></i>
+                <span class="mod-name">Submissions</span>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Recipe submissions</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/submissions/recipesubmission/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card">
+              <div class="mod-header">
+                <i class="ti ti-star mod-icon" aria-hidden="true"></i>
+                <span class="mod-name">Reviews</span>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Reviews</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/reviews/review/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card">
+              <div class="mod-header">
+                <i class="ti ti-heart mod-icon" aria-hidden="true"></i>
+                <span class="mod-name">Favorites</span>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Favorites</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/favorites/favorite/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card">
+              <div class="mod-header">
+                <i class="ti ti-users mod-icon" aria-hidden="true"></i>
+                <span class="mod-name">Users</span>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Users</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/users/user/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="/admin/django/users/user/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="mod-card" style="opacity:0.75;">
+              <div class="mod-header">
+                <i class="ti ti-shield-lock mod-icon" aria-hidden="true"></i>
+                <span class="mod-name">System — Auth &amp; groups</span>
+              </div>
+              <div class="mod-row">
+                <span class="mod-item">Groups</span>
+                <div class="mod-actions">
+                  <a href="/admin/django/auth/group/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="/admin/django/auth/group/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <footer class="footer">
+          © 2026 Sudanile Kitchen — Preserving South Sudanese Culinary Heritage
+        </footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
