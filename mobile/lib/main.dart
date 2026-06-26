@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'providers/favorites_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 
@@ -22,6 +23,7 @@ class SudanileKitchenApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService(initialToken)),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
       ],
       child: MaterialApp(
         title: 'Sudanile Kitchen',

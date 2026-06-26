@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../models/recipe.dart';
 
@@ -17,6 +16,13 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Preload image when widget builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty) {
+        precacheImage(NetworkImage(recipe.imageUrl!), context);
+      }
+    });
+
     if (horizontal) {
       return Card(
         margin: const EdgeInsets.only(bottom: 12),
@@ -25,28 +31,19 @@ class RecipeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Row(
             children: [
-              // ✅ Using CachedNetworkImage with caching
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl: recipe.imageUrl ?? '',
+                child: Container(
                   width: 100,
                   height: 100,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.orange.shade200,
-                    child: const Icon(Icons.restaurant, size: 40),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.orange.shade200,
-                    child: const Icon(Icons.restaurant, size: 40),
+                  color: Colors.orange.shade200,
+                  child: const Icon(
+                    Icons.restaurant,
+                    size: 40,
+                    color: Colors.orange,
                   ),
                 ),
               ),
@@ -109,7 +106,7 @@ class RecipeCard extends StatelessWidget {
       );
     }
     
-    // Vertical card (grid view)
+    // Vertical card
     return Card(
       margin: const EdgeInsets.only(right: 16, bottom: 8),
       child: InkWell(
@@ -120,26 +117,19 @@ class RecipeCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ Using CachedNetworkImage with caching
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
                 ),
-                child: CachedNetworkImage(
-                  imageUrl: recipe.imageUrl ?? '',
+                child: Container(
                   height: 130,
                   width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    height: 130,
-                    color: Colors.orange.shade200,
-                    child: const Icon(Icons.restaurant, size: 50),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    height: 130,
-                    color: Colors.orange.shade200,
-                    child: const Icon(Icons.restaurant, size: 50),
+                  color: Colors.orange.shade200,
+                  child: const Icon(
+                    Icons.restaurant,
+                    size: 50,
+                    color: Colors.orange,
                   ),
                 ),
               ),

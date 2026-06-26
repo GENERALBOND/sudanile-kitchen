@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/recipe_service.dart';
 import '../models/recipe.dart';
-import '../widgets/loading_indicator.dart';
+import '../providers/favorites_provider.dart';
 import 'recipe_detail_screen.dart';
 import 'search_screen.dart';
 import 'favorites_screen.dart';
@@ -26,38 +26,42 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Category> _categories = [];
   List<Recipe> _recentRecipes = [];
   bool _isLoading = true;
-  String? _errorMessage;
   int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    // Load favorites if user is authenticated
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      if (authService.isAuthenticated) {
+        Provider.of<FavoritesProvider>(context, listen: false).loadFavorites();
+      }
+    });
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    setState(() => _isLoading = true);
     
     try {
-      final categories = await _recipeService.getCategories();
-      final allRecipes = await _recipeService.getRecipes();
+      final results = await Future.wait([
+        _recipeService.getCategories(),
+        _recipeService.getRecipes(),
+      ]);
+      
+      final categories = results[0] as List<Category>;
+      final allRecipes = results[1] as List<Recipe>;
       final recentRecipes = allRecipes.take(2).toList();
       
       setState(() {
         _categories = categories;
         _recentRecipes = recentRecipes;
         _isLoading = false;
-        _errorMessage = null;
       });
     } catch (e) {
       print('Error loading data: $e');
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.toString();
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -148,26 +152,50 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Login Required'),
+        content: const Text('Please login to access favorites and profile.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Continue as Guest'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Login'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHomeContent() {
     if (_isLoading) {
-      return const LoadingIndicator(message: 'Loading recipes...');
-    }
-    
-    if (_errorMessage != null) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 60, color: Colors.red),
-            const SizedBox(height: 16),
-            const Text('Failed to load data', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Text(_errorMessage!, style: TextStyle(color: Colors.grey[600])),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadData,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              child: const Text('Retry'),
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Loading delicious recipes...',
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
@@ -319,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
             
             // No Recipes Message
-            if (_recentRecipes.isEmpty) ...[
+            if (_recentRecipes.isEmpty && !_isLoading) ...[
               Container(
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.all(40),
@@ -429,20 +457,20 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 120,
               width: double.infinity,
               color: Colors.orange.shade100,
-              child: recipe.imageUrl != null
+              child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
                   ? Image.network(
                       recipe.imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
+                      errorBuilder: (_, __, ___) => const Icon(
                         Icons.restaurant,
-                        size: 40,
-                        color: Colors.orange.shade300,
+                        size: 50,
+                        color: Colors.orange,
                       ),
                     )
-                  : Icon(
+                  : const Icon(
                       Icons.restaurant,
-                      size: 40,
-                      color: Colors.orange.shade300,
+                      size: 50,
+                      color: Colors.orange,
                     ),
             ),
           ),
@@ -514,31 +542,5 @@ class _HomeScreenState extends State<HomeScreen> {
     if (name.contains('snack')) return Icons.icecream;
     if (name.contains('dessert')) return Icons.cake;
     return Icons.restaurant_menu;
-  }
-
-  void _showLoginRequiredDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Login Required'),
-        content: const Text('Please login to access favorites and profile.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Continue as Guest'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Login'),
-          ),
-        ],
-      ),
-    );
   }
 }

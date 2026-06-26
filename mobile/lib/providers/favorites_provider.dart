@@ -55,4 +55,10 @@ class FavoritesProvider extends ChangeNotifier {
   Future<void> refreshFavorites() async {
     await loadFavorites();
   }
+
+  // Remove from favorites by recipe ID
+  Future<void> removeFavorite(int recipeId) async {
+    final recipe = _favorites.firstWhere((r) => r.id == recipeId, orElse: () => throw Exception());
+    await toggleFavorite(recipe);
+  }
 }

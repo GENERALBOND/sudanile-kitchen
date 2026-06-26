@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:video_player/video_player.dart';
+import 'package:provider/provider.dart';
 import '../models/recipe.dart';
 import '../models/review.dart';
 import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
-import 'package:provider/provider.dart';
+import '../providers/favorites_provider.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final dynamic recipe;
@@ -20,12 +20,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   final RecipeService _recipeService = RecipeService();
   late Recipe _recipe;
   List<Review> _reviews = [];
-  bool _isFavorite = false;
   bool _isLoading = true;
   bool _isReviewing = false;
   int _userRating = 0;
   final TextEditingController _reviewController = TextEditingController();
-  VideoPlayerController? _videoController;
 
   @override
   void initState() {
@@ -41,17 +39,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final reviews = await _recipeService.getReviews(_recipe.id);
     setState(() => _reviews = reviews);
     
+    // Load favorites if authenticated
     final authService = Provider.of<AuthService>(context, listen: false);
     if (authService.isAuthenticated) {
-      final isFav = await _recipeService.isFavorite(_recipe.id);
-      setState(() => _isFavorite = isFav);
-    }
-    
-    if (_recipe.videoUrl != null && _recipe.videoUrl!.isNotEmpty) {
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(_recipe.videoUrl!));
-      await _videoController!.initialize();
-      await _videoController!.setLooping(true);
-      setState(() {});
+      final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
+      if (favProvider.favoriteIds.isEmpty) {
+        await favProvider.loadFavorites();
+      }
     }
     
     setState(() => _isLoading = false);
@@ -66,19 +60,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       return;
     }
     
-    if (_isFavorite) {
-      await _recipeService.removeFromFavorites(_recipe.id);
-      setState(() => _isFavorite = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Removed from favorites')),
-      );
-    } else {
-      await _recipeService.addToFavorites(_recipe.id);
-      setState(() => _isFavorite = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Added to favorites')),
-      );
-    }
+    final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
+    await favProvider.toggleFavorite(_recipe);
+    
+    setState(() {});
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          favProvider.isFavorite(_recipe.id) 
+              ? 'Added to favorites' 
+              : 'Removed from favorites'
+        ),
+      ),
+    );
   }
 
   Future<void> _submitReview() async {
@@ -112,177 +107,158 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 300,
-                  pinned: true,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: _recipe.imageUrl != null
-                        ? Image.network(_recipe.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.orange))
-                        : Container(
-                            color: Colors.orange,
-                            child: const Icon(Icons.restaurant, size: 100, color: Colors.white),
+    return Consumer<FavoritesProvider>(
+      builder: (context, favProvider, child) {
+        final isFavorite = favProvider.isFavorite(_recipe.id);
+        
+        return Scaffold(
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : CustomScrollView(
+                  slivers: [
+                    SliverAppBar(
+                      expandedHeight: 300,
+                      pinned: true,
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: _recipe.imageUrl != null
+                            ? Image.network(_recipe.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.orange))
+                            : Container(
+                                color: Colors.orange,
+                                child: const Icon(Icons.restaurant, size: 100, color: Colors.white),
+                              ),
+                        title: Text(
+                          _recipe.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            shadows: [Shadow(blurRadius: 10)],
                           ),
-                    title: Text(
-                      _recipe.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        shadows: [Shadow(blurRadius: 10)],
+                        ),
                       ),
+                      actions: [
+                        IconButton(
+                          icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
+                          onPressed: _toggleFavorite,
+                        ),
+                      ],
                     ),
-                  ),
-                  actions: [
-                    IconButton(
-                      icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
-                      onPressed: _toggleFavorite,
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                RatingBarIndicator(
+                                  rating: _recipe.averageRating,
+                                  itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
+                                  itemCount: 5,
+                                  itemSize: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text('${_recipe.averageRating} (${_recipe.totalReviews} reviews)'),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildInfoChip(Icons.timer, _recipe.preparationTimeDisplay, 'Prep'),
+                                _buildInfoChip(Icons.timer, _recipe.cookingTimeDisplay, 'Cook'),
+                                _buildInfoChip(Icons.people, '${_recipe.servings}', 'Servings'),
+                                _buildInfoChip(Icons.fitness_center, _recipe.difficulty, 'Difficulty'),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            const Text('Description', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Text(_recipe.description),
+                            const SizedBox(height: 16),
+                            if (_recipe.culturalInfo.isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.history_edu, color: Colors.orange.shade700),
+                                        const SizedBox(width: 8),
+                                        Text('Cultural Information', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(_recipe.culturalInfo),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            const Text('Ingredients', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            ...(_recipe.ingredients as List).map((ingredient) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle, size: 18, color: Colors.green),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(ingredient.toString())),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            const SizedBox(height: 16),
+                            const Text('Instructions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            ...(_recipe.instructions as List).asMap().entries.map((entry) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                                      child: Center(child: Text('${entry.key + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: Text(entry.value.toString())),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            const SizedBox(height: 24),
+                            const Text('Reviews', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: () => _showReviewDialog(),
+                              icon: const Icon(Icons.rate_review),
+                              label: const Text('Write a Review'),
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                            ),
+                            const SizedBox(height: 16),
+                            if (_reviews.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Center(child: Text('No reviews yet. Be the first to review!')),
+                              )
+                            else
+                              ..._reviews.map((review) => _buildReviewCard(review)),
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            RatingBarIndicator(
-                              rating: _recipe.averageRating,
-                              itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
-                              itemCount: 5,
-                              itemSize: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text('${_recipe.averageRating} (${_recipe.totalReviews} reviews)'),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildInfoChip(Icons.timer, _recipe.preparationTimeDisplay, 'Prep'),
-                            _buildInfoChip(Icons.timer, _recipe.cookingTimeDisplay, 'Cook'),
-                            _buildInfoChip(Icons.people, '${_recipe.servings}', 'Servings'),
-                            _buildInfoChip(Icons.fitness_center, _recipe.difficulty, 'Difficulty'),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        const Text('Description', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Text(_recipe.description),
-                        const SizedBox(height: 16),
-                        if (_recipe.culturalInfo.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.history_edu, color: Colors.orange.shade700),
-                                    const SizedBox(width: 8),
-                                    Text('Cultural Information', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(_recipe.culturalInfo),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        const Text('Ingredients', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        ...(_recipe.ingredients as List).map((ingredient) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.check_circle, size: 18, color: Colors.green),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(ingredient.toString())),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        const SizedBox(height: 16),
-                        const Text('Instructions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        ...(_recipe.instructions as List).asMap().entries.map((entry) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-                                  child: Center(child: Text('${entry.key + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(child: Text(entry.value.toString())),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        const SizedBox(height: 24),
-                        if (_videoController != null && _videoController!.value.isInitialized) ...[
-                          const Text('Video Tutorial', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          AspectRatio(
-                            aspectRatio: _videoController!.value.aspectRatio,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                VideoPlayer(_videoController!),
-                                IconButton(
-                                  icon: Icon(_videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow, size: 50, color: Colors.white),
-                                  onPressed: () {
-                                    if (_videoController!.value.isPlaying) {
-                                      _videoController!.pause();
-                                    } else {
-                                      _videoController!.play();
-                                    }
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        const Text('Reviews', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        ElevatedButton.icon(
-                          onPressed: () => _showReviewDialog(),
-                          icon: const Icon(Icons.rate_review),
-                          label: const Text('Write a Review'),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                        ),
-                        const SizedBox(height: 16),
-                        if (_reviews.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Center(child: Text('No reviews yet. Be the first to review!')),
-                          )
-                        else
-                          ..._reviews.map((review) => _buildReviewCard(review)),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        );
+      },
     );
   }
 

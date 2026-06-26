@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../services/recipe_service.dart';
+import '../providers/favorites_provider.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -15,31 +17,53 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      if (authService.isAuthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
-    });
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    
+    // Preload data while splash screen is showing
+    if (authService.isAuthenticated) {
+      final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
+      final recipeService = RecipeService();
+      
+      // Load everything in parallel
+      await Future.wait([
+        recipeService.getCategories(),
+        recipeService.getRecipes(),
+        favProvider.loadFavorites(),
+      ]);
+    }
+    
+    // Wait a moment for smooth transition
+    await Future.delayed(const Duration(seconds: 1));
+    
+    if (!mounted) return;
+    
+    // Navigate to appropriate screen
+    if (authService.isAuthenticated) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.orange, Colors.deepOrange],
+            colors: [Colors.orange.shade400, Colors.orange.shade700],
           ),
         ),
         child: Center(
