@@ -21,7 +21,8 @@ def home(request):
 
 urlpatterns = [
     path('', home, name='home'),
-    path('admin/', dashboard, name='admin_dashboard'),
+    path('admin/', dashboard, name='admin_dashboard'),  # Custom dashboard
+    path('admin/django/', admin.site.urls),  # Django admin - use different path
     path('api/users/', include('users.urls')),
     path('api/recipes/', include('recipes.urls')),
     path('api/reviews/', include('reviews.urls')),
