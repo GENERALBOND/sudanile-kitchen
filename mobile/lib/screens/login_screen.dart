@@ -6,7 +6,7 @@ import 'home_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,29 +18,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _showVerificationDialog = false;
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     final authService = Provider.of<AuthService>(context, listen: false);
     final result = await authService.login(
       _emailController.text.trim(),
       _passwordController.text,
     );
-    
+
+    if (!mounted) return;
+    if (!mounted) return;
     setState(() => _isLoading = false);
-    
+
     if (result['success'] == true) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else if (result['email_not_verified'] == true) {
-      // Show verification dialog
-      _showVerificationDialog = true;
       _showVerificationRequiredDialog();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.warning_amber, color: Colors.orange),
@@ -77,15 +76,20 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton.icon(
               onPressed: () async {
                 Navigator.pop(context);
-                final authService = Provider.of<AuthService>(context, listen: false);
+                final authService =
+                    Provider.of<AuthService>(context, listen: false);
+                final email = _emailController.text;
                 try {
-                  await authService.resendVerification(_emailController.text);
+                  await authService.resendVerification(email);
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Verification email resent!')),
                   );
                 } catch (e) {
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to resend verification email')),
+                    const SnackBar(
+                        content: Text('Failed to resend verification email')),
                   );
                 }
               },
@@ -131,14 +135,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.orange,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(Icons.restaurant, size: 45, color: Colors.white),
+                child:
+                    const Icon(Icons.restaurant, size: 45, color: Colors.white),
               ),
               const SizedBox(height: 30),
               Text(
                 'Welcome Back!',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -177,10 +182,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                           onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
+                            setState(
+                                () => _obscurePassword = !_obscurePassword);
                           },
                         ),
                         border: const OutlineInputBorder(),
@@ -202,7 +210,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen()),
                           );
                         },
                         child: const Text(
@@ -226,7 +235,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign In', style: TextStyle(fontSize: 16)),
+                          : const Text('Sign In',
+                              style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -234,7 +244,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Expanded(child: Divider()),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('OR', style: TextStyle(color: Colors.grey[400])),
+                          child: Text('OR',
+                              style: TextStyle(color: Colors.grey[400])),
                         ),
                         const Expanded(child: Divider()),
                       ],
@@ -264,7 +275,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const RegisterScreen()),
                       );
                     },
                     child: const Text('Sign Up'),

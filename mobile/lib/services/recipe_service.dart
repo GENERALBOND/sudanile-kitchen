@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 import '../models/recipe.dart';
 import '../models/review.dart';
 import 'api_service.dart';
 
 class RecipeService {
   final ApiService _apiService = ApiService();
-  
+
   // Cache for recipes
   List<Recipe> _cachedRecipes = [];
   List<Category> _cachedCategories = [];
@@ -25,13 +26,13 @@ class RecipeService {
       if (search != null) queryParams['search'] = search;
       if (ordering != null) queryParams['ordering'] = ordering;
       queryParams['page'] = page.toString();
-      
+
       final queryString = queryParams.entries
           .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
           .join('&');
-      
+
       final response = await _apiService.get('/recipes/?$queryString');
-      
+
       List<dynamic> results;
       if (response['results'] != null) {
         results = response['results'];
@@ -40,18 +41,18 @@ class RecipeService {
       } else {
         results = [];
       }
-      
+
       final recipes = results.map((json) => Recipe.fromJson(json)).toList();
-      
+
       // Cache the first page
       if (page == 1 && !forceRefresh) {
         _cachedRecipes = recipes;
         _lastFetchTime = DateTime.now();
       }
-      
+
       return recipes;
     } catch (e) {
-      print('❌ Error fetching recipes: $e');
+      log('❌ Error fetching recipes: $e');
       return [];
     }
   }
@@ -66,12 +67,12 @@ class RecipeService {
         // Not in cache, fetch from API
       }
     }
-    
+
     try {
       final response = await _apiService.get('/recipes/$id/');
       return Recipe.fromJson(response);
     } catch (e) {
-      print('❌ Error fetching recipe: $e');
+      log('❌ Error fetching recipe: $e');
       return null;
     }
   }
@@ -79,27 +80,28 @@ class RecipeService {
   Future<List<Review>> getReviews(int recipeId) async {
     try {
       final response = await _apiService.get('/reviews/recipe/$recipeId/');
-      final List<dynamic> data = response is List ? response : (response['results'] ?? []);
+      final List<dynamic> data =
+          response is List ? response : (response['results'] ?? []);
       return data.map((json) => Review.fromJson(json)).toList();
     } catch (e) {
-      print('❌ Error fetching reviews: $e');
+      log('❌ Error fetching reviews: $e');
       return [];
     }
   }
 
   Future<List<Category>> getCategories({bool forceRefresh = false}) async {
     // Return cached data if valid
-    if (!forceRefresh && 
-        _cachedCategories.isNotEmpty && 
+    if (!forceRefresh &&
+        _cachedCategories.isNotEmpty &&
         _lastFetchTime != null &&
         DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
-      print('📦 Using cached categories');
+      log('📦 Using cached categories');
       return _cachedCategories;
     }
-    
+
     try {
       final response = await _apiService.get('/recipes/categories/');
-      
+
       List<dynamic> categoriesList;
       if (response['results'] != null) {
         categoriesList = response['results'];
@@ -108,12 +110,13 @@ class RecipeService {
       } else {
         categoriesList = [];
       }
-      
-      _cachedCategories = categoriesList.map((json) => Category.fromJson(json)).toList();
-      print('✅ Categories loaded: ${_cachedCategories.length}');
+
+      _cachedCategories =
+          categoriesList.map((json) => Category.fromJson(json)).toList();
+      log('✅ Categories loaded: ${_cachedCategories.length}');
       return _cachedCategories;
     } catch (e) {
-      print('❌ Error fetching categories: $e');
+      log('❌ Error fetching categories: $e');
       return _cachedCategories.isNotEmpty ? _cachedCategories : [];
     }
   }
@@ -123,7 +126,7 @@ class RecipeService {
       await _apiService.post('/favorites/add/', {'recipe': recipeId});
       return true;
     } catch (e) {
-      print('❌ Error adding to favorites: $e');
+      log('❌ Error adding to favorites: $e');
       return false;
     }
   }
@@ -133,7 +136,7 @@ class RecipeService {
       await _apiService.delete('/favorites/remove/$recipeId/');
       return true;
     } catch (e) {
-      print('❌ Error removing from favorites: $e');
+      log('❌ Error removing from favorites: $e');
       return false;
     }
   }
@@ -143,7 +146,7 @@ class RecipeService {
       final favorites = await getFavorites();
       return favorites.any((recipe) => recipe.id == recipeId);
     } catch (e) {
-      print('❌ Error checking favorite: $e');
+      log('❌ Error checking favorite: $e');
       return false;
     }
   }
@@ -151,7 +154,7 @@ class RecipeService {
   Future<List<Recipe>> getFavorites() async {
     try {
       final response = await _apiService.get('/favorites/');
-      
+
       List<dynamic> data;
       if (response is Map && response['results'] != null) {
         data = response['results'];
@@ -160,17 +163,17 @@ class RecipeService {
       } else {
         data = [];
       }
-      
+
       final favorites = <Recipe>[];
       for (var item in data) {
         if (item['recipe_details'] != null) {
           favorites.add(Recipe.fromJson(item['recipe_details']));
         }
       }
-      
+
       return favorites;
     } catch (e) {
-      print('❌ Error fetching favorites: $e');
+      log('❌ Error fetching favorites: $e');
       return [];
     }
   }
@@ -183,7 +186,7 @@ class RecipeService {
       });
       return true;
     } catch (e) {
-      print('❌ Error submitting review: $e');
+      log('❌ Error submitting review: $e');
       return false;
     }
   }
@@ -193,7 +196,7 @@ class RecipeService {
       await _apiService.post('/submissions/create/', recipeData);
       return true;
     } catch (e) {
-      print('❌ Error submitting recipe: $e');
+      log('❌ Error submitting recipe: $e');
       return false;
     }
   }
@@ -203,6 +206,6 @@ class RecipeService {
     _cachedRecipes.clear();
     _cachedCategories.clear();
     _lastFetchTime = null;
-    print('🧹 Cache cleared');
+    log('🧹 Cache cleared');
   }
 }

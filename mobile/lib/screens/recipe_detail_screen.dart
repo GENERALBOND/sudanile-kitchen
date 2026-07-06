@@ -9,8 +9,8 @@ import '../providers/favorites_provider.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final dynamic recipe;
-  
-  const RecipeDetailScreen({Key? key, required this.recipe}) : super(key: key);
+
+  const RecipeDetailScreen({super.key, required this.recipe});
 
   @override
   State<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
@@ -35,42 +35,43 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   Future<void> _loadData() async {
     final recipeData = await _recipeService.getRecipe(_recipe.id);
     if (recipeData != null) setState(() => _recipe = recipeData);
-    
+
     final reviews = await _recipeService.getReviews(_recipe.id);
+    if (!mounted) return;
     setState(() => _reviews = reviews);
-    
+
     final authService = Provider.of<AuthService>(context, listen: false);
     if (authService.isAuthenticated) {
-      final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
+      final favProvider =
+          Provider.of<FavoritesProvider>(context, listen: false);
       if (favProvider.favoriteIds.isEmpty) {
         await favProvider.loadFavorites();
       }
     }
-    
+
     setState(() => _isLoading = false);
   }
 
   Future<void> _toggleFavorite() async {
     final authService = Provider.of<AuthService>(context, listen: false);
     if (!authService.isAuthenticated) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please login to save favorites')),
       );
       return;
     }
-    
+
     final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
     await favProvider.toggleFavorite(_recipe);
-    
+
     setState(() {});
-    
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          favProvider.isFavorite(_recipe.id) 
-              ? 'Added to favorites' 
-              : 'Removed from favorites'
-        ),
+        content: Text(favProvider.isFavorite(_recipe.id)
+            ? 'Added to favorites'
+            : 'Removed from favorites'),
       ),
     );
   }
@@ -82,7 +83,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       );
       return;
     }
-    
+
     setState(() => _isReviewing = true);
     final success = await _recipeService.submitReview(
       _recipe.id,
@@ -90,14 +91,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       _reviewController.text,
     );
     setState(() => _isReviewing = false);
-    
+
     if (success) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Review submitted!')),
       );
       Navigator.pop(context);
       _loadData();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to submit review')),
       );
@@ -109,7 +112,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     return Consumer<FavoritesProvider>(
       builder: (context, favProvider, child) {
         final isFavorite = favProvider.isFavorite(_recipe.id);
-        
+
         return Scaffold(
           body: _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -124,7 +127,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           fit: StackFit.expand,
                           children: [
                             // Background Image
-                            _recipe.imageUrl != null && _recipe.imageUrl!.isNotEmpty
+                            _recipe.imageUrl != null &&
+                                    _recipe.imageUrl!.isNotEmpty
                                 ? Image.network(
                                     _recipe.imageUrl!,
                                     fit: BoxFit.cover,
@@ -153,7 +157,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   end: Alignment.bottomCenter,
                                   colors: [
                                     Colors.transparent,
-                                    Colors.black.withOpacity(0.6),
+                                    Colors.black.withValues(alpha: 0.6),
                                   ],
                                 ),
                               ),
@@ -185,9 +189,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   Text(
                                     _recipe.categoryName,
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.8),
                                       fontSize: 14,
-                                      shadows: [
+                                      shadows: const [
                                         Shadow(
                                           blurRadius: 6,
                                           color: Colors.black45,
@@ -224,7 +229,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               children: [
                                 RatingBarIndicator(
                                   rating: _recipe.averageRating,
-                                  itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
+                                  itemBuilder: (context, _) => const Icon(
+                                      Icons.star,
+                                      color: Colors.amber),
                                   itemCount: 5,
                                   itemSize: 20,
                                 ),
@@ -236,28 +243,33 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            
+
                             // Time & Difficulty Chips
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildInfoChip(Icons.timer, _recipe.preparationTimeDisplay, 'Prep'),
-                                _buildInfoChip(Icons.timer, _recipe.cookingTimeDisplay, 'Cook'),
-                                _buildInfoChip(Icons.people, '${_recipe.servings}', 'Servings'),
-                                _buildInfoChip(Icons.fitness_center, _recipe.difficulty, 'Difficulty'),
+                                _buildInfoChip(Icons.timer,
+                                    _recipe.preparationTimeDisplay, 'Prep'),
+                                _buildInfoChip(Icons.timer,
+                                    _recipe.cookingTimeDisplay, 'Cook'),
+                                _buildInfoChip(Icons.people,
+                                    '${_recipe.servings}', 'Servings'),
+                                _buildInfoChip(Icons.fitness_center,
+                                    _recipe.difficulty, 'Difficulty'),
                               ],
                             ),
                             const SizedBox(height: 24),
-                            
+
                             // Description
                             const Text(
                               'Description',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             Text(_recipe.description),
                             const SizedBox(height: 16),
-                            
+
                             // Cultural Information
                             if (_recipe.culturalInfo.isNotEmpty) ...[
                               Container(
@@ -265,14 +277,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.orange.shade50,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.orange.shade200),
+                                  border:
+                                      Border.all(color: Colors.orange.shade200),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.history_edu, color: Colors.orange.shade700),
+                                        Icon(Icons.history_edu,
+                                            color: Colors.orange.shade700),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Cultural Information',
@@ -290,36 +304,45 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ),
                               const SizedBox(height: 16),
                             ],
-                            
+
                             // Ingredients
                             const Text(
                               'Ingredients',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            ...(_recipe.ingredients as List).map((ingredient) {
+                            ...(_recipe.ingredients).map((ingredient) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.check_circle, size: 18, color: Colors.green),
+                                    const Icon(Icons.check_circle,
+                                        size: 18, color: Colors.green),
                                     const SizedBox(width: 8),
-                                    Expanded(child: Text(ingredient.toString())),
+                                    Expanded(
+                                        child: Text(ingredient.toString())),
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 16),
-                            
+
                             // Instructions
                             const Text(
                               'Instructions',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            ...(_recipe.instructions as List).asMap().entries.map((entry) {
+                            ...(_recipe.instructions)
+                                .asMap()
+                                .entries
+                                .map((entry) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -341,17 +364,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    Expanded(child: Text(entry.value.toString())),
+                                    Expanded(
+                                        child: Text(entry.value.toString())),
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 24),
-                            
+
                             // Reviews Section
                             const Text(
                               'Reviews',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             ElevatedButton.icon(
@@ -367,11 +392,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 20),
                                 child: Center(
-                                  child: Text('No reviews yet. Be the first to review!'),
+                                  child: Text(
+                                      'No reviews yet. Be the first to review!'),
                                 ),
                               )
                             else
-                              ..._reviews.map((review) => _buildReviewCard(review)),
+                              ..._reviews
+                                  .map((review) => _buildReviewCard(review)),
                             const SizedBox(height: 32),
                           ],
                         ),
@@ -431,7 +458,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                       RatingBarIndicator(
                         rating: review.rating.toDouble(),
-                        itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
+                        itemBuilder: (context, _) =>
+                            const Icon(Icons.star, color: Colors.amber),
                         itemCount: 5,
                         itemSize: 14,
                       ),
@@ -460,7 +488,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       );
       return;
     }
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -473,8 +501,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               minRating: 1,
               direction: Axis.horizontal,
               itemCount: 5,
-              itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
-              onRatingUpdate: (rating) => setState(() => _userRating = rating.toInt()),
+              itemBuilder: (context, _) =>
+                  const Icon(Icons.star, color: Colors.amber),
+              onRatingUpdate: (rating) =>
+                  setState(() => _userRating = rating.toInt()),
             ),
             const SizedBox(height: 16),
             TextField(

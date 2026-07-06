@@ -8,11 +8,11 @@ class RecipeCard extends StatelessWidget {
   final bool horizontal;
   
   const RecipeCard({
-    Key? key,
+    super.key,
     required this.recipe,
     required this.onTap,
     this.horizontal = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -16,7 +16,7 @@ void main() async {
 class SudanileKitchenApp extends StatelessWidget {
   final String? initialToken;
   
-  const SudanileKitchenApp({Key? key, this.initialToken}) : super(key: key);
+  const SudanileKitchenApp({super.key, this.initialToken});
 
   @override
   Widget build(BuildContext context) {

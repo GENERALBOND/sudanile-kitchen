@@ -4,7 +4,7 @@ import '../services/auth_service.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -24,26 +24,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     final authService = Provider.of<AuthService>(context, listen: false);
     final result = await authService.register(
       _usernameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text,
     );
-    
+
+    if (!mounted) return;
     setState(() => _isLoading = false);
-    
+
     if (result['success'] == true) {
       setState(() {
         _registrationComplete = true;
-        _registrationMessage = 'Please check your email to verify your account.';
+        _registrationMessage =
+            'Please check your email to verify your account.';
       });
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['error'] ?? 'Registration failed. Email may already exist.')),
+        SnackBar(
+            content: Text(result['error'] ??
+                'Registration failed. Email may already exist.')),
       );
     }
   }
@@ -53,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_registrationComplete) {
       return _buildVerificationScreen();
     }
-    
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -69,14 +74,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Colors.orange,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: const Icon(Icons.person_add, size: 40, color: Colors.white),
+                child:
+                    const Icon(Icons.person_add, size: 40, color: Colors.white),
               ),
               const SizedBox(height: 20),
               Text(
                 'Create Account',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -132,8 +138,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          icon: Icon(_obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                         border: const OutlineInputBorder(),
                       ),
@@ -155,8 +164,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         labelText: 'Confirm Password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                          icon: Icon(_obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () => setState(() =>
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword),
                         ),
                         border: const OutlineInputBorder(),
                       ),
@@ -185,7 +198,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign Up', style: TextStyle(fontSize: 16)),
+                          : const Text('Sign Up',
+                              style: TextStyle(fontSize: 16)),
                     ),
                   ],
                 ),
@@ -230,8 +244,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 'Verify Your Email',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -251,21 +265,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () async {
-                        final authService = Provider.of<AuthService>(context, listen: false);
+                        final authService =
+                            Provider.of<AuthService>(context, listen: false);
+                        final email = _emailController.text;
                         try {
-                          final result = await authService.resendVerification(_emailController.text);
+                          final result =
+                              await authService.resendVerification(email);
+                          if (!mounted) return;
                           if (result) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Verification email resent!')),
+                              const SnackBar(
+                                  content: Text('Verification email resent!')),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Failed to resend email')),
+                              const SnackBar(
+                                  content: Text('Failed to resend email')),
                             );
                           }
                         } catch (e) {
+                          if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Failed to resend email')),
+                            const SnackBar(
+                                content: Text('Failed to resend email')),
                           );
                         }
                       },

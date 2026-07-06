@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/favorites_provider.dart';
 import '../services/auth_service.dart';
-import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
 import 'recipe_detail_screen.dart';
 import 'login_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({Key? key}) : super(key: key);
+  const FavoritesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

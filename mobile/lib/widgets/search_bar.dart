@@ -5,10 +5,10 @@ class CustomSearchBar extends StatelessWidget {
   final Function(String) onSearch;
   
   const CustomSearchBar({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onSearch,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class CustomSearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

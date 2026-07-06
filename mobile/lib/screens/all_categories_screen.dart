@@ -4,7 +4,7 @@ import '../models/recipe.dart';
 import 'search_screen.dart';
 
 class AllCategoriesScreen extends StatefulWidget {
-  const AllCategoriesScreen({Key? key}) : super(key: key);
+  const AllCategoriesScreen({super.key});
 
   @override
   State<AllCategoriesScreen> createState() => _AllCategoriesScreenState();
@@ -67,7 +67,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),

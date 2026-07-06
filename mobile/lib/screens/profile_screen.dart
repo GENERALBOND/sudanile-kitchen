@@ -10,7 +10,7 @@ import 'about_screen.dart';
 class ProfileScreen extends StatelessWidget {
   final bool isGuestMode;
   
-  const ProfileScreen({Key? key, this.isGuestMode = false}) : super(key: key);
+  const ProfileScreen({super.key, this.isGuestMode = false});
 
   @override
   Widget build(BuildContext context) {

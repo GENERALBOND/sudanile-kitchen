@@ -7,8 +7,8 @@ import 'recipe_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? initialCategory;
-  
-  const SearchScreen({Key? key, this.initialCategory}) : super(key: key);
+
+  const SearchScreen({super.key, this.initialCategory});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -23,12 +23,11 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Recipe> _suggestions = [];
   List<Recipe> _allRecipes = [];
   bool _showSuggestions = false;
-  final PagingController<int, Recipe> _pagingController = PagingController(firstPageKey: 1);
+  final PagingController<int, Recipe> _pagingController =
+      PagingController(firstPageKey: 1);
   String? _currentSearch;
   String? _currentOrdering = '-created_at';
   bool _isLoadingCategories = true;
-  bool _isSearching = false;
-  bool _isLoadingAllRecipes = false;
 
   @override
   void initState() {
@@ -38,11 +37,11 @@ class _SearchScreenState extends State<SearchScreen> {
     _pagingController.addPageRequestListener((pageKey) {
       _fetchRecipes(pageKey);
     });
-    
+
     if (widget.initialCategory != null) {
       _selectedCategory = widget.initialCategory;
     }
-    
+
     _searchController.addListener(() {
       _updateSuggestions();
     });
@@ -64,14 +63,12 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _loadAllRecipes() async {
-    setState(() => _isLoadingAllRecipes = true);
     _allRecipes = await _recipeService.getRecipes();
-    setState(() => _isLoadingAllRecipes = false);
   }
 
   void _updateSuggestions() {
     final query = _searchController.text.toLowerCase().trim();
-    
+
     if (query.isEmpty) {
       setState(() {
         _suggestions = [];
@@ -79,23 +76,23 @@ class _SearchScreenState extends State<SearchScreen> {
       });
       return;
     }
-    
+
     // First, match recipes that start with the typed letters
     final startsWith = _allRecipes.where((recipe) {
       return recipe.title.toLowerCase().startsWith(query) ||
-             recipe.categoryName.toLowerCase().startsWith(query);
+          recipe.categoryName.toLowerCase().startsWith(query);
     }).toList();
-    
+
     // Then, match recipes that contain the typed letters anywhere
     final contains = _allRecipes.where((recipe) {
       return (recipe.title.toLowerCase().contains(query) ||
-             recipe.categoryName.toLowerCase().contains(query)) &&
-             !startsWith.contains(recipe);
+              recipe.categoryName.toLowerCase().contains(query)) &&
+          !startsWith.contains(recipe);
     }).toList();
-    
+
     // Combine: starts with first, then contains
     final combined = [...startsWith, ...contains];
-    
+
     // Limit to 10 suggestions
     setState(() {
       _suggestions = combined.take(10).toList();
@@ -111,7 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ordering: _currentOrdering,
         page: pageKey,
       );
-      
+
       final isLastPage = recipes.length < 10;
       if (isLastPage) {
         _pagingController.appendLastPage(recipes);
@@ -127,10 +124,9 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _currentSearch = query.isNotEmpty ? query : null;
       _showSuggestions = false;
-      _isSearching = true;
       _pagingController.refresh();
     });
-    
+
     // Close keyboard
     FocusScope.of(context).unfocus();
   }
@@ -141,7 +137,6 @@ class _SearchScreenState extends State<SearchScreen> {
       _suggestions = [];
       _showSuggestions = false;
       _currentSearch = null;
-      _isSearching = false;
       _pagingController.refresh();
     });
   }
@@ -152,7 +147,6 @@ class _SearchScreenState extends State<SearchScreen> {
       _selectedDifficulty = null;
       _currentOrdering = '-created_at';
       _currentSearch = null;
-      _isSearching = false;
       _searchController.clear();
       _suggestions = [];
       _showSuggestions = false;
@@ -203,7 +197,8 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 FilterChip(
                   label: const Text('All'),
-                  selected: _selectedCategory == null && _selectedDifficulty == null,
+                  selected:
+                      _selectedCategory == null && _selectedDifficulty == null,
                   onSelected: (_) {
                     setState(() {
                       _selectedCategory = null;
@@ -213,17 +208,16 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                 ),
                 const SizedBox(width: 8),
-                
-                if (_selectedCategory != null || _selectedDifficulty != null || _currentOrdering != '-created_at')
+                if (_selectedCategory != null ||
+                    _selectedDifficulty != null ||
+                    _currentOrdering != '-created_at')
                   FilterChip(
                     label: const Text('Clear Filters'),
                     onSelected: (_) => _clearFilters(),
                     backgroundColor: Colors.red.shade100,
                     labelStyle: TextStyle(color: Colors.red.shade700),
                   ),
-                
                 const SizedBox(width: 8),
-                
                 if (!_isLoadingCategories && _categories.isNotEmpty)
                   PopupMenuButton<String>(
                     onSelected: (value) {
@@ -237,16 +231,15 @@ class _SearchScreenState extends State<SearchScreen> {
                       avatar: const Icon(Icons.category, size: 18),
                     ),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'All', child: Text('All Categories')),
+                      const PopupMenuItem(
+                          value: 'All', child: Text('All Categories')),
                       ..._categories.map((cat) => PopupMenuItem(
-                        value: cat.name,
-                        child: Text(cat.name),
-                      )),
+                            value: cat.name,
+                            child: Text(cat.name),
+                          )),
                     ],
                   ),
-                
                 const SizedBox(width: 8),
-                
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     setState(() {
@@ -259,14 +252,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     avatar: const Icon(Icons.fitness_center, size: 18),
                   ),
                   itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'All', child: Text('All Difficulties')),
+                    PopupMenuItem(
+                        value: 'All', child: Text('All Difficulties')),
                     PopupMenuItem(value: 'easy', child: Text('Easy')),
                     PopupMenuItem(value: 'medium', child: Text('Medium')),
                     PopupMenuItem(value: 'hard', child: Text('Hard')),
                   ],
                 ),
                 const SizedBox(width: 8),
-                
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     setState(() {
@@ -285,20 +278,24 @@ class _SearchScreenState extends State<SearchScreen> {
                     avatar: const Icon(Icons.sort, size: 18),
                   ),
                   itemBuilder: (context) => const [
-                    PopupMenuItem(value: '-created_at', child: Text('Newest First')),
-                    PopupMenuItem(value: 'created_at', child: Text('Oldest First')),
-                    PopupMenuItem(value: '-average_rating', child: Text('Highest Rated')),
-                    PopupMenuItem(value: '-view_count', child: Text('Most Viewed')),
+                    PopupMenuItem(
+                        value: '-created_at', child: Text('Newest First')),
+                    PopupMenuItem(
+                        value: 'created_at', child: Text('Oldest First')),
+                    PopupMenuItem(
+                        value: '-average_rating', child: Text('Highest Rated')),
+                    PopupMenuItem(
+                        value: '-view_count', child: Text('Most Viewed')),
                   ],
                 ),
               ],
             ),
           ),
-          
+
           // Suggestions List (appears when typing)
           if (_showSuggestions && _suggestions.isNotEmpty)
             Container(
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 maxHeight: 300,
               ),
               color: Colors.white,
@@ -315,12 +312,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                     subtitle: Text(
                       recipe.categoryName,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 12),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                        Icon(Icons.star,
+                            size: 16, color: Colors.amber.shade700),
                         const SizedBox(width: 4),
                         Text(
                           recipe.averageRating.toString(),
@@ -341,7 +340,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 },
               ),
             ),
-          
+
           // Results with Lazy Loading
           if (!_showSuggestions)
             Expanded(
@@ -382,8 +381,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       children: [
                         Icon(Icons.search_off, size: 64, color: Colors.grey),
                         SizedBox(height: 16),
-                        Text('No recipes found', style: TextStyle(fontSize: 18)),
-                        Text('Try adjusting your search', style: TextStyle(color: Colors.grey)),
+                        Text('No recipes found',
+                            style: TextStyle(fontSize: 18)),
+                        Text('Try adjusting your search',
+                            style: TextStyle(color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -394,14 +395,19 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
-  
+
   String _getSortLabel() {
     switch (_currentOrdering) {
-      case '-created_at': return 'Newest';
-      case 'created_at': return 'Oldest';
-      case '-average_rating': return 'Top Rated';
-      case '-view_count': return 'Popular';
-      default: return 'Sort';
+      case '-created_at':
+        return 'Newest';
+      case 'created_at':
+        return 'Oldest';
+      case '-average_rating':
+        return 'Top Rated';
+      case '-view_count':
+        return 'Popular';
+      default:
+        return 'Sort';
     }
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
-  const PrivacySecurityScreen({Key? key}) : super(key: key);
+  const PrivacySecurityScreen({super.key});
 
   @override
   State<PrivacySecurityScreen> createState() => _PrivacySecurityScreenState();
@@ -39,7 +39,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     await prefs.setBool('share_analytics', _shareAnalytics);
     await prefs.setBool('share_personalized_data', _sharePersonalizedData);
     await prefs.setString('privacy_level', _selectedPrivacyLevel);
-    
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Privacy settings saved!')),
     );
@@ -63,7 +63,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            
+
             // Security Section
             _buildSectionHeader('Security', Icons.security),
             _buildSwitchTile(
@@ -80,10 +80,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               value: _twoFactorAuth,
               onChanged: (val) => setState(() => _twoFactorAuth = val),
             ),
-            
+
             const Divider(),
             const SizedBox(height: 8),
-            
+
             // Privacy Section
             _buildSectionHeader('Privacy', Icons.privacy_tip),
             _buildSwitchTile(
@@ -100,9 +100,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               value: _sharePersonalizedData,
               onChanged: (val) => setState(() => _sharePersonalizedData = val),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Privacy Level
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -116,9 +116,18 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   const SizedBox(height: 8),
                   SegmentedButton<String>(
                     segments: const [
-                      ButtonSegment(value: 'low', label: Text('Low'), icon: Icon(Icons.public)),
-                      ButtonSegment(value: 'medium', label: Text('Medium'), icon: Icon(Icons.people)),
-                      ButtonSegment(value: 'high', label: Text('High'), icon: Icon(Icons.lock)),
+                      ButtonSegment(
+                          value: 'low',
+                          label: Text('Low'),
+                          icon: Icon(Icons.public)),
+                      ButtonSegment(
+                          value: 'medium',
+                          label: Text('Medium'),
+                          icon: Icon(Icons.people)),
+                      ButtonSegment(
+                          value: 'high',
+                          label: Text('High'),
+                          icon: Icon(Icons.lock)),
                     ],
                     selected: {_selectedPrivacyLevel},
                     onSelectionChanged: (Set<String> selection) {
@@ -135,44 +144,48 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ],
               ),
             ),
-            
+
             const Divider(),
             const SizedBox(height: 8),
-            
+
             // Data Management
             _buildSectionHeader('Data Management', Icons.data_usage),
-            
+
             _buildActionTile(
               icon: Icons.download,
               title: 'Download My Data',
               subtitle: 'Request a copy of all your data',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Data download request submitted! Check your email.')),
+                  const SnackBar(
+                      content: Text(
+                          'Data download request submitted! Check your email.')),
                 );
               },
             ),
-            
+
             _buildActionTile(
               icon: Icons.cleaning_services,
               title: 'Clear Search History',
               subtitle: 'Remove all your search history',
-              onTap: () => _showConfirmDialog('Clear Search History', 'Are you sure you want to clear all search history?'),
+              onTap: () => _showConfirmDialog('Clear Search History',
+                  'Are you sure you want to clear all search history?'),
             ),
-            
+
             _buildActionTile(
               icon: Icons.delete_sweep,
               title: 'Clear Cache',
               subtitle: 'Free up space by clearing cached data',
-              onTap: () => _showConfirmDialog('Clear Cache', 'Clear all cached data? You will need to reload content.'),
+              onTap: () => _showConfirmDialog('Clear Cache',
+                  'Clear all cached data? You will need to reload content.'),
             ),
-            
+
             const Divider(),
             const SizedBox(height: 8),
-            
+
             // Account Actions
             _buildSectionHeader('Account Actions', Icons.account_circle),
-            
+
             _buildActionTile(
               icon: Icons.history,
               title: 'Login History',
@@ -183,7 +196,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 );
               },
             ),
-            
+
             _buildActionTile(
               icon: Icons.devices,
               title: 'Active Sessions',
@@ -194,7 +207,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 );
               },
             ),
-            
+
             const SizedBox(height: 32),
           ],
         ),
@@ -247,7 +260,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
       value: value,
       onChanged: onChanged,
-      activeColor: Colors.orange,
+      activeThumbColor: Colors.orange,
     );
   }
 

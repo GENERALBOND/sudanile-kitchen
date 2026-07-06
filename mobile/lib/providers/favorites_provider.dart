@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../services/recipe_service.dart';
@@ -16,21 +17,21 @@ class FavoritesProvider extends ChangeNotifier {
   Future<void> loadFavorites() async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       _favorites = await _recipeService.getFavorites();
       _favoriteIds = _favorites.map((r) => r.id).toSet();
     } catch (e) {
-      print('Error loading favorites: $e');
+      log('Error loading favorites: $e');
     }
-    
+
     _isLoading = false;
     notifyListeners();
   }
 
   Future<void> toggleFavorite(Recipe recipe) async {
     final isFavorite = _favoriteIds.contains(recipe.id);
-    
+
     if (isFavorite) {
       final success = await _recipeService.removeFromFavorites(recipe.id);
       if (success) {
@@ -58,7 +59,8 @@ class FavoritesProvider extends ChangeNotifier {
 
   // Remove from favorites by recipe ID
   Future<void> removeFavorite(int recipeId) async {
-    final recipe = _favorites.firstWhere((r) => r.id == recipeId, orElse: () => throw Exception());
+    final recipe = _favorites.firstWhere((r) => r.id == recipeId,
+        orElse: () => throw Exception());
     await toggleFavorite(recipe);
   }
 }

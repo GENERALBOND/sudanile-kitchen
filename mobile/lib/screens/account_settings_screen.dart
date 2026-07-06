@@ -5,7 +5,7 @@ import '../services/api_service.dart';
 import 'login_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
-  const AccountSettingsScreen({Key? key}) : super(key: key);
+  const AccountSettingsScreen({super.key});
 
   @override
   State<AccountSettingsScreen> createState() => _AccountSettingsScreenState();
@@ -18,7 +18,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _deletePasswordController = TextEditingController();
-  
+
   bool _isEditing = false;
   bool _isChangingPassword = false;
   bool _isDeletingAccount = false;
@@ -45,29 +45,34 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       );
       return;
     }
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       final apiService = ApiService();
       await apiService.put('/users/profile/', {
         'username': _usernameController.text.trim(),
         'bio': _bioController.text.trim(),
       });
-      
+
+      if (!mounted) return;
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.refreshUser();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Profile updated successfully!')),
       );
       setState(() => _isEditing = false);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Failed to update profile: ${e.toString()}')),
       );
     }
-    
+
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
@@ -78,97 +83,108 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       );
       return;
     }
-    
+
     if (_newPasswordController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password must be at least 6 characters')),
       );
       return;
     }
-    
+
     if (_currentPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your current password')),
       );
       return;
     }
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       final apiService = ApiService();
       await apiService.post('/users/change-password/', {
         'old_password': _currentPasswordController.text,
         'new_password': _newPasswordController.text,
       });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully! Please login again.')),
+
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+            content:
+                Text('Password changed successfully! Please login again.')),
       );
-      
+
       _currentPasswordController.clear();
       _newPasswordController.clear();
       _confirmPasswordController.clear();
       setState(() => _isChangingPassword = false);
-      
+
       // Logout after password change
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.logout();
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (route) => false,
-        );
-      }
-      
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Current password is incorrect')),
       );
     }
-    
+
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
   Future<void> _deleteAccount() async {
     if (_deletePasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your password to confirm account deletion')),
+        const SnackBar(
+            content:
+                Text('Please enter your password to confirm account deletion')),
       );
       return;
     }
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       final apiService = ApiService();
       await apiService.deleteWithBody('/users/delete-account/', {
         'password': _deletePasswordController.text,
       });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account deleted successfully. We\'re sad to see you go!')),
+
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Account deleted successfully. We\'re sad to see you go!')),
       );
-      
+
       // Logout and clear all data
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.logout();
-      
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (route) => false,
-        );
-      }
-      
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Failed to delete account: ${e.toString()}')),
       );
     }
-    
+
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
       _isDeletingAccount = false;
@@ -180,13 +196,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final user = authService.user;
-    
+
     if (user == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account Settings'),
@@ -225,10 +241,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                             border: Border.all(color: Colors.white, width: 2),
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
+                            icon: const Icon(Icons.camera_alt,
+                                size: 20, color: Colors.white),
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Photo upload coming soon!')),
+                                const SnackBar(
+                                    content: Text('Photo upload coming soon!')),
                               );
                             },
                           ),
@@ -244,13 +262,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Edit Profile Section
             if (!_isEditing) ...[
               _buildInfoTile('Username', user.username),
-              _buildInfoTile('Bio', user.bio?.isNotEmpty == true ? user.bio! : 'No bio yet'),
+              _buildInfoTile('Bio',
+                  user.bio?.isNotEmpty == true ? user.bio! : 'No bio yet'),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () => setState(() => _isEditing = true),
@@ -301,7 +320,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updateProfile,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -314,9 +334,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ],
-            
+
             const SizedBox(height: 32),
-            
+
             // Change Password Section
             if (!_isChangingPassword) ...[
               const Divider(),
@@ -344,8 +364,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   labelText: 'Current Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureCurrent ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                    icon: Icon(_obscureCurrent
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _obscureCurrent = !_obscureCurrent),
                   ),
                 ),
               ),
@@ -357,7 +380,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   labelText: 'New Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility),
+                    icon: Icon(
+                        _obscureNew ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscureNew = !_obscureNew),
                   ),
                 ),
@@ -370,8 +394,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   labelText: 'Confirm New Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    icon: Icon(_obscureConfirm
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                 ),
               ),
@@ -393,7 +420,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _changePassword,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -406,9 +434,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ],
-            
+
             const SizedBox(height: 32),
-            
+
             // Danger Zone - Delete Account
             Container(
               decoration: BoxDecoration(
@@ -436,13 +464,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                   ),
                   const Divider(color: Colors.red, height: 1),
-                  
                   if (!_isDeletingAccount) ...[
                     ListTile(
-                      leading: const Icon(Icons.delete_forever, color: Colors.red),
-                      title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
-                      subtitle: const Text('Permanently delete your account and all data'),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                      leading:
+                          const Icon(Icons.delete_forever, color: Colors.red),
+                      title: const Text('Delete Account',
+                          style: TextStyle(color: Colors.red)),
+                      subtitle: const Text(
+                          'Permanently delete your account and all data'),
+                      trailing:
+                          const Icon(Icons.chevron_right, color: Colors.red),
                       onTap: () => setState(() => _isDeletingAccount = true),
                     ),
                   ] else ...[
@@ -473,8 +504,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               labelText: 'Enter your password to confirm',
                               border: const OutlineInputBorder(),
                               suffixIcon: IconButton(
-                                icon: Icon(_obscureDelete ? Icons.visibility_off : Icons.visibility),
-                                onPressed: () => setState(() => _obscureDelete = !_obscureDelete),
+                                icon: Icon(_obscureDelete
+                                    ? Icons.visibility_off
+                                    : Icons.visibility),
+                                onPressed: () => setState(
+                                    () => _obscureDelete = !_obscureDelete),
                               ),
                             ),
                           ),
@@ -503,7 +537,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                       ? const SizedBox(
                                           height: 20,
                                           width: 20,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2),
                                         )
                                       : const Text('Permanently Delete'),
                                 ),
@@ -517,7 +552,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
           ],
         ),

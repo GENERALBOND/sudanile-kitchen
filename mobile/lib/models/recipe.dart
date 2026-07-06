@@ -92,17 +92,17 @@ class Recipe {
 
   String get preparationTimeDisplay {
     List<String> parts = [];
-    if (prepHours > 0) parts.add("${prepHours} hr${prepHours > 1 ? 's' : ''}");
-    if (prepMinutes > 0) parts.add("${prepMinutes} min${prepMinutes > 1 ? 's' : ''}");
-    if (prepSeconds > 0) parts.add("${prepSeconds} sec${prepSeconds > 1 ? 's' : ''}");
+    if (prepHours > 0) parts.add("$prepHours hr${prepHours > 1 ? 's' : ''}");
+    if (prepMinutes > 0) parts.add("$prepMinutes min${prepMinutes > 1 ? 's' : ''}");
+    if (prepSeconds > 0) parts.add("$prepSeconds sec${prepSeconds > 1 ? 's' : ''}");
     return parts.isEmpty ? "0 mins" : parts.join(" ");
   }
 
   String get cookingTimeDisplay {
     List<String> parts = [];
-    if (cookHours > 0) parts.add("${cookHours} hr${cookHours > 1 ? 's' : ''}");
-    if (cookMinutes > 0) parts.add("${cookMinutes} min${cookMinutes > 1 ? 's' : ''}");
-    if (cookSeconds > 0) parts.add("${cookSeconds} sec${cookSeconds > 1 ? 's' : ''}");
+    if (cookHours > 0) parts.add("$cookHours hr${cookHours > 1 ? 's' : ''}");
+    if (cookMinutes > 0) parts.add("$cookMinutes min${cookMinutes > 1 ? 's' : ''}");
+    if (cookSeconds > 0) parts.add("$cookSeconds sec${cookSeconds > 1 ? 's' : ''}");
     return parts.isEmpty ? "0 mins" : parts.join(" ");
   }
 

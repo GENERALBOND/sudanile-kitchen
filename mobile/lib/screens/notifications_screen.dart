@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -31,7 +31,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _pushNotifications = prefs.getBool('push_notifications') ?? true;
       _recipeApprovalAlerts = prefs.getBool('recipe_approval_alerts') ?? true;
       _newRecipesAlerts = prefs.getBool('new_recipes_alerts') ?? true;
-      _communityUpdatesAlerts = prefs.getBool('community_updates_alerts') ?? true;
+      _communityUpdatesAlerts =
+          prefs.getBool('community_updates_alerts') ?? true;
       _reviewRepliesAlerts = prefs.getBool('review_replies_alerts') ?? true;
       _weeklyDigest = prefs.getBool('weekly_digest') ?? false;
       _marketingEmails = prefs.getBool('marketing_emails') ?? false;
@@ -48,7 +49,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await prefs.setBool('review_replies_alerts', _reviewRepliesAlerts);
     await prefs.setBool('weekly_digest', _weeklyDigest);
     await prefs.setBool('marketing_emails', _marketingEmails);
-    
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Notification settings saved!')),
     );
@@ -72,7 +73,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            
+
             // Main Notification Toggles
             _buildSectionHeader('Notification Channels'),
             _buildSwitchTile(
@@ -89,10 +90,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               value: _pushNotifications,
               onChanged: (val) => setState(() => _pushNotifications = val),
             ),
-            
+
             const Divider(),
             const SizedBox(height: 8),
-            
+
             // Recipe Related Alerts
             _buildSectionHeader('Recipe Alerts'),
             _buildSwitchTile(
@@ -109,10 +110,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               value: _newRecipesAlerts,
               onChanged: (val) => setState(() => _newRecipesAlerts = val),
             ),
-            
+
             const Divider(),
             const SizedBox(height: 8),
-            
+
             // Community Updates
             _buildSectionHeader('Community Updates'),
             _buildSwitchTile(
@@ -129,16 +130,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               value: _reviewRepliesAlerts,
               onChanged: (val) => setState(() => _reviewRepliesAlerts = val),
             ),
-            
+
             const Divider(),
             const SizedBox(height: 8),
-            
+
             // Digest & Marketing
             _buildSectionHeader('Digest & Marketing'),
             _buildSwitchTile(
               icon: Icons.calendar_today,
               title: 'Weekly Digest',
-              subtitle: 'Weekly summary of popular recipes and community activity',
+              subtitle:
+                  'Weekly summary of popular recipes and community activity',
               value: _weeklyDigest,
               onChanged: (val) => setState(() => _weeklyDigest = val),
             ),
@@ -149,9 +151,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               value: _marketingEmails,
               onChanged: (val) => setState(() => _marketingEmails = val),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Info Card
             Container(
               margin: const EdgeInsets.all(16),
@@ -168,13 +170,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Expanded(
                     child: Text(
                       'You can change these settings anytime. Push notifications require device permission.',
-                      style: TextStyle(color: Colors.blue.shade700, fontSize: 12),
+                      style:
+                          TextStyle(color: Colors.blue.shade700, fontSize: 12),
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
           ],
         ),
@@ -209,7 +212,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
       value: value,
       onChanged: onChanged,
-      activeColor: Colors.orange,
+      activeThumbColor: Colors.orange,
     );
   }
 }

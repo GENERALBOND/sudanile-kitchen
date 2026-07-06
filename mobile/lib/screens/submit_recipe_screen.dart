@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/recipe_service.dart';
@@ -6,7 +7,7 @@ import '../models/recipe.dart';
 import 'login_screen.dart';
 
 class SubmitRecipeScreen extends StatefulWidget {
-  const SubmitRecipeScreen({Key? key}) : super(key: key);
+  const SubmitRecipeScreen({super.key});
 
   @override
   State<SubmitRecipeScreen> createState() => _SubmitRecipeScreenState();
@@ -15,7 +16,7 @@ class SubmitRecipeScreen extends StatefulWidget {
 class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   final RecipeService _recipeService = RecipeService();
   final _formKey = GlobalKey<FormState>();
-  
+
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _culturalInfoController = TextEditingController();
@@ -30,7 +31,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   final _videoUrlController = TextEditingController();
   final _ingredientsController = TextEditingController();
   final _instructionsController = TextEditingController();
-  
+
   List<Category> _categories = [];
   Category? _selectedCategory;
   bool _isLoadingCategories = true;
@@ -53,7 +54,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         _isLoadingCategories = false;
       });
     } catch (e) {
-      print('Error loading categories: $e');
+      log('Error loading categories: $e');
       setState(() => _isLoadingCategories = false);
     }
   }
@@ -70,36 +71,36 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
       );
       return;
     }
-    
+
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all required fields')),
       );
       return;
     }
-    
+
     if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a category')),
       );
       return;
     }
-    
+
     setState(() => _isSubmitting = true);
-    
+
     try {
       final ingredients = _ingredientsController.text
           .split('\n')
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
           .toList();
-          
+
       final instructions = _instructionsController.text
           .split('\n')
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
           .toList();
-      
+
       if (ingredients.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please add at least one ingredient')),
@@ -107,7 +108,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         setState(() => _isSubmitting = false);
         return;
       }
-      
+
       if (instructions.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please add at least one instruction')),
@@ -115,7 +116,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         setState(() => _isSubmitting = false);
         return;
       }
-      
+
       // Parse time values safely
       int prepHours = int.tryParse(_prepHoursController.text) ?? 0;
       int prepMinutes = int.tryParse(_prepMinutesController.text) ?? 0;
@@ -124,7 +125,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
       int cookMinutes = int.tryParse(_cookMinutesController.text) ?? 0;
       int cookSeconds = int.tryParse(_cookSecondsController.text) ?? 0;
       int servings = int.tryParse(_servingsController.text) ?? 4;
-      
+
       final recipeData = {
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -140,29 +141,38 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         'servings': servings,
         'difficulty': _selectedDifficulty,
         'category_name': _selectedCategory!.name,
-        'image_url': _imageUrlController.text.trim().isNotEmpty ? _imageUrlController.text.trim() : null,
-        'video_url': _videoUrlController.text.trim().isNotEmpty ? _videoUrlController.text.trim() : null,
+        'image_url': _imageUrlController.text.trim().isNotEmpty
+            ? _imageUrlController.text.trim()
+            : null,
+        'video_url': _videoUrlController.text.trim().isNotEmpty
+            ? _videoUrlController.text.trim()
+            : null,
       };
-      
-      print('📤 Submitting recipe: $recipeData');
-      
+
+      final currentContext = context;
+      final messenger = ScaffoldMessenger.of(currentContext);
+      log('📤 Submitting recipe: $recipeData');
+
       final success = await _recipeService.submitRecipe(recipeData);
-      
+
+      if (!mounted) return;
       setState(() => _isSubmitting = false);
-      
+
       if (success) {
         setState(() => _submitted = true);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(content: Text('Recipe submitted successfully!')),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit recipe. Please try again.')),
+        messenger.showSnackBar(
+          const SnackBar(
+              content: Text('Failed to submit recipe. Please try again.')),
         );
       }
     } catch (e) {
       setState(() => _isSubmitting = false);
-      print('❌ Error: $e');
+      log('❌ Error: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -183,9 +193,11 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
             children: [
               const Icon(Icons.check_circle, color: Colors.green, size: 80),
               const SizedBox(height: 16),
-              const Text('Recipe Submitted!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text('Recipe Submitted!',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('Your recipe is pending review.', style: TextStyle(color: Colors.grey)),
+              const Text('Your recipe is pending review.',
+                  style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
@@ -221,7 +233,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         ),
       );
     }
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Submit Recipe'),
@@ -246,7 +258,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Description
                     TextFormField(
                       controller: _descriptionController,
@@ -258,19 +270,20 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Cultural Information
                     TextFormField(
                       controller: _culturalInfoController,
                       decoration: const InputDecoration(
                         labelText: 'Cultural Information',
-                        hintText: 'Historical background, cultural significance...',
+                        hintText:
+                            'Historical background, cultural significance...',
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Category Dropdown
                     _isLoadingCategories
                         ? const Center(
@@ -280,7 +293,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                             ),
                           )
                         : DropdownButtonFormField<Category>(
-                            value: _selectedCategory,
+                            initialValue: _selectedCategory,
                             decoration: const InputDecoration(
                               labelText: 'Category *',
                               border: OutlineInputBorder(),
@@ -296,19 +309,23 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                                 _selectedCategory = value;
                               });
                             },
-                            validator: (value) => value == null ? 'Please select a category' : null,
+                            validator: (value) => value == null
+                                ? 'Please select a category'
+                                : null,
                           ),
                     const SizedBox(height: 16),
-                    
+
                     // Time & Servings Section
                     const Text(
                       'Time & Servings',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Preparation Time
-                    const Text('Preparation Time', style: TextStyle(fontSize: 14)),
+                    const Text('Preparation Time',
+                        style: TextStyle(fontSize: 14)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -347,7 +364,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Cooking Time
                     const Text('Cooking Time', style: TextStyle(fontSize: 14)),
                     const SizedBox(height: 8),
@@ -388,7 +405,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Servings and Difficulty
                     Row(
                       children: [
@@ -400,33 +417,39 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
-                            validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
+                            validator: (v) =>
+                                v?.isEmpty ?? true ? 'Required' : null,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _selectedDifficulty,
+                            initialValue: _selectedDifficulty,
                             decoration: const InputDecoration(
                               labelText: 'Difficulty',
                               border: OutlineInputBorder(),
                             ),
                             items: const [
-                              DropdownMenuItem(value: 'easy', child: Text('Easy')),
-                              DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                              DropdownMenuItem(value: 'hard', child: Text('Hard')),
+                              DropdownMenuItem(
+                                  value: 'easy', child: Text('Easy')),
+                              DropdownMenuItem(
+                                  value: 'medium', child: Text('Medium')),
+                              DropdownMenuItem(
+                                  value: 'hard', child: Text('Hard')),
                             ],
-                            onChanged: (value) => setState(() => _selectedDifficulty = value!),
+                            onChanged: (value) =>
+                                setState(() => _selectedDifficulty = value!),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Ingredients
                     const Text(
                       'Ingredients * (one per line)',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -439,28 +462,31 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Instructions
                     const Text(
                       'Instructions * (one per line)',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _instructionsController,
                       decoration: const InputDecoration(
-                        hintText: 'Step 1: Mix flour and water\nStep 2: Knead the dough\nStep 3: Bake',
+                        hintText:
+                            'Step 1: Mix flour and water\nStep 2: Knead the dough\nStep 3: Bake',
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 5,
                       validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Media Section
                     const Text(
                       'Media (Optional)',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -481,7 +507,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Submit Button
                     SizedBox(
                       width: double.infinity,
@@ -501,7 +527,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Info Text
                     const Text(
                       'Your recipe will be reviewed by our team before being published.',

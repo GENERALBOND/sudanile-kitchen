@@ -1,6 +1,6 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/user.dart';
 import 'api_service.dart';
 
@@ -32,11 +32,12 @@ class AuthService extends ChangeNotifier {
       _user = User.fromJson(response);
       notifyListeners();
     } catch (e) {
-      print('Error loading user: $e');
+      log('Error loading user: $e');
     }
   }
 
-  Future<Map<String, dynamic>> register(String username, String email, String password) async {
+  Future<Map<String, dynamic>> register(
+      String username, String email, String password) async {
     try {
       final response = await _apiService.post('/users/register/', {
         'username': username,
@@ -44,7 +45,7 @@ class AuthService extends ChangeNotifier {
         'password': password,
         'password2': password,
       });
-      
+
       _token = response['access'];
       _user = User.fromJson(response['user']);
       final prefs = await SharedPreferences.getInstance();
@@ -52,7 +53,7 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return {'success': true};
     } catch (e) {
-      print('Registration error: $e');
+      log('Registration error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -63,11 +64,12 @@ class AuthService extends ChangeNotifier {
         'email': email,
         'password': password,
       });
-      
-      if (response.containsKey('email_not_verified') && response['email_not_verified'] == true) {
+
+      if (response.containsKey('email_not_verified') &&
+          response['email_not_verified'] == true) {
         return {'success': false, 'email_not_verified': true};
       }
-      
+
       _token = response['access'];
       _user = User.fromJson(response['user']);
       final prefs = await SharedPreferences.getInstance();
@@ -75,7 +77,7 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return {'success': true};
     } catch (e) {
-      print('Login error: $e');
+      log('Login error: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
@@ -85,7 +87,7 @@ class AuthService extends ChangeNotifier {
       await _apiService.post('/users/resend-verification/', {'email': email});
       return true;
     } catch (e) {
-      print('Resend verification error: $e');
+      log('Resend verification error: $e');
       return false;
     }
   }

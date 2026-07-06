@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
@@ -14,8 +15,8 @@ import 'all_categories_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
-  
-  const HomeScreen({Key? key, this.isGuestMode = false}) : super(key: key);
+
+  const HomeScreen({super.key, this.isGuestMode = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -43,24 +44,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final results = await Future.wait([
         _recipeService.getCategories(),
         _recipeService.getRecipes(),
       ]);
-      
+
       final categories = results[0] as List<Category>;
       final allRecipes = results[1] as List<Recipe>;
       final recentRecipes = allRecipes.take(2).toList();
-      
+
       setState(() {
         _categories = categories;
         _recentRecipes = recentRecipes;
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading data: $e');
+      log('Error loading data: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -69,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final isGuest = widget.isGuestMode || !authService.isAuthenticated;
-    
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: IndexedStack(
@@ -97,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorites'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.favorite), label: 'Favorites'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -131,9 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const Icon(Icons.favorite_border, size: 80, color: Colors.grey),
             const SizedBox(height: 16),
-            const Text('Login to save favorites', style: TextStyle(fontSize: 18)),
+            const Text('Login to save favorites',
+                style: TextStyle(fontSize: 18)),
             const SizedBox(height: 8),
-            const Text('Create an account to save your favorite recipes', 
+            const Text('Create an account to save your favorite recipes',
                 style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -201,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    
+
     return RefreshIndicator(
       onRefresh: _loadData,
       child: SingleChildScrollView(
@@ -221,22 +224,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   colors: [Colors.orange.shade400, Colors.orange.shade700],
                 ),
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Text(
                     'Discover South Sudanese Cuisine',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     'Explore authentic recipes from South Sudan',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       color: Colors.white70,
                     ),
@@ -244,9 +247,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Categories
             if (_categories.isNotEmpty) ...[
               Padding(
@@ -256,13 +259,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const Text(
                       'Categories',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AllCategoriesScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const AllCategoriesScreen()),
                         );
                       },
                       child: const Text('View All'),
@@ -291,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
             ],
-            
+
             // Latest Recipes
             if (_recentRecipes.isNotEmpty) ...[
               Padding(
@@ -301,13 +306,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const Text(
                       'Latest Recipes',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const SearchScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const SearchScreen()),
                         );
                       },
                       child: const Text('See All'),
@@ -345,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
-            
+
             // No Recipes Message
             if (_recentRecipes.isEmpty && !_isLoading) ...[
               Container(
@@ -359,14 +366,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const Icon(Icons.no_food, size: 80, color: Colors.grey),
                     const SizedBox(height: 16),
-                    const Text('No Recipes Yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('No Recipes Yet',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    Text('Add recipes in the admin panel', style: TextStyle(color: Colors.grey[600])),
+                    Text('Add recipes in the admin panel',
+                        style: TextStyle(color: Colors.grey[600])),
                   ],
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 20),
           ],
         ),
@@ -390,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -439,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -499,17 +509,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                      const Icon(Icons.access_time,
+                          size: 12, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
                         '${recipe.totalTime} min',
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade50,
                       borderRadius: BorderRadius.circular(4),
@@ -533,14 +546,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   IconData _getCategoryIcon(String categoryName) {
     final name = categoryName.toLowerCase();
-    if (name.contains('main') || name.contains('dish')) return Icons.lunch_dining;
-    if (name.contains('stew') || name.contains('curry')) return Icons.soup_kitchen;
-    if (name.contains('bread') || name.contains('grain')) return Icons.bakery_dining;
-    if (name.contains('soup')) return Icons.kitchen;
-    if (name.contains('side')) return Icons.eco;
-    if (name.contains('beverage')) return Icons.local_cafe;
-    if (name.contains('snack')) return Icons.icecream;
-    if (name.contains('dessert')) return Icons.cake;
+    if (name.contains('main') || name.contains('dish')) {
+      return Icons.lunch_dining;
+    }
+    if (name.contains('stew') || name.contains('curry')) {
+      return Icons.soup_kitchen;
+    }
+    if (name.contains('bread') || name.contains('grain')) {
+      return Icons.bakery_dining;
+    }
+    if (name.contains('soup')) {
+      return Icons.kitchen;
+    }
+    if (name.contains('side')) {
+      return Icons.eco;
+    }
+    if (name.contains('beverage')) {
+      return Icons.local_cafe;
+    }
+    if (name.contains('snack')) {
+      return Icons.icecream;
+    }
+    if (name.contains('dessert')) {
+      return Icons.cake;
+    }
     return Icons.restaurant_menu;
   }
 }

@@ -4,7 +4,7 @@ import '../models/recipe.dart';
 import 'recipe_detail_screen.dart';
 
 class AllRecipesScreen extends StatefulWidget {
-  const AllRecipesScreen({Key? key}) : super(key: key);
+  const AllRecipesScreen({super.key});
 
   @override
   State<AllRecipesScreen> createState() => _AllRecipesScreenState();
@@ -161,7 +161,7 @@ Widget build(BuildContext context) {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
