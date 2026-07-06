@@ -8,6 +8,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
+    change_list_template = "admin/recipes/recipe/change_list.html"
     list_display = ('id', 'title', 'author', 'category', 'average_rating', 'is_published', 'created_at')
     list_filter = ('category', 'difficulty', 'is_published')
     search_fields = ('title', 'description', 'cultural_info')
@@ -31,3 +32,16 @@ class RecipeAdmin(admin.ModelAdmin):
             'fields': ('servings', 'difficulty', 'image_url', 'video_url', 'is_published')
         }),
     )
+
+    def changelist_view(self, request, extra_context=None):
+        """Inject a few counts and the current user's email into the changelist template."""
+        extra_context = extra_context or {}
+        qs = self.get_queryset(request)
+        extra_context.update({
+            'user_email': getattr(request.user, 'email', ''),
+            'total_recipes': qs.count(),
+            'flagged_count': qs.filter(is_flagged=True).count() if hasattr(qs.model, 'is_flagged') else 0,
+            'published_count': qs.filter(is_published=True).count() if hasattr(qs.model, 'is_published') else qs.count(),
+            'unpublished_count': qs.filter(is_published=False).count() if hasattr(qs.model, 'is_published') else 0,
+        })
+        return super().changelist_view(request, extra_context=extra_context)

@@ -3,6 +3,11 @@ from django.urls import path, include
 from django.http import JsonResponse
 from .admin_views import dashboard
 
+# Use the project's custom dashboard as the Django admin index
+admin.site.index_template = 'admin/dashboard.html'
+admin.site.site_header = 'Sudanile Kitchen Admin'
+admin.site.site_title = 'Sudanile Admin'
+
 def home(request):
     return JsonResponse({
         'message': 'Welcome to Sudanile Kitchen API',
@@ -21,8 +26,10 @@ def home(request):
 
 urlpatterns = [
     path('', home, name='home'),
-    path('admin/', dashboard, name='admin_dashboard'),  # Custom dashboard
-    path('admin/django/', admin.site.urls),  # Django admin - use different path
+    # Mount the Django admin at /admin/ and render the custom dashboard template
+    path('admin/', admin.site.urls),
+    # Keep the dashboard view available at a dedicated path if needed
+    path('admin/dashboard/', dashboard, name='admin_dashboard'),
     path('api/users/', include('users.urls')),
     path('api/recipes/', include('recipes.urls')),
     path('api/reviews/', include('reviews.urls')),
