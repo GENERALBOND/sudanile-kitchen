@@ -1,10 +1,41 @@
 from django.contrib import admin
+from django.db import models
 from .models import Category, Recipe
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    change_list_template = "admin/recipes/category/change_list.html"
     list_display = ('id', 'name', 'description')
     search_fields = ('name',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(recipe_count=models.Count('recipes'))
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        qs = self.get_queryset(request)
+        duplicate_example = None
+        duplicate_names = (
+            super().get_queryset(request)
+                .values('name')
+                .annotate(name_count=models.Count('id'))
+                .filter(name_count__gt=1)
+                .order_by('name')
+        )
+        if duplicate_names:
+            duplicate_example = super().get_queryset(request).filter(name=duplicate_names[0]['name']).first()
+
+        total_categories = qs.count()
+        missing_desc_count = qs.filter(description__exact='').count()
+        extra_context.update({
+            'user_email': getattr(request.user, 'email', ''),
+            'total_categories': total_categories,
+            'duplicate_count': duplicate_names.count(),
+            'duplicate_example': duplicate_example,
+            'missing_description_count': missing_desc_count,
+        })
+        return super().changelist_view(request, extra_context=extra_context)
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
