@@ -39,7 +39,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final reviews = await _recipeService.getReviews(_recipe.id);
     setState(() => _reviews = reviews);
     
-    // Load favorites if authenticated
     final authService = Provider.of<AuthService>(context, listen: false);
     if (authService.isAuthenticated) {
       final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
@@ -116,37 +115,111 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ? const Center(child: CircularProgressIndicator())
               : CustomScrollView(
                   slivers: [
+                    // Hero Header with Image Background
                     SliverAppBar(
                       expandedHeight: 300,
                       pinned: true,
                       flexibleSpace: FlexibleSpaceBar(
-                        background: _recipe.imageUrl != null
-                            ? Image.network(_recipe.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.orange))
-                            : Container(
-                                color: Colors.orange,
-                                child: const Icon(Icons.restaurant, size: 100, color: Colors.white),
+                        background: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Background Image
+                            _recipe.imageUrl != null && _recipe.imageUrl!.isNotEmpty
+                                ? Image.network(
+                                    _recipe.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: Colors.orange.shade300,
+                                      child: const Icon(
+                                        Icons.restaurant,
+                                        size: 80,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    color: Colors.orange.shade300,
+                                    child: const Icon(
+                                      Icons.restaurant,
+                                      size: 80,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                            // Dark Overlay for text readability
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.6),
+                                  ],
+                                ),
                               ),
-                        title: Text(
-                          _recipe.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            shadows: [Shadow(blurRadius: 10)],
-                          ),
+                            ),
+                            // Title at bottom
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              right: 16,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _recipe.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 10,
+                                          color: Colors.black54,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _recipe.categoryName,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 14,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 6,
+                                          color: Colors.black45,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
+                        title: null, // Remove title from app bar
                       ),
                       actions: [
                         IconButton(
-                          icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: Colors.white,
+                          ),
                           onPressed: _toggleFavorite,
                         ),
                       ],
                     ),
+                    // Content
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Rating and Info
                             Row(
                               children: [
                                 RatingBarIndicator(
@@ -156,10 +229,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   itemSize: 20,
                                 ),
                                 const SizedBox(width: 8),
-                                Text('${_recipe.averageRating} (${_recipe.totalReviews} reviews)'),
+                                Text(
+                                  '${_recipe.averageRating} (${_recipe.totalReviews} reviews)',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 16),
+                            
+                            // Time & Difficulty Chips
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
@@ -170,16 +248,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ],
                             ),
                             const SizedBox(height: 24),
-                            const Text('Description', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            
+                            // Description
+                            const Text(
+                              'Description',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 8),
                             Text(_recipe.description),
                             const SizedBox(height: 16),
+                            
+                            // Cultural Information
                             if (_recipe.culturalInfo.isNotEmpty) ...[
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.shade50,
                                   borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.orange.shade200),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,7 +274,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       children: [
                                         Icon(Icons.history_edu, color: Colors.orange.shade700),
                                         const SizedBox(width: 8),
-                                        Text('Cultural Information', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
+                                        Text(
+                                          'Cultural Information',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orange.shade700,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -198,7 +290,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               ),
                               const SizedBox(height: 16),
                             ],
-                            const Text('Ingredients', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            
+                            // Ingredients
+                            const Text(
+                              'Ingredients',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 8),
                             ...(_recipe.ingredients as List).map((ingredient) {
                               return Padding(
@@ -213,7 +310,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               );
                             }).toList(),
                             const SizedBox(height: 16),
-                            const Text('Instructions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            
+                            // Instructions
+                            const Text(
+                              'Instructions',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 8),
                             ...(_recipe.instructions as List).asMap().entries.map((entry) {
                               return Padding(
@@ -224,8 +326,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     Container(
                                       width: 28,
                                       height: 28,
-                                      decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-                                      child: Center(child: Text('${entry.key + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.orange,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '${entry.key + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(child: Text(entry.value.toString())),
@@ -234,19 +347,28 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               );
                             }).toList(),
                             const SizedBox(height: 24),
-                            const Text('Reviews', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            
+                            // Reviews Section
+                            const Text(
+                              'Reviews',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
                             const SizedBox(height: 8),
                             ElevatedButton.icon(
                               onPressed: () => _showReviewDialog(),
                               icon: const Icon(Icons.rate_review),
                               label: const Text('Write a Review'),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                              ),
                             ),
                             const SizedBox(height: 16),
                             if (_reviews.isEmpty)
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 20),
-                                child: Center(child: Text('No reviews yet. Be the first to review!')),
+                                child: Center(
+                                  child: Text('No reviews yet. Be the first to review!'),
+                                ),
                               )
                             else
                               ..._reviews.map((review) => _buildReviewCard(review)),
@@ -267,7 +389,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: Colors.orange.shade100, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade100,
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Icon(icon, color: Colors.orange.shade800),
         ),
         const SizedBox(height: 4),
@@ -288,15 +413,22 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: review.userProfilePicture != null ? NetworkImage(review.userProfilePicture!) : null,
-                  child: review.userProfilePicture == null ? Text(review.userName[0].toUpperCase()) : null,
+                  backgroundImage: review.userProfilePicture != null
+                      ? NetworkImage(review.userProfilePicture!)
+                      : null,
+                  child: review.userProfilePicture == null
+                      ? Text(review.userName[0].toUpperCase())
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(review.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        review.userName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       RatingBarIndicator(
                         rating: review.rating.toDouble(),
                         itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
@@ -306,7 +438,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     ],
                   ),
                 ),
-                Text('${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(
+                  '${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -353,11 +488,20 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: _isReviewing ? null : _submitReview,
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: _isReviewing ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Submit'),
+            child: _isReviewing
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Submit'),
           ),
         ],
       ),

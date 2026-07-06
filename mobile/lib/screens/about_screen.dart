@@ -154,7 +154,7 @@ class AboutScreen extends StatelessWidget {
                   _buildTeamMember(
                     'Sudanile Kitchen Team',
                     'Culinary Heritage Preservation',
-                    'Dedicated to documenting and sharing South Sudanese cuisine',
+                    'Dedicated to documenting and sharing South Sudanese cuisine', 
                   ),
                 ],
               ),
