@@ -6,6 +6,7 @@ from recipes.models import Recipe, Category
 
 @admin.register(RecipeSubmission)
 class RecipeSubmissionAdmin(admin.ModelAdmin):
+    change_list_template = "admin/submissions/recipesubmission/change_list.html"
     list_display = ('id', 'title', 'user', 'status', 'submitted_at')
     list_filter = ('status', 'submitted_at')
     search_fields = ('title', 'user__email', 'category_name')
@@ -13,6 +14,18 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
     
     actions = ['approve_submissions', 'reject_submissions']
     
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        qs = self.get_queryset(request)
+        extra_context.update({
+            'user_email': getattr(request.user, 'email', ''),
+            'total_submissions': qs.count(),
+            'pending_count': qs.filter(status='pending').count(),
+            'approved_count': qs.filter(status='approved').count(),
+            'rejected_count': qs.filter(status='rejected').count(),
+        })
+        return super().changelist_view(request, extra_context=extra_context)
+
     def approve_submissions(self, request, queryset):
         approved_count = 0
         error_count = 0
