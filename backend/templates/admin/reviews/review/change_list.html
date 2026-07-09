@@ -1,0 +1,466 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviews — Sudanile Kitchen Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --border-success: #9bcfaa;
+      --border-danger: #f4b8b8;
+      --border-warning: #f5d48a;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --border-success: #1e5e30;
+        --border-danger: #7a2020;
+        --border-warning: #6b4209;
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    /* TOPBAR */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #E8650A; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.75); }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    /* LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 80px); background: var(--surface-0); }
+
+    /* SIDEBAR */
+    .sidebar { width: 210px; flex-shrink: 0; background: var(--surface-2); border-right: 0.5px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); padding: 10px 20px 4px; }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.12s, color 0.12s; border-left: 2px solid transparent; }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-sys { opacity: 0.72; }
+
+    /* MAIN */
+    .main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* BREADCRUMB */
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: #E8650A; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* PAGE HEADER */
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .add-btn { display: flex; align-items: center; gap: 7px; background: #E8650A; color: #fff; border: none; border-radius: var(--radius); padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: opacity 0.12s; }
+    .add-btn:hover { opacity: 0.88; }
+
+    /* STAT CARDS */
+    .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .stat-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+    .stat-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .stat-val { font-size: 22px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+    .stat-lbl { font-size: 11px; color: var(--text-muted); }
+    .stars-mini { display: flex; gap: 2px; margin-top: 2px; }
+    .stars-mini i { font-size: 10px; color: #E8650A; }
+
+    /* FILTER CHIPS */
+    .filter-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .chip { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--surface-2); color: var(--text-secondary); cursor: pointer; transition: all 0.12s; text-decoration: none; white-space: nowrap; }
+    .chip:hover { border-color: var(--border-strong); background: var(--surface-1); }
+    .chip.active { background: #fff3e0; color: #E8650A; border-color: #fcd5a8; font-weight: 500; }
+    .chip i { font-size: 12px; }
+    .chip-sep { width: 0.5px; height: 18px; background: var(--border); flex-shrink: 0; }
+    .chip-star { color: #E8650A; font-size: 11px; letter-spacing: -1px; }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+    .search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 7px 12px; }
+    .search-wrap i { font-size: 14px; color: var(--text-muted); flex-shrink: 0; }
+    .search-wrap input { border: none; background: none; outline: none; font-size: 12px; color: var(--text-primary); width: 100%; }
+    .search-wrap input::placeholder { color: var(--text-muted); }
+    .tsep { width: 0.5px; height: 22px; background: var(--border); flex-shrink: 0; }
+    .action-select { border: 0.5px solid var(--border); background: var(--surface-1); border-radius: var(--radius); padding: 7px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+    .run-btn { border: 0.5px solid var(--border); background: var(--surface-1); border-radius: var(--radius); padding: 7px 12px; font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s; }
+    .run-btn:hover { background: var(--surface-0); }
+
+    /* TABLE */
+    .table-wrap { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead { border-bottom: 0.5px solid var(--border); }
+    thead th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); background: var(--surface-1); white-space: nowrap; cursor: pointer; }
+    thead th:hover { color: var(--text-primary); }
+    thead th.sorted { color: #E8650A; }
+    th.chk, td.chk { width: 36px; padding-left: 14px; }
+    tbody tr { border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+    tbody tr:nth-child(even) { background: var(--surface-1); }
+    tbody tr:hover { background: color-mix(in srgb, var(--surface-1) 70%, var(--surface-0)); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 10px 14px; vertical-align: middle; }
+
+    .id-link { color: #E8650A; text-decoration: none; font-weight: 500; }
+    .id-link:hover { text-decoration: underline; }
+
+    /* REVIEWER */
+    .reviewer { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .reviewer-email { font-size: 12px; color: var(--text-secondary); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* RECIPE LINK */
+    .recipe-link { font-weight: 500; color: var(--text-primary); text-decoration: none; }
+    .recipe-link:hover { color: #E8650A; text-decoration: underline; }
+
+    /* STAR RATING */
+    .rating-row { display: flex; align-items: center; gap: 6px; }
+    .rating-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
+    .r5 { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .r4 { background: #f0fbde; color: #3a8020; border: 0.5px solid #b0d890; }
+    .r3 { background: #fff3e0; color: #b85008; border: 0.5px solid #fcd5a8; }
+    .r2 { background: var(--bg-warning); color: var(--text-warning); border: 0.5px solid var(--border-warning); }
+    .r1 { background: var(--bg-danger); color: var(--text-danger); border: 0.5px solid var(--border-danger); }
+    .star-rating { display: flex; align-items: center; gap: 2px; }
+    .star-rating i { font-size: 12px; }
+    .star-on { color: #E8650A; }
+    .star-off { color: var(--border-strong); }
+
+    /* COMMENT */
+    .comment-preview { font-size: 11px; color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+    .no-comment { font-size: 11px; color: var(--text-muted); }
+
+    .date-cell { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+    /* ROW ACTIONS */
+    .row-actions { display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.12s; }
+    tbody tr:hover .row-actions { opacity: 1; }
+    .row-btn { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; text-decoration: none; transition: all 0.12s; }
+    .row-btn:hover { background: var(--surface-1); color: var(--text-primary); }
+    .row-btn.del:hover { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+    .row-btn i { font-size: 13px; }
+
+    /* TABLE FOOTER */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 0.5px solid var(--border); background: var(--surface-1); font-size: 12px; color: var(--text-muted); }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .pg-btn { padding: 4px 9px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+    .pg-btn.active { background: #E8650A; color: #fff; border-color: #E8650A; }
+    .sort-icon { font-size: 9px; margin-left: 2px; opacity: 0.4; }
+    .sorted .sort-icon { opacity: 1; }
+
+    .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .topbar-user { display: none; }
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      table { font-size: 11px; }
+      .stat-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+      Sudanile Kitchen Admin
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user">watumande17@gmail.com</span>
+      <nav class="topbar-nav" aria-label="Top navigation">
+        <a href="#">View site</a><span class="sep">·</span>
+        <a href="#">Change password</a><span class="sep">·</span>
+        <a href="#">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Content</div>
+        <a class="sidebar-item" href="/admin/"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+        <a class="sidebar-item" href="/admin/recipes/recipe/"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+        <a class="sidebar-item" href="/admin/recipes/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+        <a class="sidebar-item" href="/admin/submissions/recipesubmission/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item active" href="/admin/reviews/review/"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+        <a class="sidebar-item" href="/admin/favorites/favorite/"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Users</div>
+        <a class="sidebar-item" href="/admin/users/user/"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+        <a class="sidebar-item" href="/admin/users/user/add/"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section sidebar-sys">
+        <div class="sidebar-label">System</div>
+        <a class="sidebar-item" href="/admin/auth/group/"><i class="ti ti-shield-lock" aria-hidden="true"></i>Auth &amp; groups</a>
+        <a class="sidebar-item" href="#"><i class="ti ti-settings" aria-hidden="true"></i>Settings</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/admin/">Home</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <a href="/admin/reviews/">Reviews</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <span>Reviews</span>
+      </nav>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Reviews</h1>
+          <p class="page-meta">2 reviews &nbsp;·&nbsp; avg rating 5.0 &nbsp;·&nbsp; all 5-star</p>
+        </div>
+        <a href="/admin/reviews/review/add/" class="add-btn">
+          <i class="ti ti-plus" aria-hidden="true"></i>Add review
+        </a>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stat-row" aria-label="Review overview">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff3e0;color:#E8650A;"><i class="ti ti-star-filled" aria-hidden="true"></i></div>
+          <div class="stat-val">2</div>
+          <div class="stat-lbl">Total reviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-success);color:var(--text-success);"><i class="ti ti-trending-up" aria-hidden="true"></i></div>
+          <div class="stat-val">5.0</div>
+          <div class="stat-lbl">Average rating</div>
+          <div class="stars-mini" aria-label="5 stars">
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-success);color:var(--text-success);"><i class="ti ti-mood-smile" aria-hidden="true"></i></div>
+          <div class="stat-val">2</div>
+          <div class="stat-lbl">5-star reviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-warning);color:var(--text-warning);"><i class="ti ti-mood-neutral" aria-hidden="true"></i></div>
+          <div class="stat-val">0</div>
+          <div class="stat-lbl">3-star or below</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-accent);color:var(--text-accent);"><i class="ti ti-users" aria-hidden="true"></i></div>
+          <div class="stat-val">1</div>
+          <div class="stat-lbl">Unique reviewers</div>
+        </div>
+      </div>
+
+      <!-- FILTER CHIPS -->
+      <div class="filter-row" role="group" aria-label="Filter by rating">
+        <a href="?" class="chip active"><i class="ti ti-list"></i>All (2)</a>
+        <div class="chip-sep" aria-hidden="true"></div>
+        <a href="?rating=5" class="chip"><span class="chip-star">★★★★★</span> 5-star (2)</a>
+        <a href="?rating=4" class="chip"><span class="chip-star">★★★★</span> 4-star (0)</a>
+        <a href="?rating=3" class="chip"><span class="chip-star">★★★</span> 3-star (0)</a>
+        <a href="?rating=2" class="chip"><span class="chip-star">★★</span> 2-star (0)</a>
+        <a href="?rating=1" class="chip"><span class="chip-star">★</span> 1-star (0)</a>
+        <div class="chip-sep" aria-hidden="true"></div>
+        <a href="?date=today" class="chip"><i class="ti ti-calendar"></i>Today</a>
+        <a href="?date=week" class="chip"><i class="ti ti-calendar-week"></i>Past 7 days</a>
+        <a href="?date=month" class="chip"><i class="ti ti-calendar-month"></i>This month</a>
+      </div>
+
+      <!-- TOOLBAR -->
+      <form method="get" class="toolbar">
+        <div class="search-wrap">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" name="q" placeholder="Search by reviewer, recipe, or comment…" aria-label="Search reviews" />
+        </div>
+        <div class="tsep" aria-hidden="true"></div>
+        <select class="action-select" name="action" aria-label="Bulk action">
+          <option value="">Bulk action…</option>
+          <option value="delete_selected">Delete selected</option>
+        </select>
+        <button type="submit" class="run-btn">Run</button>
+      </form>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table aria-label="Reviews list">
+          <thead>
+            <tr>
+              <th class="chk"><input type="checkbox" aria-label="Select all reviews" /></th>
+              <th class="sorted"><a href="?o=-id" style="color:inherit;text-decoration:none;">ID <i class="ti ti-arrow-down sort-icon" aria-hidden="true"></i></a></th>
+              <th>Reviewer</th>
+              <th><a href="?o=recipe" style="color:inherit;text-decoration:none;">Recipe <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
+              <th><a href="?o=rating" style="color:inherit;text-decoration:none;">Rating <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
+              <th>Comment</th>
+              <th><a href="?o=created_at" style="color:inherit;text-decoration:none;">Created <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
+              <th aria-hidden="true"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Review #2 -->
+            <tr>
+              <td class="chk"><input type="checkbox" aria-label="Select review 2" /></td>
+              <td><a href="/admin/reviews/review/2/change/" class="id-link">2</a></td>
+              <td>
+                <div class="reviewer">
+                  <div class="avatar" style="background:#E8650A;" aria-hidden="true">WA</div>
+                  <span class="reviewer-email" title="watumande18@gmail.com">watumande18@gmail.com</span>
+                </div>
+              </td>
+              <td><a href="/admin/recipes/recipe/?q=Kisra" class="recipe-link">Kisra (Sorghum Flatbread)</a></td>
+              <td>
+                <div class="rating-row">
+                  <span class="rating-pill r5">
+                    <i class="ti ti-star-filled" style="font-size:10px;" aria-hidden="true"></i>5
+                  </span>
+                  <div class="star-rating" aria-label="5 out of 5 stars">
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </td>
+              <td><span class="no-comment">No comment left</span></td>
+              <td class="date-cell">Jun 26, 2026 · 12:54 pm</td>
+              <td>
+                <div class="row-actions" aria-label="Actions">
+                  <a href="/admin/reviews/review/2/change/" class="row-btn" title="Edit"><i class="ti ti-edit" aria-hidden="true"></i></a>
+                  <a href="/admin/reviews/review/2/delete/" class="row-btn del" title="Delete"><i class="ti ti-trash" aria-hidden="true"></i></a>
+                </div>
+              </td>
+            </tr>
+            <!-- Review #1 -->
+            <tr>
+              <td class="chk"><input type="checkbox" aria-label="Select review 1" /></td>
+              <td><a href="/admin/reviews/review/1/change/" class="id-link">1</a></td>
+              <td>
+                <div class="reviewer">
+                  <div class="avatar" style="background:#E8650A;" aria-hidden="true">WA</div>
+                  <span class="reviewer-email" title="watumande18@gmail.com">watumande18@gmail.com</span>
+                </div>
+              </td>
+              <td><a href="/admin/recipes/recipe/?q=Akeer" class="recipe-link">Akeer (Tamarind Drink)</a></td>
+              <td>
+                <div class="rating-row">
+                  <span class="rating-pill r5">
+                    <i class="ti ti-star-filled" style="font-size:10px;" aria-hidden="true"></i>5
+                  </span>
+                  <div class="star-rating" aria-label="5 out of 5 stars">
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                    <i class="ti ti-star-filled star-on" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </td>
+              <td><span class="no-comment">No comment left</span></td>
+              <td class="date-cell">Jun 24, 2026 · 9:11 am</td>
+              <td>
+                <div class="row-actions" aria-label="Actions">
+                  <a href="/admin/reviews/review/1/change/" class="row-btn" title="Edit"><i class="ti ti-edit" aria-hidden="true"></i></a>
+                  <a href="/admin/reviews/review/1/delete/" class="row-btn del" title="Delete"><i class="ti ti-trash" aria-hidden="true"></i></a>
+                </div>
+              </td>
+            </tr>
+            <!--
+              TEMPLATE for reviews with comments — use in Django template:
+              {% if review.comment %}
+                <td><span class="comment-preview" title="{{ review.comment }}">{{ review.comment }}</span></td>
+              {% else %}
+                <td><span class="no-comment">No comment left</span></td>
+              {% endif %}
+
+              TEMPLATE for dynamic star rating:
+              <div class="rating-row">
+                <span class="rating-pill r{{ review.rating }}">
+                  <i class="ti ti-star-filled"></i>{{ review.rating }}
+                </span>
+                <div class="star-rating">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}
+                      <i class="ti ti-star-filled star-on"></i>
+                    {% else %}
+                      <i class="ti ti-star star-off"></i>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            -->
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <span>0 of 2 selected</span>
+          <div class="pagination" aria-label="Pagination">
+            <button class="pg-btn active" aria-current="page">1</button>
+          </div>
+          <span>2 reviews total</span>
+        </div>
+      </div>
+
+      <footer class="page-footer">
+        © 2026 Sudanile Kitchen — Preserving South Sudanese Culinary Heritage
+      </footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>
