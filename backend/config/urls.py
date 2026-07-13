@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect, render
 from django.urls import path, include
-from django.http import JsonResponse
 from django.views.generic import RedirectView
 from .admin_views import dashboard
 from recipes.admin import CategoryAdmin
 from recipes.models import Category
+from users.models import User
 
 # Use the project's custom dashboard as the Django admin index
 admin.site.index_template = 'admin/dashboard.html'
@@ -14,20 +16,26 @@ admin.site.site_title = 'Sudanile Admin'
 category_admin = CategoryAdmin(Category, admin.site)
 
 def home(request):
-    return JsonResponse({
-        'message': 'Welcome to Sudanile Kitchen API',
-        'version': '1.0.0',
-        'documentation': '/admin/',
-        'endpoints': {
-            'users': '/api/users/',
-            'recipes': '/api/recipes/',
-            'categories': '/api/recipes/categories/',
-            'favorites': '/api/favorites/',
-            'reviews': '/api/reviews/',
-            'submissions': '/api/submissions/',
-            'admin': '/admin/',
-        }
-    })
+    if request.method == 'POST':
+        identifier = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+
+        if not identifier or not password:
+            return render(request, 'landing.html', {'error': 'Please enter both email/username and password.'})
+
+        user = None
+        if '@' in identifier:
+            user = authenticate(request, email=identifier, password=password)
+        else:
+            user = authenticate(request, username=identifier, password=password)
+
+        if user is not None and user.is_staff:
+            login(request, user)
+            return redirect('admin:index')
+
+        return render(request, 'landing.html', {'error': 'Invalid admin credentials.', 'email': identifier})
+
+    return render(request, 'landing.html')
 
 urlpatterns = [
     path('', home, name='home'),
