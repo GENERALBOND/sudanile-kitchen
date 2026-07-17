@@ -6,17 +6,387 @@
   <title>Users | Sudanile Kitchen Admin</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
   <style>
-    :root{color-scheme:dark;--surface-0:#11110f;--surface-1:#1d1d1a;--surface-2:#292926;--border:rgba(255,255,255,.12);--text-primary:#f3f1eb;--text-secondary:#c2c0b8;--text-muted:#9b9991;--success:#6fcf89;--danger:#f08080;--accent:#E8650A;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--surface-0);color:var(--text-primary);padding:16px}.page{max-width:1280px;margin:auto;overflow:hidden;border:.5px solid var(--border);border-radius:12px;background:var(--surface-2)}.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:var(--accent);color:white}.brand{font-size:17px;font-weight:600}.topbar a{color:white;text-decoration:none;font-size:12px;margin-left:12px}.layout{display:flex;min-height:calc(100vh - 80px)}.sidebar{width:210px;padding:16px 10px;background:var(--surface-2);border-right:.5px solid var(--border)}.label{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);padding:10px}.nav-item{display:flex;gap:9px;align-items:center;padding:9px 10px;border-radius:8px;color:var(--text-secondary);font-size:12px;text-decoration:none}.nav-item:hover,.nav-item.active{background:#4a2a16;color:#ffb171;font-weight:600}.divider{height:.5px;background:var(--border);margin:8px 2px}.main{flex:1;padding:22px;min-width:0}.crumb{font-size:12px;color:var(--text-muted)}.crumb a{color:#ff9b50;text-decoration:none}.header{display:flex;justify-content:space-between;align-items:center;margin:16px 0}.title{font-size:22px;margin:0}.meta{font-size:12px;color:var(--text-muted);margin-top:4px}.add{background:var(--accent);color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.stat,.toolbar,.table-wrap{background:var(--surface-2);border:.5px solid var(--border);border-radius:12px}.stat{padding:14px 16px}.stat i{color:#ff9b50;font-size:18px}.val{font-size:24px;margin-top:8px}.stat label{font-size:11px;color:var(--text-muted)}.filters{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}.chip{border:.5px solid var(--border);background:var(--surface-2);padding:6px 11px;border-radius:18px;color:var(--text-secondary);text-decoration:none;font-size:11px}.chip.active{background:#4a2a16;color:#ffb171;border-color:#a6541b}.toolbar{display:flex;gap:10px;padding:10px 14px;margin-bottom:14px}.search{display:flex;align-items:center;gap:8px;flex:1;background:var(--surface-1);border:.5px solid var(--border);border-radius:8px;padding:7px 10px}.search input{border:0;outline:0;background:transparent;color:var(--text-primary);width:100%;font-size:12px}.toolbar select,.toolbar button{color:var(--text-primary);border:.5px solid var(--border);background:var(--surface-1);border-radius:8px;padding:7px 10px;font-size:12px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th{background:var(--surface-1);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);text-align:left;padding:10px 14px}td{padding:10px 14px;border-top:.5px solid var(--border)}tbody tr:nth-child(even){background:var(--surface-1)}.user{display:flex;align-items:center;gap:10px}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;font-size:11px;font-weight:700}.email{color:var(--text-primary);font-weight:600;text-decoration:none}.sub{font-size:10px;color:var(--text-muted);margin-top:2px}.badge{padding:4px 8px;border-radius:16px;border:.5px solid var(--border);white-space:nowrap}.admin{background:#123653;color:#9fd0ff}.status{display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:11px}.dot{width:8px;height:8px;border-radius:50%;background:var(--success)}.no{background:var(--danger)}.footer{display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface-1);font-size:12px;color:var(--text-muted)}.messages{padding:0;margin:0 0 12px;list-style:none}.messages li{padding:10px;border-radius:8px;background:#173404;color:var(--success);font-size:12px}@media(max-width:800px){body{padding:0}.page{border:0;border-radius:0}.sidebar{display:none}.stats{grid-template-columns:repeat(2,1fr)}.topbar{padding:14px}.topbar .user-email{display:none}.main{padding:16px}.toolbar{flex-wrap:wrap}}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    /* TOPBAR */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #E8650A; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.75); }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    /* LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 80px); background: var(--surface-0); }
+
+    /* SIDEBAR */
+    .sidebar { width: 210px; flex-shrink: 0; background: var(--surface-2); border-right: 0.5px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); padding: 10px 20px 4px; }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.12s, color 0.12s; border-left: 2px solid transparent; }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-sys { opacity: 0.72; }
+
+    /* MAIN */
+    .main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* BREADCRUMB */
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: #E8650A; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* PAGE HEADER */
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .add-btn { display: flex; align-items: center; gap: 7px; background: #E8650A; color: #fff; border: none; border-radius: var(--radius); padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: opacity 0.12s; }
+    .add-btn:hover { opacity: 0.88; }
+
+    /* STAT CARDS */
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .stat-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .stat-val { font-size: 22px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+    .stat-lbl { font-size: 11px; color: var(--text-muted); }
+
+    /* FILTER CHIPS */
+    .filter-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .chip { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--surface-2); color: var(--text-secondary); cursor: pointer; transition: all 0.12s; white-space: nowrap; text-decoration: none; }
+    .chip:hover { border-color: var(--border-strong); background: var(--surface-1); }
+    .chip.active { background: #fff3e0; color: #E8650A; border-color: #fcd5a8; font-weight: 500; }
+    .chip i { font-size: 12px; }
+    .chip-sep { width: 0.5px; height: 18px; background: var(--border); flex-shrink: 0; }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+    .search-wrap { display: flex; align-items: center; gap: 8px; flex: 1; background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 7px 12px; }
+    .search-wrap i { font-size: 14px; color: var(--text-muted); flex-shrink: 0; }
+    .search-wrap input { border: none; background: none; outline: none; font-size: 12px; color: var(--text-primary); width: 100%; }
+    .search-wrap input::placeholder { color: var(--text-muted); }
+    .tsep { width: 0.5px; height: 22px; background: var(--border); flex-shrink: 0; }
+    .action-select { border: 0.5px solid var(--border); background: var(--surface-1); border-radius: var(--radius); padding: 7px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+    .run-btn { border: 0.5px solid var(--border); background: var(--surface-1); border-radius: var(--radius); padding: 7px 12px; font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: background 0.12s; }
+    .run-btn:hover { background: var(--surface-0); }
+
+    /* TABLE */
+    .table-wrap { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead { border-bottom: 0.5px solid var(--border); }
+    thead th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); background: var(--surface-1); white-space: nowrap; cursor: pointer; }
+    thead th:hover { color: var(--text-primary); }
+    thead th.sorted { color: #E8650A; }
+    th.chk, td.chk { width: 36px; padding-left: 14px; }
+    tbody tr { border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+    tbody tr:nth-child(even) { background: var(--surface-1); }
+    tbody tr:hover { background: color-mix(in srgb, var(--surface-1) 70%, var(--surface-0)); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 10px 14px; vertical-align: middle; }
+
+    .user-info { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #fff; flex-shrink: 0; background: #E8650A; }
+    .user-email { font-size: 12px; color: var(--text-secondary); }
+    .user-email-link { color: #E8650A; text-decoration: none; font-weight: 500; }
+    .user-email-link:hover { text-decoration: underline; }
+    .user-username { font-size: 10px; color: var(--text-muted); }
+
+    .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+    .badge-admin { background: #e6f1fb; color: var(--text-accent); border-color: #b8d4f0; }
+
+    .status-indicator { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-active { background: var(--text-success); }
+    .dot-inactive { background: var(--text-danger); }
+    .dot-staff { background: var(--text-accent); }
+    .dot-nonstaff { background: var(--text-muted); }
+
+    .date-cell { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .date-cell small { font-size: 10px; color: var(--text-muted); display: block; }
+
+    .row-actions { display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.12s; }
+    tbody tr:hover .row-actions { opacity: 1; }
+    .row-btn { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; text-decoration: none; transition: all 0.12s; }
+    .row-btn:hover { background: var(--surface-1); color: var(--text-primary); }
+
+    .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 0.5px solid var(--border); background: var(--surface-1); font-size: 12px; color: var(--text-muted); }
+    .pagination { display: flex; align-items: center; gap: 4px; }
+    .pg-btn { padding: 4px 9px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+    .pg-btn.active { background: #E8650A; color: #fff; border-color: #E8650A; }
+
+    .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
+
+    .messages { padding: 0; margin: 0 0 12px; list-style: none; }
+    .messages li { padding: 10px 14px; border-radius: var(--radius); background: var(--bg-success); color: var(--text-success); font-size: 12px; border: 0.5px solid var(--border-success); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .topbar-user { display: none; }
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      table { font-size: 11px; }
+      .stat-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
-<body><div class="page">
-  <header class="topbar"><div class="brand"><i class="ti ti-tools-kitchen-2"></i> Sudanile Kitchen Admin</div><div class="user-email">{{ request.user.email }} <a href="/">View site</a><a href="{% url 'admin:password_change' %}">Change password</a><a href="{% url 'admin:logout' %}">Log out</a></div></header>
-  <div class="layout"><nav class="sidebar"><div class="label">Content</div><a class="nav-item" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard"></i>Dashboard</a><a class="nav-item" href="/admin/recipes/recipe/"><i class="ti ti-tools-kitchen-2"></i>Recipes</a><a class="nav-item" href="/admin/category/"><i class="ti ti-tag"></i>Categories</a><a class="nav-item" href="/admin/submissions/recipesubmission/"><i class="ti ti-send"></i>Submissions</a><a class="nav-item" href="/admin/reviews/review/"><i class="ti ti-star"></i>Reviews</a><div class="divider"></div><div class="label">Users</div><a class="nav-item active" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users"></i>Users</a><a class="nav-item" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus"></i>Add user</a><div class="divider"></div><div class="label">System</div><a class="nav-item" href="/admin/auth/group/"><i class="ti ti-shield-lock"></i>Auth &amp; groups</a></nav>
-  <main class="main"><div class="crumb"><a href="{% url 'admin:index' %}">Home</a> <i class="ti ti-chevron-right"></i> Users</div>
-    {% if messages %}<ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
-    <div class="header"><div><h1 class="title">Users</h1><div class="meta">{{ cl.result_count }} user{{ cl.result_count|pluralize }}{% if cl.result_count != cl.full_result_count %} matching your filters{% endif %}</div></div><a class="add" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus"></i> Add user</a></div>
-    <div class="stats"><div class="stat"><i class="ti ti-users"></i><div class="val">{{ total_user_count }}</div><label>Total users</label></div><div class="stat"><i class="ti ti-shield-check"></i><div class="val">{{ administrator_count }}</div><label>Administrators</label></div><div class="stat"><i class="ti ti-user-check"></i><div class="val">{{ regular_user_count }}</div><label>Regular users</label></div><div class="stat"><i class="ti ti-user-x"></i><div class="val">{{ inactive_user_count }}</div><label>Inactive users</label></div></div>
-    <div class="filters"><a class="chip {% if not cl.params %}active{% endif %}" href="{% url 'admin:users_user_changelist' %}">All ({{ cl.full_result_count }})</a><a class="chip" href="?role__exact=admin">Administrators</a><a class="chip" href="?is_staff__exact=1">Staff</a><a class="chip" href="?is_active__exact=0">Inactive</a></div>
-    <form id="changelist-form" method="post">{% csrf_token %}<div class="toolbar"><div class="search"><i class="ti ti-search"></i><input name="q" value="{{ cl.query }}" placeholder="Search by email or username"></div><button type="submit" formmethod="get">Search</button><select name="action"><option value="">Bulk action…</option>{% for choice in action_form.action.field.choices %}{% if choice.0 %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endif %}{% endfor %}</select><button type="submit" name="index" value="0">Run</button></div>
-      <div class="table-wrap"><table><thead><tr><th><input id="select-all" type="checkbox"></th><th>Email</th><th>Username</th><th>Role</th><th>Staff status</th><th>Active</th><th>Joined</th><th></th></tr></thead><tbody>{% for user in cl.result_list %}<tr><td><input class="select-row" type="checkbox" name="_selected_action" value="{{ user.pk }}"></td><td><div class="user"><div class="avatar">{{ user.username|slice:':2'|upper }}</div><div><a class="email" href="{% url 'admin:users_user_change' user.pk %}">{{ user.email }}</a><div class="sub">{{ user.username }}</div></div></div></td><td>{{ user.username }}</td><td><span class="badge {% if user.role == 'admin' %}admin{% endif %}">{{ user.get_role_display }}</span></td><td><div class="status"><span class="dot {% if not user.is_staff %}no{% endif %}"></span>{% if user.is_staff %}Staff{% else %}Not staff{% endif %}</div></td><td><div class="status"><span class="dot {% if not user.is_active %}no{% endif %}"></span>{% if user.is_active %}Active{% else %}Inactive{% endif %}</div></td><td><div class="sub">{{ user.created_at|date:"M j, Y · g:i a" }}<br>{{ user.created_at|timesince }} ago</div></td><td><a class="email" href="{% url 'admin:users_user_change' user.pk %}" title="Edit user"><i class="ti ti-edit"></i></a></td></tr>{% empty %}<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px">No users match your search.</td></tr>{% endfor %}</tbody></table><div class="footer"><span>{{ cl.result_count }} user{{ cl.result_count|pluralize }} total</span><span>Use the checkboxes for bulk actions</span></div></div></form>
-  </main></div></div><script>document.getElementById('select-all').addEventListener('change',function(){document.querySelectorAll('.select-row').forEach(function(box){box.checked=event.target.checked})})</script></body></html>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+      Sudanile Kitchen Admin
+    </div>
+    <div class="topbar-right">
+      <nav class="topbar-nav" aria-label="Top navigation">
+        <a href="{% url 'admin:index' %}">View site</a><span class="sep">·</span>
+        <a href="{% url 'admin:password_change' %}">Change password</a><span class="sep">·</span>
+        <a href="{% url 'admin:logout' %}">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Content</div>
+        <a class="sidebar-item" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+        <a class="sidebar-item" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+        <a class="sidebar-item" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+        <a class="sidebar-item" href="/admin/submissions/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+        <a class="sidebar-item" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Users</div>
+        <a class="sidebar-item active" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+        <a class="sidebar-item" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section sidebar-sys">
+        <div class="sidebar-label">System</div>
+        <a class="sidebar-item" href="{% url 'admin:auth_group_changelist' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'admin:index' %}">Home</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <span>Users</span>
+      </nav>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Users</h1>
+          <p class="page-meta">{{ cl.result_count }} total &nbsp;·&nbsp; {{ administrator_count }} administrators &nbsp;·&nbsp; {{ regular_user_count }} regular users &nbsp;·&nbsp; {{ inactive_user_count }} inactive</p>
+        </div>
+        <a href="{% url 'admin:users_user_add' %}" class="add-btn">
+          <i class="ti ti-user-plus" aria-hidden="true"></i>Add user
+        </a>
+      </div>
+
+      <div class="stat-row" aria-label="User overview">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-accent);color:var(--text-accent);"><i class="ti ti-users" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ total_user_count }}</div>
+          <div class="stat-lbl">Total users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e6f1fb;color:var(--text-accent);"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ administrator_count }}</div>
+          <div class="stat-lbl">Administrators</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-success);color:var(--text-success);"><i class="ti ti-user-check" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ regular_user_count }}</div>
+          <div class="stat-lbl">Regular users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-danger);color:var(--text-danger);"><i class="ti ti-user-x" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ inactive_user_count }}</div>
+          <div class="stat-lbl">Inactive users</div>
+        </div>
+      </div>
+
+      <div class="filter-row" role="group" aria-label="Filter users">
+        <a href="{% url 'admin:users_user_changelist' %}" class="chip {% if not cl.params %}active{% endif %}"><i class="ti ti-list"></i>All ({{ cl.full_result_count }})</a>
+        <a href="?role__exact=admin" class="chip"><i class="ti ti-shield"></i>Administrators</a>
+        <a href="?is_staff__exact=1" class="chip"><i class="ti ti-briefcase"></i>Staff</a>
+        <a href="?is_active__exact=0" class="chip"><i class="ti ti-user-x"></i>Inactive</a>
+        <div class="chip-sep" aria-hidden="true"></div>
+        <a href="?joined=today" class="chip"><i class="ti ti-calendar"></i>Today</a>
+        <a href="?joined=week" class="chip"><i class="ti ti-calendar-week"></i>Past 7 days</a>
+        <a href="?joined=month" class="chip"><i class="ti ti-calendar-month"></i>This month</a>
+      </div>
+
+      <form id="changelist-form" method="post" class="toolbar">
+        {% csrf_token %}
+        <div class="search-wrap">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" name="q" value="{{ cl.query }}" placeholder="Search by email or username…" aria-label="Search users" />
+        </div>
+        <div class="tsep" aria-hidden="true"></div>
+        <select class="action-select" name="action" aria-label="Bulk action">
+          <option value="">Bulk action…</option>
+          {% for choice in action_form.action.field.choices %}
+            {% if choice.0 %}
+              <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <button type="submit" name="index" value="0" class="run-btn">Run</button>
+      </form>
+
+      <div class="table-wrap">
+        <table aria-label="Users list">
+          <thead>
+            <tr>
+              <th class="chk"><input type="checkbox" id="select-all" aria-label="Select all users" /></th>
+              <th><a href="?o=email" style="color:inherit;text-decoration:none;">User <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
+              <th>Role</th>
+              <th>Staff</th>
+              <th>Status</th>
+              <th><a href="?o=created_at" style="color:inherit;text-decoration:none;">Joined <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
+              <th aria-hidden="true"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in cl.result_list %}
+            <tr>
+              <td class="chk"><input class="select-row" type="checkbox" name="_selected_action" value="{{ user.pk }}" aria-label="Select user {{ user.email }}" /></td>
+              <td>
+                <div class="user-info">
+                  <div class="avatar" aria-hidden="true">{{ user.username|slice:":2"|upper }}</div>
+                  <div>
+                    <a href="{% url 'admin:users_user_change' user.pk %}" class="user-email-link">{{ user.email }}</a>
+                    <div class="user-username">@{{ user.username }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge {% if user.role == 'admin' %}badge-admin{% endif %}">
+                  {% if user.role == 'admin' %}<i class="ti ti-shield" aria-hidden="true"></i>{% endif %}
+                  {{ user.get_role_display }}
+                </span>
+              </td>
+              <td>
+                <div class="status-indicator">
+                  <span class="dot {% if user.is_staff %}dot-staff{% else %}dot-nonstaff{% endif %}"></span>
+                  {% if user.is_staff %}Staff{% else %}Not staff{% endif %}
+                </div>
+              </td>
+              <td>
+                <div class="status-indicator">
+                  <span class="dot {% if user.is_active %}dot-active{% else %}dot-inactive{% endif %}"></span>
+                  {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                </div>
+              </td>
+              <td class="date-cell">
+                {{ user.created_at|date:"M d, Y" }}
+                <small>{{ user.created_at|time:"g:i a" }}</small>
+              </td>
+              <td>
+                <div class="row-actions" aria-label="More actions">
+                  <a href="{% url 'admin:users_user_change' user.pk %}" class="row-btn" title="Edit"><i class="ti ti-edit" aria-hidden="true"></i></a>
+                  <a href="{% url 'admin:users_user_delete' user.pk %}" class="row-btn" title="Delete" style="color:var(--text-danger);"><i class="ti ti-trash" aria-hidden="true"></i></a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" style="padding: 20px 14px; color: var(--text-muted); text-align: center;">No users found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <span>{{ cl.result_count }} users total</span>
+          <div class="pagination" aria-label="Pagination">
+            <button class="pg-btn active" aria-current="page">1</button>
+          </div>
+          <span>Select users for bulk actions</span>
+        </div>
+      </div>
+
+      <footer class="page-footer">
+        © 2026 Sudanile Kitchen — Preserving South Sudanese Culinary Heritage
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script>
+  document.getElementById('select-all').addEventListener('change', function(e) {
+    document.querySelectorAll('.select-row').forEach(function(box) {
+      box.checked = e.target.checked;
+    });
+  });
+</script>
+</body>
+</html>
