@@ -230,6 +230,8 @@
       .modules-grid { grid-template-columns: 1fr; }
       .topbar-user { display: none; }
     }
+
+
   </style>
 </head>
 <body>
@@ -242,9 +244,8 @@
       <div class="topbar-right">
         
         <nav class="topbar-nav" aria-label="Top navigation">
-          <a href="/">View site</a><span class="sep">·</span>
-          <a href="/admin/password_change/">Change password</a><span class="sep">·</span>
-          <a href="/admin/logout/">Log out</a>
+          <a href="{% url 'home' %}">View site</a><span class="sep">·</span>
+          <a href="{% url 'logout' %}">Log out</a>
         </nav>
       </div>
     </header>
@@ -253,23 +254,23 @@
       <nav class="sidebar" aria-label="Admin navigation">
         <div class="sidebar-section">
           <div class="sidebar-label">Content</div>
-          <a class="sidebar-item active" href="/admin/"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
-          <a class="sidebar-item" href="/admin/recipes/recipe/"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
-          <a class="sidebar-item" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
-          <a class="sidebar-item" href="/admin/submissions/recipesubmission/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
-          <a class="sidebar-item" href="/admin/reviews/review/"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
-          <a class="sidebar-item" href="/admin/favorites/favorite/"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+          <a class="sidebar-item active" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+          <a class="sidebar-item" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+          <a class="sidebar-item" href="{% url 'admin_category_changelist' %}"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+          <a class="sidebar-item" href="{% url 'admin:submissions_recipesubmission_changelist' %}"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+          <a class="sidebar-item" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+          <a class="sidebar-item" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
         </div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
           <div class="sidebar-label">Users</div>
-          <a class="sidebar-item" href="/admin/users/user/"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
-          <a class="sidebar-item" href="/admin/users/user/add/"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+          <a class="sidebar-item" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+          <a class="sidebar-item" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
         </div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-section sidebar-system">
           <div class="sidebar-label">System</div>
-          <a class="sidebar-item" href="/admin/auth/group/"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+          <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
         </div>
       </nav>
 
@@ -311,7 +312,7 @@
           <div class="panel">
             <div class="panel-header">
               <span class="panel-title">Pending submissions</span>
-              <a href="/admin/submissions/recipesubmission/?status__exact=pending" class="panel-link">View all</a>
+              <a href="{% url 'admin:submissions_recipesubmission_changelist' %}?status__exact=pending" class="panel-link">View all</a>
             </div>
             {% if pending_submissions_list %}
               {% for submission in pending_submissions_list|slice:":3" %}
@@ -322,7 +323,7 @@
                   <div class="sub-meta">Submitted {{ submission.submitted_at|timesince }} ago · Recipe submission</div>
                 </div>
                 <div class="sub-actions">
-                  <a href="/admin/submissions/recipesubmission/{{ submission.id }}/change/" class="sub-btn approve">Review</a>
+                  <a href="{% url 'admin:submissions_recipesubmission_change' submission.id %}" class="sub-btn approve">Review</a>
                 </div>
               </div>
               {% endfor %}
@@ -337,7 +338,7 @@
           <div class="panel">
             <div class="panel-header">
               <span class="panel-title">Recent actions</span>
-              <a href="#" class="panel-link">See all</a>
+              <span class="panel-link" style="opacity:0.4;cursor:default;">See all</span>
             </div>
             <div class="empty-state">
               <i class="ti ti-clock" style="font-size:15px;color:var(--text-muted);" aria-hidden="true"></i>
@@ -359,15 +360,15 @@
               <div class="mod-row">
                 <span class="mod-item">Categories</span>
                 <div class="mod-actions">
-                  <a href="/admin/category/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
-                  <a href="/admin/category/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin_category_add' %}" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="{% url 'admin_category_changelist' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
               <div class="mod-row">
                 <span class="mod-item">Recipes</span>
                 <div class="mod-actions">
-                  <a href="/admin/recipes/recipe/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
-                  <a href="/admin/recipes/recipe/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin:recipes_recipe_add' %}" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="{% url 'admin:recipes_recipe_changelist' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
             </div>
@@ -380,7 +381,7 @@
               <div class="mod-row">
                 <span class="mod-item">Recipe submissions</span>
                 <div class="mod-actions">
-                  <a href="/admin/submissions/recipesubmission/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin:submissions_recipesubmission_changelist' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
             </div>
@@ -393,7 +394,7 @@
               <div class="mod-row">
                 <span class="mod-item">Reviews</span>
                 <div class="mod-actions">
-                  <a href="/admin/reviews/review/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin:reviews_review_changelist' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
             </div>
@@ -406,7 +407,7 @@
               <div class="mod-row">
                 <span class="mod-item">Favorites</span>
                 <div class="mod-actions">
-                  <a href="/admin/favorites/favorite/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin:favorites_favorite_changelist' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
             </div>
@@ -419,8 +420,8 @@
               <div class="mod-row">
                 <span class="mod-item">Users</span>
                 <div class="mod-actions">
-                  <a href="/admin/users/user/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
-                  <a href="/admin/users/user/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin:users_user_add' %}" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="{% url 'admin:users_user_changelist' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
             </div>
@@ -428,13 +429,13 @@
             <div class="mod-card" style="opacity:0.75;">
               <div class="mod-header">
                 <i class="ti ti-shield-lock mod-icon" aria-hidden="true"></i>
-                <span class="mod-name">System — Auth &amp; groups</span>
+                <span class="mod-name">System — Authentication</span>
               </div>
               <div class="mod-row">
                 <span class="mod-item">Groups</span>
                 <div class="mod-actions">
-                  <a href="/admin/auth/group/add/" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
-                  <a href="/admin/auth/group/" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
+                  <a href="{% url 'admin:auth_group_add' %}" class="mod-btn add"><i class="ti ti-plus"></i>Add</a>
+                  <a href="{% url 'admin_auth_index' %}" class="mod-btn"><i class="ti ti-edit"></i>Change</a>
                 </div>
               </div>
             </div>
@@ -448,5 +449,6 @@
       </main>
     </div>
   </div>
+
 </body>
 </html>

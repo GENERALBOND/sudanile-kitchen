@@ -22,3 +22,20 @@ def dashboard(request):
         'recent_actions': [],
     }
     return render(request, 'admin/dashboard.html', context)
+
+
+@login_required
+@staff_member_required
+def auth_index(request):
+    from django.contrib.auth.models import Group
+    from users.models import User
+
+    context = {
+        'user_email': request.user.email,
+        'total_users': User.objects.count(),
+        'total_groups': Group.objects.count(),
+        'active_sessions': 0,
+        'pending_password_resets': 0,
+        'groups': Group.objects.all().order_by('name'),
+    }
+    return render(request, 'admin/authentication/index.html', context)

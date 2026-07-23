@@ -1,0 +1,348 @@
+{% load i18n admin_urls %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% if original %}{{ original.user.email }} - {{ original.recipe.title }} | Change Review{% else %}Add Review{% endif %} | Sudanile Kitchen Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --border-success: #9bcfaa;
+      --border-danger: #f4b8b8;
+      --border-warning: #f5d48a;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --border-success: #1e5e30;
+        --border-danger: #7a2020;
+        --border-warning: #6b4209;
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    /* TOPBAR */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #E8650A; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    /* LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 80px); background: var(--surface-0); }
+
+    /* SIDEBAR */
+    .sidebar { width: 210px; flex-shrink: 0; background: var(--surface-2); border-right: 0.5px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); padding: 10px 20px 4px; }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.12s, color 0.12s; border-left: 2px solid transparent; }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-sys { opacity: 0.72; }
+
+    /* MAIN */
+    .main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* BREADCRUMB */
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: #E8650A; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* PAGE HEADER */
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .back-btn { display: flex; align-items: center; gap: 6px; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 14px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.12s; }
+    .back-btn:hover { background: var(--surface-0); border-color: var(--border-strong); }
+
+    /* ERRORS */
+    .error-messages { background: var(--bg-danger); border: 0.5px solid var(--border-danger); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; }
+    .error-messages h3 { font-size: 13px; color: var(--text-danger); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .error-messages ul { list-style: none; padding: 0; margin: 0; }
+    .error-messages li { font-size: 12px; color: var(--text-danger); padding: 2px 0 2px 20px; position: relative; }
+    .error-messages li::before { content: "\2022"; position: absolute; left: 6px; }
+
+    /* FORM */
+    .form-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 24px; }
+    .form-section { margin-bottom: 24px; }
+    .form-section:last-child { margin-bottom: 0; }
+    .form-section-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-section-title i { color: #E8650A; }
+    .form-section-title small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid .full-width { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .form-group label .required { color: var(--text-danger); margin-left: 2px; }
+    .form-group .help-text { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 2px; }
+    .form-group .error-text { font-size: 11px; color: var(--text-danger); margin-top: 2px; }
+
+    .form-control { padding: 8px 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-1); color: var(--text-primary); font-size: 13px; font-family: var(--font-sans); transition: border-color 0.12s; width: 100%; }
+    .form-control:focus { outline: none; border-color: #E8650A; box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.1); }
+    .form-control::placeholder { color: var(--text-muted); }
+    .form-control.error { border-color: var(--text-danger); }
+    .form-control.success { border-color: var(--text-success); }
+    textarea.form-control { min-height: 80px; resize: vertical; }
+
+    .form-actions { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 0.5px solid var(--border); margin-top: 4px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.12s; text-decoration: none; font-family: var(--font-sans); }
+    .btn-primary { background: #E8650A; color: #fff; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary { background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface-0); border-color: var(--border-strong); }
+    .btn-success { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .btn-success:hover { opacity: 0.8; }
+
+    .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: stretch; gap: 10px; }
+      .form-actions { flex-direction: column; }
+      .form-actions .btn { width: 100%; justify-content: center; }
+    }
+
+
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+      Sudanile Kitchen Admin
+    </div>
+    <div class="topbar-right">
+      <nav class="topbar-nav" aria-label="Top navigation">
+        <a href="{% url 'admin:index' %}">View site</a><span class="sep">·</span>
+        <a href="{% url 'admin:logout' %}">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Content</div>
+        <a class="sidebar-item" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+        <a class="sidebar-item" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+        <a class="sidebar-item" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+        <a class="sidebar-item" href="/admin/submissions/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item active" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+        <a class="sidebar-item" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Users</div>
+        <a class="sidebar-item" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+        <a class="sidebar-item" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section sidebar-sys">
+        <div class="sidebar-label">System</div>
+        <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'admin:index' %}">Home</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <a href="{% url 'admin:reviews_review_changelist' %}">Reviews</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <span>{% if original %}{{ original.user.email }} - {{ original.recipe.title }}{% else %}Add review{% endif %}</span>
+      </nav>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            <i class="ti ti-star" aria-hidden="true" style="color:#E8650A;font-size:20px;"></i>
+            {% if original %}Review: {{ original.recipe.title }}{% else %}Add Review{% endif %}
+          </h1>
+          <p class="page-meta">{% if original %}Edit this recipe review{% else %}Create a new recipe review with rating and feedback{% endif %}</p>
+        </div>
+        <a href="{% url 'admin:reviews_review_changelist' %}" class="back-btn">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i>Back to reviews
+        </a>
+      </div>
+
+      {% if adminform.form.non_field_errors %}
+      <div class="notification notification-error" style="padding:12px 16px;border-radius:var(--radius);margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger);">
+        <i class="ti ti-alert-circle" aria-hidden="true"></i>
+        <span>{{ adminform.form.non_field_errors }}</span>
+      </div>
+      {% endif %}
+
+      {% if adminform.form.errors %}
+      <div class="error-messages">
+        <h3><i class="ti ti-alert-triangle" aria-hidden="true"></i> Please correct the errors below.</h3>
+        <ul>
+          {% for field, field_errors in adminform.form.errors.items %}
+            {% for error in field_errors %}
+              <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <form method="post" class="form-card">
+        {% csrf_token %}
+
+        <!-- Review Information -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-info-circle" aria-hidden="true"></i>
+            Review Information
+            <small>User and recipe details</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="id_user">User <span class="required">*</span></label>
+              <select id="id_user" name="user" class="form-control{% if adminform.form.user.errors %} error{% endif %}" required>
+                <option value="">Select user</option>
+                {% for u in adminform.form.user.field.queryset %}
+                  <option value="{{ u.pk }}"{% if adminform.form.user.value|stringformat:"s" == u.pk|stringformat:"s" %} selected{% endif %}>{{ u.email }}</option>
+                {% endfor %}
+              </select>
+              {% if adminform.form.user.errors %}<div class="error-text">{% for e in adminform.form.user.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+              <div class="help-text">The user who wrote this review</div>
+            </div>
+            <div class="form-group">
+              <label for="id_recipe">Recipe <span class="required">*</span></label>
+              <select id="id_recipe" name="recipe" class="form-control{% if adminform.form.recipe.errors %} error{% endif %}" required>
+                <option value="">Select recipe</option>
+                {% for r in adminform.form.recipe.field.queryset %}
+                  <option value="{{ r.pk }}"{% if adminform.form.recipe.value|stringformat:"s" == r.pk|stringformat:"s" %} selected{% endif %}>{{ r.title }}</option>
+                {% endfor %}
+              </select>
+              {% if adminform.form.recipe.errors %}<div class="error-text">{% for e in adminform.form.recipe.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+              <div class="help-text">The recipe being reviewed</div>
+            </div>
+            <div class="form-group full-width">
+              <label for="id_rating">Rating <span class="required">*</span></label>
+              <select id="id_rating" name="rating" class="form-control{% if adminform.form.rating.errors %} error{% endif %}" required>
+                <option value="">Select rating</option>
+                {% for val, label in adminform.form.rating.field.choices %}
+                  <option value="{{ val }}"{% if adminform.form.rating.value|stringformat:"s" == val|stringformat:"s" %} selected{% endif %}>{{ label }} star{{ val|pluralize }}</option>
+                {% endfor %}
+              </select>
+              {% if adminform.form.rating.errors %}<div class="error-text">{% for e in adminform.form.rating.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+              <div class="help-text">Select a rating from 1 to 5</div>
+            </div>
+            <div class="form-group full-width">
+              <label for="id_comment">Comment</label>
+              <textarea id="id_comment" name="comment" class="form-control{% if adminform.form.comment.errors %} error{% endif %}" rows="4" placeholder="Write the user's review comment here...">{% if adminform.form.comment.value %}{{ adminform.form.comment.value }}{% endif %}</textarea>
+              {% if adminform.form.comment.errors %}<div class="error-text">{% for e in adminform.form.comment.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+              <div class="help-text">The user's feedback about the recipe</div>
+            </div>
+          </div>
+        </div>
+
+        {% if original %}
+        <!-- Review Metadata -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-settings" aria-hidden="true"></i>
+            Review Metadata
+            <small>Timestamps</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="id_created_at">Created</label>
+              <input type="text" id="id_created_at" class="form-control" value="{{ original.created_at|date:'Y-m-d H:i' }}" readonly disabled />
+            </div>
+            <div class="form-group">
+              <label for="id_updated_at">Last Updated</label>
+              <input type="text" id="id_updated_at" class="form-control" value="{{ original.updated_at|date:'Y-m-d H:i' }}" readonly disabled />
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" name="_save" class="btn btn-primary">
+            <i class="ti ti-device-floppy" aria-hidden="true"></i> Save
+          </button>
+          <button type="submit" name="_addanother" class="btn btn-success">
+            <i class="ti ti-plus" aria-hidden="true"></i> Save and add another
+          </button>
+          <button type="submit" name="_continue" class="btn btn-secondary">
+            <i class="ti ti-pencil" aria-hidden="true"></i> Save and continue editing
+          </button>
+          {% if original %}
+          <a href="{% url 'admin:reviews_review_delete' original.pk %}" class="btn" style="margin-left:auto;background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger);">
+            <i class="ti ti-trash" aria-hidden="true"></i> Delete
+          </a>
+          {% endif %}
+        </div>
+      </form>
+
+      <footer class="page-footer">
+        &copy; 2026 Sudanile Kitchen &mdash; Preserving South Sudanese Culinary Heritage
+      </footer>
+    </main>
+  </div>
+</div>
+
+
+
+</body>
+</html>

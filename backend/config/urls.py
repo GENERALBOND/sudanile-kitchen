@@ -1,9 +1,9 @@
 from django.contrib import admin
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.shortcuts import redirect, render
 from django.urls import path, include
 from django.views.generic import RedirectView
-from .admin_views import dashboard
+from .admin_views import dashboard, auth_index
 from recipes.admin import CategoryAdmin
 from recipes.models import Category
 from users.models import User
@@ -47,10 +47,13 @@ urlpatterns = [
     path('admin/category/<int:object_id>/history/', category_admin.history_view, name='admin_category_history'),
     # Direct submissions admin alias path
     path('admin/submissions/', RedirectView.as_view(pattern_name='admin:submissions_recipesubmission_changelist', query_string=True, permanent=False)),
+    # Logout — accepts GET/POST and redirects to the landing page
+    path('admin/logout/', lambda request: (auth_logout(request), redirect('home'))[1], name='logout'),
+    # Keep the dashboard and auth views available before the admin catch-all
+    path('admin/dashboard/', dashboard, name='admin_dashboard'),
+    path('admin/authentication/', auth_index, name='admin_auth_index'),
     # Mount the Django admin at /admin/ and render the custom dashboard template
     path('admin/', admin.site.urls),
-    # Keep the dashboard view available at a dedicated path if needed
-    path('admin/dashboard/', dashboard, name='admin_dashboard'),
     path('api/users/', include('users.urls')),
     path('api/recipes/', include('recipes.urls')),
     path('api/reviews/', include('reviews.urls')),
