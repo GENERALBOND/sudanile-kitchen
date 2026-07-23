@@ -204,6 +204,8 @@
       table { font-size: 11px; }
       .inline-actions { flex-direction: column; gap: 3px; }
     }
+
+
   </style>
 </head>
 <body>
@@ -216,7 +218,6 @@
     <div class="topbar-right">
       <nav class="topbar-nav" aria-label="Top navigation">
         <a href="{% url 'admin:index' %}">View site</a><span class="sep">·</span>
-        <a href="{% url 'admin:password_change' %}">Change password</a><span class="sep">·</span>
         <a href="{% url 'admin:logout' %}">Log out</a>
       </nav>
     </div>
@@ -242,8 +243,7 @@
       <div class="sidebar-divider"></div>
       <div class="sidebar-section sidebar-sys">
         <div class="sidebar-label">System</div>
-        <a class="sidebar-item" href="{% url 'admin:auth_group_changelist' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
-        
+        <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
       </div>
     </nav>
 
@@ -389,5 +389,6 @@
     </main>
   </div>
 </div>
+
 </body>
 </html>

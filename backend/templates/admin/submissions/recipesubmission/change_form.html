@@ -1,0 +1,529 @@
+{% load i18n admin_urls %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% if original %}Submission: {{ original.title }}{% else %}Add Submission{% endif %} | Sudanile Kitchen Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --border-success: #9bcfaa;
+      --border-danger: #f4b8b8;
+      --border-warning: #f5d48a;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --border-success: #1e5e30;
+        --border-danger: #7a2020;
+        --border-warning: #6b4209;
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #E8650A; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    .layout { display: flex; min-height: calc(100vh - 80px); background: var(--surface-0); }
+
+    .sidebar { width: 210px; flex-shrink: 0; background: var(--surface-2); border-right: 0.5px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); padding: 10px 20px 4px; }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.12s, color 0.12s; border-left: 2px solid transparent; }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-sys { opacity: 0.72; }
+
+    .main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: #E8650A; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .back-btn { display: flex; align-items: center; gap: 6px; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 14px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.12s; }
+    .back-btn:hover { background: var(--surface-0); border-color: var(--border-strong); }
+
+    .error-messages { background: var(--bg-danger); border: 0.5px solid var(--border-danger); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; }
+    .error-messages h3 { font-size: 13px; color: var(--text-danger); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .error-messages ul { list-style: none; padding: 0; margin: 0; }
+    .error-messages li { font-size: 12px; color: var(--text-danger); padding: 2px 0 2px 20px; position: relative; }
+    .error-messages li::before { content: "\2022"; position: absolute; left: 6px; }
+
+    .form-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 24px; }
+    .form-section { margin-bottom: 28px; }
+    .form-section:last-child { margin-bottom: 0; }
+    .form-section-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-section-title i { color: #E8650A; }
+    .form-section-title small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid .full-width { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .form-group label .required { color: var(--text-danger); margin-left: 2px; }
+    .form-group .help-text { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 2px; }
+    .form-group .error-text { font-size: 11px; color: var(--text-danger); margin-top: 2px; }
+
+    .form-control { padding: 8px 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-1); color: var(--text-primary); font-size: 13px; font-family: var(--font-sans); transition: border-color 0.12s; width: 100%; }
+    .form-control:focus { outline: none; border-color: #E8650A; box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.1); }
+    .form-control::placeholder { color: var(--text-muted); }
+    .form-control.error { border-color: var(--text-danger); }
+    .form-control.success { border-color: var(--text-success); }
+    textarea.form-control { min-height: 100px; resize: vertical; }
+
+    .time-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .time-field { display: flex; align-items: center; gap: 6px; }
+    .time-field label { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+    .time-field .form-control { width: 80px; text-align: center; }
+
+    .form-actions { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 0.5px solid var(--border); margin-top: 4px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.12s; text-decoration: none; font-family: var(--font-sans); }
+    .btn-primary { background: #E8650A; color: #fff; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary { background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface-0); border-color: var(--border-strong); }
+    .btn-success { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .btn-success:hover { opacity: 0.8; }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+    .status-pending { background: var(--bg-warning); color: var(--text-warning); border: 0.5px solid var(--border-warning); }
+    .status-approved { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .status-rejected { background: var(--bg-danger); color: var(--text-danger); border: 0.5px solid var(--border-danger); }
+
+    .submission-info { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .submission-info .info-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .submission-info .info-item i { color: #E8650A; font-size: 14px; }
+    .submission-info .info-item .value { font-weight: 500; color: var(--text-primary); }
+
+    .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: stretch; gap: 10px; }
+      .form-actions { flex-direction: column; }
+      .form-actions .btn { width: 100%; justify-content: center; }
+      .submission-info { flex-direction: column; align-items: stretch; }
+      .time-row { flex-direction: column; align-items: stretch; }
+      .time-field .form-control { width: 100%; }
+    }
+
+
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+      Sudanile Kitchen Admin
+    </div>
+    <div class="topbar-right">
+      <nav class="topbar-nav" aria-label="Top navigation">
+        <a href="{% url 'admin:index' %}">View site</a><span class="sep">·</span>
+        <a href="{% url 'admin:logout' %}">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Content</div>
+        <a class="sidebar-item" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+        <a class="sidebar-item" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+        <a class="sidebar-item" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+        <a class="sidebar-item active" href="/admin/submissions/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+        <a class="sidebar-item" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Users</div>
+        <a class="sidebar-item" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+        <a class="sidebar-item" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section sidebar-sys">
+        <div class="sidebar-label">System</div>
+        <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'admin:index' %}">Home</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <a href="/admin/submissions/">Submissions</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <span>{% if original %}{{ original.title }}{% else %}Add submission{% endif %}</span>
+      </nav>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            <i class="ti ti-send" aria-hidden="true" style="color:#E8650A;font-size:20px;"></i>
+            {% if original %}Submission: {{ original.title }}{% else %}Add Submission{% endif %}
+          </h1>
+          <p class="page-meta">{% if original %}Review and manage recipe submission{% else %}Create a new recipe submission{% endif %}</p>
+        </div>
+        <a href="/admin/submissions/" class="back-btn">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i>Back to submissions
+        </a>
+      </div>
+
+      {% if original %}
+      <div class="submission-info">
+        <div class="info-item">
+          <i class="ti ti-user" aria-hidden="true"></i>
+          Submitted by: <span class="value">{{ original.user.email }}</span>
+        </div>
+        <div class="info-item">
+          <i class="ti ti-calendar" aria-hidden="true"></i>
+          Submitted: <span class="value">{{ original.submitted_at|date:"M j, Y" }}</span>
+          <span style="font-size:10px;color:var(--text-muted);">· {{ original.submitted_at|time:"g:i A" }}</span>
+        </div>
+        {% if original.reviewed_at %}
+        <div class="info-item">
+          <i class="ti ti-check" aria-hidden="true"></i>
+          Reviewed: <span class="value">{{ original.reviewed_at|date:"M j, Y" }}</span>
+        </div>
+        {% endif %}
+        <div class="info-item" style="margin-left:auto;">
+          <span class="status-badge status-{{ original.status }}">
+            {% if original.status == 'pending' %}<i class="ti ti-clock-hour-4" aria-hidden="true"></i>
+            {% elif original.status == 'approved' %}<i class="ti ti-circle-check" aria-hidden="true"></i>
+            {% else %}<i class="ti ti-circle-x" aria-hidden="true"></i>{% endif %}
+            {{ original.get_status_display }}
+          </span>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if adminform.form.non_field_errors %}
+      <div style="padding:12px 16px;border-radius:var(--radius);margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger);">
+        <i class="ti ti-alert-circle" aria-hidden="true"></i>
+        <span>{{ adminform.form.non_field_errors }}</span>
+      </div>
+      {% endif %}
+
+      {% if adminform.form.errors %}
+      <div class="error-messages">
+        <h3><i class="ti ti-alert-triangle" aria-hidden="true"></i> Please correct the errors below.</h3>
+        <ul>
+          {% for field, field_errors in adminform.form.errors.items %}
+            {% for error in field_errors %}
+              <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" class="form-card">
+        {% csrf_token %}
+
+        <!-- Recipe Information -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-info-circle" aria-hidden="true"></i>
+            Recipe Information
+            <small>Basic recipe details</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="id_title">Title <span class="required">*</span></label>
+              <input type="text" id="id_title" name="title" class="form-control{% if adminform.form.title.errors %} error{% endif %}" placeholder="Enter recipe title" value="{{ adminform.form.title.value|default:'' }}" required />
+              {% if adminform.form.title.errors %}<div class="error-text">{% for e in adminform.form.title.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="id_user">User <span class="required">*</span></label>
+              <select id="id_user" name="user" class="form-control{% if adminform.form.user.errors %} error{% endif %}" required>
+                <option value="">Select user</option>
+                {% for u in adminform.form.user.field.queryset %}
+                  <option value="{{ u.pk }}"{% if adminform.form.user.value|stringformat:"s" == u.pk|stringformat:"s" %} selected{% endif %}>{{ u.email }}</option>
+                {% endfor %}
+              </select>
+              {% if adminform.form.user.errors %}<div class="error-text">{% for e in adminform.form.user.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="id_category_name">Category <span class="required">*</span></label>
+              <select id="id_category_name" name="category_name" class="form-control{% if adminform.form.category_name.errors %} error{% endif %}" required>
+                <option value="">Select category</option>
+                {% for val, label in adminform.form.category_name.field.choices %}
+                  <option value="{{ val }}"{% if adminform.form.category_name.value == val %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              {% if adminform.form.category_name.errors %}<div class="error-text">{% for e in adminform.form.category_name.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+              <div class="help-text">Select a category for this recipe</div>
+            </div>
+            <div class="form-group full-width">
+              <label for="id_description">Description</label>
+              <textarea id="id_description" name="description" class="form-control{% if adminform.form.description.errors %} error{% endif %}" placeholder="Describe the recipe..." rows="3">{% if adminform.form.description.value %}{{ adminform.form.description.value }}{% endif %}</textarea>
+              {% if adminform.form.description.errors %}<div class="error-text">{% for e in adminform.form.description.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="form-group full-width">
+              <label for="id_cultural_info">Cultural Information</label>
+              <textarea id="id_cultural_info" name="cultural_info" class="form-control{% if adminform.form.cultural_info.errors %} error{% endif %}" placeholder="Historical background, cultural significance..." rows="2">{% if adminform.form.cultural_info.value %}{{ adminform.form.cultural_info.value }}{% endif %}</textarea>
+              {% if adminform.form.cultural_info.errors %}<div class="error-text">{% for e in adminform.form.cultural_info.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Preparation Time -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-timer" aria-hidden="true"></i>
+            Preparation Time
+            <small>Time needed to prepare ingredients</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <div class="time-row">
+                <div class="time-field">
+                  <label for="id_prep_hours">Hours</label>
+                  <input type="number" id="id_prep_hours" name="prep_hours" class="form-control" value="{{ adminform.form.prep_hours.value|default:'0' }}" min="0" />
+                </div>
+                <div class="time-field">
+                  <label for="id_prep_minutes">Minutes</label>
+                  <input type="number" id="id_prep_minutes" name="prep_minutes" class="form-control" value="{{ adminform.form.prep_minutes.value|default:'0' }}" min="0" max="59" />
+                </div>
+                <div class="time-field">
+                  <label for="id_prep_seconds">Seconds</label>
+                  <input type="number" id="id_prep_seconds" name="prep_seconds" class="form-control" value="{{ adminform.form.prep_seconds.value|default:'0' }}" min="0" max="59" />
+                </div>
+              </div>
+              {% if adminform.form.prep_hours.errors %}<div class="error-text">{% for e in adminform.form.prep_hours.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Cooking Time -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-fire" aria-hidden="true"></i>
+            Cooking Time
+            <small>Time needed to cook the dish</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <div class="time-row">
+                <div class="time-field">
+                  <label for="id_cook_hours">Hours</label>
+                  <input type="number" id="id_cook_hours" name="cook_hours" class="form-control" value="{{ adminform.form.cook_hours.value|default:'0' }}" min="0" />
+                </div>
+                <div class="time-field">
+                  <label for="id_cook_minutes">Minutes</label>
+                  <input type="number" id="id_cook_minutes" name="cook_minutes" class="form-control" value="{{ adminform.form.cook_minutes.value|default:'0' }}" min="0" max="59" />
+                </div>
+                <div class="time-field">
+                  <label for="id_cook_seconds">Seconds</label>
+                  <input type="number" id="id_cook_seconds" name="cook_seconds" class="form-control" value="{{ adminform.form.cook_seconds.value|default:'0' }}" min="0" max="59" />
+                </div>
+              </div>
+              {% if adminform.form.cook_hours.errors %}<div class="error-text">{% for e in adminform.form.cook_hours.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Serving & Difficulty -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-settings" aria-hidden="true"></i>
+            Serving &amp; Difficulty
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="id_servings">Servings</label>
+              <input type="number" id="id_servings" name="servings" class="form-control{% if adminform.form.servings.errors %} error{% endif %}" value="{{ adminform.form.servings.value|default:'4' }}" min="1" />
+              {% if adminform.form.servings.errors %}<div class="error-text">{% for e in adminform.form.servings.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="id_difficulty">Difficulty</label>
+              <select id="id_difficulty" name="difficulty" class="form-control{% if adminform.form.difficulty.errors %} error{% endif %}">
+                <option value="">Select</option>
+                <option value="easy"{% if adminform.form.difficulty.value == 'easy' %} selected{% endif %}>Easy</option>
+                <option value="medium"{% if adminform.form.difficulty.value == 'medium' or not adminform.form.difficulty.value %} selected{% endif %}>Medium</option>
+                <option value="hard"{% if adminform.form.difficulty.value == 'hard' %} selected{% endif %}>Hard</option>
+              </select>
+              {% if adminform.form.difficulty.errors %}<div class="error-text">{% for e in adminform.form.difficulty.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredients -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-list" aria-hidden="true"></i>
+            Ingredients
+          </div>
+          <div class="form-group full-width">
+            <label for="id_ingredients">Ingredients <span class="required">*</span></label>
+            <textarea id="id_ingredients" name="ingredients" class="form-control{% if adminform.form.ingredients.errors %} error{% endif %}" placeholder="List all ingredients, one per line" rows="6">{% if adminform.form.ingredients.value %}{{ adminform.form.ingredients.value }}{% endif %}</textarea>
+            {% if adminform.form.ingredients.errors %}<div class="error-text">{% for e in adminform.form.ingredients.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            <div class="help-text">Enter each ingredient on a new line</div>
+          </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-list-numbers" aria-hidden="true"></i>
+            Instructions
+          </div>
+          <div class="form-group full-width">
+            <label for="id_instructions">Instructions <span class="required">*</span></label>
+            <textarea id="id_instructions" name="instructions" class="form-control{% if adminform.form.instructions.errors %} error{% endif %}" placeholder="Enter cooking instructions, one step per line" rows="8">{% if adminform.form.instructions.value %}{{ adminform.form.instructions.value }}{% endif %}</textarea>
+            {% if adminform.form.instructions.errors %}<div class="error-text">{% for e in adminform.form.instructions.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            <div class="help-text">Enter each instruction step on a new line</div>
+          </div>
+        </div>
+
+        <!-- Media -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-photo" aria-hidden="true"></i>
+            Media
+            <small>Images and video for the recipe</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="id_image_url">Image URL</label>
+              <input type="url" id="id_image_url" name="image_url" class="form-control{% if adminform.form.image_url.errors %} error{% endif %}" placeholder="https://example.com/recipe-image.jpg" value="{{ adminform.form.image_url.value|default:'' }}" />
+              {% if adminform.form.image_url.errors %}<div class="error-text">{% for e in adminform.form.image_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="id_video_url">Video URL</label>
+              <input type="url" id="id_video_url" name="video_url" class="form-control{% if adminform.form.video_url.errors %} error{% endif %}" placeholder="https://youtube.com/watch?v=..." value="{{ adminform.form.video_url.value|default:'' }}" />
+              {% if adminform.form.video_url.errors %}<div class="error-text">{% for e in adminform.form.video_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Status & Admin Notes -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-settings" aria-hidden="true"></i>
+            Status &amp; Admin Notes
+            <small>Review and approval settings</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="id_status">Status <span class="required">*</span></label>
+              <select id="id_status" name="status" class="form-control{% if adminform.form.status.errors %} error{% endif %}" required>
+                <option value="pending"{% if adminform.form.status.value == 'pending' %} selected{% endif %}>Pending</option>
+                <option value="approved"{% if adminform.form.status.value == 'approved' %} selected{% endif %}>Approved</option>
+                <option value="rejected"{% if adminform.form.status.value == 'rejected' %} selected{% endif %}>Rejected</option>
+              </select>
+              {% if adminform.form.status.errors %}<div class="error-text">{% for e in adminform.form.status.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label for="id_admin_notes">Admin Notes</label>
+              <textarea id="id_admin_notes" name="admin_notes" class="form-control{% if adminform.form.admin_notes.errors %} error{% endif %}" rows="3" placeholder="Add internal notes about this submission...">{% if adminform.form.admin_notes.value %}{{ adminform.form.admin_notes.value }}{% endif %}</textarea>
+              {% if adminform.form.admin_notes.errors %}<div class="error-text">{% for e in adminform.form.admin_notes.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+            </div>
+            {% if original %}
+            <div class="form-group">
+              <label>Submitted at</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {{ original.submitted_at|date:"M j, Y" }} · {{ original.submitted_at|time:"g:i A" }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Reviewed at</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {% if original.reviewed_at %}{{ original.reviewed_at|date:"M j, Y" }} · {{ original.reviewed_at|time:"g:i A" }}{% else %}<span style="color:var(--text-muted);">Not yet reviewed</span>{% endif %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" name="_save" class="btn btn-primary">
+            <i class="ti ti-device-floppy" aria-hidden="true"></i> Save
+          </button>
+          <button type="submit" name="_addanother" class="btn btn-success">
+            <i class="ti ti-plus" aria-hidden="true"></i> Save and add another
+          </button>
+          <button type="submit" name="_continue" class="btn btn-secondary">
+            <i class="ti ti-pencil" aria-hidden="true"></i> Save and continue editing
+          </button>
+          {% if original %}
+          <a href="{% url 'admin:submissions_recipesubmission_delete' original.pk %}" class="btn" style="margin-left:auto;background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger);">
+            <i class="ti ti-trash" aria-hidden="true"></i> Delete
+          </a>
+          {% endif %}
+        </div>
+      </form>
+
+      <footer class="page-footer">
+        &copy; 2026 Sudanile Kitchen — Preserving South Sudanese Culinary Heritage
+      </footer>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
