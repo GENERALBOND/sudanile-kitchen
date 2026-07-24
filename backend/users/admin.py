@@ -4,6 +4,7 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, Permission
 from django import forms
+from django.shortcuts import redirect
 from .models import User
 
 class CustomUserCreationForm(UserCreationForm):
@@ -19,11 +20,13 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     add_form_template = 'admin/users/user/add_form.html'
+    change_form_template = 'admin/users/user/change_form.html'
 
     list_display = ('email', 'username', 'role', 'is_staff', 'created_at')
     list_filter = ('role', 'is_staff', 'is_active')
     search_fields = ('email', 'username')
     ordering = ('email',)
+    readonly_fields = ('date_joined', 'last_login')
     fieldsets = UserAdmin.fieldsets + (
         ('Additional Info', {'fields': ('role', 'profile_picture', 'bio')}),
     )
@@ -61,6 +64,20 @@ class GroupAdmin(BaseGroupAdmin):
     form = GroupAdminForm
     add_form_template = 'admin/auth/group/add_form.html'
     change_form_template = 'admin/auth/group/add_form.html'
+
+    def response_post_save_add(self, request, obj):
+        if '_addanother' in request.POST:
+            return redirect('admin:auth_group_add')
+        if '_continue' in request.POST:
+            return redirect('admin:auth_group_change', obj.pk)
+        return redirect('admin_auth_index')
+
+    def response_post_save_change(self, request, obj):
+        if '_addanother' in request.POST:
+            return redirect('admin:auth_group_add')
+        if '_continue' in request.POST:
+            return redirect('admin:auth_group_change', obj.pk)
+        return redirect('admin_auth_index')
 
 admin.site.unregister(Group)
 admin.site.register(Group, GroupAdmin)

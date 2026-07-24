@@ -1,0 +1,451 @@
+{% load i18n admin_urls %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% if original %}{{ original.email }}{% else %}Add User{% endif %} | Sudanile Kitchen Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --border-success: #9bcfaa;
+      --border-danger: #f4b8b8;
+      --border-warning: #f5d48a;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --border-success: #1e5e30;
+        --border-danger: #7a2020;
+        --border-warning: #6b4209;
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #E8650A; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    .layout { display: flex; min-height: calc(100vh - 80px); background: var(--surface-0); }
+
+    .sidebar { width: 210px; flex-shrink: 0; background: var(--surface-2); border-right: 0.5px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); padding: 10px 20px 4px; }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.12s, color 0.12s; border-left: 2px solid transparent; }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-sys { opacity: 0.72; }
+
+    .main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: #E8650A; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .back-btn { display: flex; align-items: center; gap: 6px; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 14px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.12s; }
+    .back-btn:hover { background: var(--surface-0); border-color: var(--border-strong); }
+
+    .error-messages { background: var(--bg-danger); border: 0.5px solid var(--border-danger); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; }
+    .error-messages h3 { font-size: 13px; color: var(--text-danger); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .error-messages ul { list-style: none; padding: 0; margin: 0; }
+    .error-messages li { font-size: 12px; color: var(--text-danger); padding: 2px 0 2px 20px; position: relative; }
+    .error-messages li::before { content: "\2022"; position: absolute; left: 6px; }
+
+    .form-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 24px; }
+    .form-section { margin-bottom: 24px; }
+    .form-section:last-child { margin-bottom: 0; }
+    .form-section-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-section-title i { color: #E8650A; }
+    .form-section-title small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid .full-width { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .form-group label .required { color: var(--text-danger); margin-left: 2px; }
+    .form-group .help-text { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 2px; }
+    .form-group .error-text { font-size: 11px; color: var(--text-danger); margin-top: 2px; }
+
+    .form-control { padding: 8px 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-1); color: var(--text-primary); font-size: 13px; font-family: var(--font-sans); transition: border-color 0.12s; width: 100%; }
+    .form-control:focus { outline: none; border-color: #E8650A; box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.1); }
+    .form-control::placeholder { color: var(--text-muted); }
+    .form-control.error { border-color: var(--text-danger); }
+    .form-control.success { border-color: var(--text-success); }
+    textarea.form-control { min-height: 80px; resize: vertical; }
+
+    .checkbox-group { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+    .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: #E8650A; cursor: pointer; }
+    .checkbox-group label { font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+    .checkbox-group .help-text { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .form-actions { display: flex; align-items: center; gap: 10px; padding-top: 20px; border-top: 0.5px solid var(--border); margin-top: 4px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.12s; text-decoration: none; font-family: var(--font-sans); }
+    .btn-primary { background: #E8650A; color: #fff; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary { background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface-0); border-color: var(--border-strong); }
+    .btn-success { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .btn-success:hover { opacity: 0.8; }
+    .btn-danger { background: var(--bg-danger); color: var(--text-danger); border: 0.5px solid var(--border-danger); }
+    .btn-danger:hover { opacity: 0.8; }
+
+    .user-info { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .user-info .info-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .user-info .info-item i { color: #E8650A; font-size: 14px; }
+    .user-info .info-item .value { font-weight: 500; color: var(--text-primary); }
+
+    .role-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+    .role-badge-admin { background: var(--bg-accent); color: var(--text-accent); border: 0.5px solid #b8d4f0; }
+    .role-badge-user { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .role-badge-staff { background: var(--bg-warning); color: var(--text-warning); border: 0.5px solid var(--border-warning); }
+
+    .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: stretch; gap: 10px; }
+      .form-actions { flex-direction: column; }
+      .form-actions .btn { width: 100%; justify-content: center; }
+      .user-info { flex-direction: column; align-items: stretch; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+      Sudanile Kitchen Admin
+    </div>
+    <div class="topbar-right">
+      <nav class="topbar-nav" aria-label="Top navigation">
+        <a href="{% url 'admin:index' %}">View site</a><span class="sep">·</span>
+        <a href="{% url 'admin:logout' %}">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Content</div>
+        <a class="sidebar-item" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
+        <a class="sidebar-item" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+        <a class="sidebar-item" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+        <a class="sidebar-item" href="/admin/submissions/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+        <a class="sidebar-item" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Users</div>
+        <a class="sidebar-item active" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+        <a class="sidebar-item" href="{% url 'admin:users_user_add' %}"><i class="ti ti-user-plus" aria-hidden="true"></i>Add user</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section sidebar-sys">
+        <div class="sidebar-label">System</div>
+        <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'admin:index' %}">Home</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <a href="{% url 'admin:users_user_changelist' %}">Users</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <span>{% if original %}{{ original.email }}{% else %}Add user{% endif %}</span>
+      </nav>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            <i class="ti ti-user" aria-hidden="true" style="color:#E8650A;font-size:20px;"></i>
+            {% if original %}Edit User{% else %}Add User{% endif %}
+          </h1>
+          <p class="page-meta">{% if original %}{{ original.email }} — Edit user account settings and permissions{% else %}Create a new user account{% endif %}</p>
+        </div>
+        <a href="{% url 'admin:users_user_changelist' %}" class="back-btn">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i>Back to users
+        </a>
+      </div>
+
+      {% if original %}
+      <div class="user-info">
+        <div class="info-item">
+          <i class="ti ti-shield" aria-hidden="true"></i>
+          Role: <span class="value">
+            <span class="role-badge role-badge-{% if original.role == 'admin' %}admin{% else %}user{% endif %}">
+              {% if original.role == 'admin' %}<i class="ti ti-shield-check" aria-hidden="true"></i>{% else %}<i class="ti ti-user" aria-hidden="true"></i>{% endif %}
+              {{ original.get_role_display }}
+            </span>
+          </span>
+        </div>
+        <div class="info-item">
+          <i class="ti ti-calendar" aria-hidden="true"></i>
+          Joined: <span class="value">{{ original.date_joined|date:"M j, Y" }}</span>
+        </div>
+        {% if original.last_login %}
+        <div class="info-item">
+          <i class="ti ti-clock" aria-hidden="true"></i>
+          Last login: <span class="value">{{ original.last_login|date:"M j, Y" }}</span>
+          <span style="font-size:10px;color:var(--text-muted);">· {{ original.last_login|time:"g:i A" }}</span>
+        </div>
+        {% endif %}
+        <div class="info-item">
+          <i class="ti ti-refresh" aria-hidden="true"></i>
+          Updated: <span class="value">{{ original.updated_at|date:"M j, Y" }}</span>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if adminform.form.non_field_errors %}
+      <div style="padding:12px 16px;border-radius:var(--radius);margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger);">
+        <i class="ti ti-alert-circle" aria-hidden="true"></i>
+        <span>{{ adminform.form.non_field_errors }}</span>
+      </div>
+      {% endif %}
+
+      {% if adminform.form.errors %}
+      <div class="error-messages">
+        <h3><i class="ti ti-alert-triangle" aria-hidden="true"></i> Please correct the errors below.</h3>
+        <ul>
+          {% for field, field_errors in adminform.form.errors.items %}
+            {% for error in field_errors %}
+              <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <form method="post" class="form-card">
+        {% csrf_token %}
+
+        <!-- Account Information -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-user" aria-hidden="true"></i>
+            Account Information
+            <small>Basic user account details</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="id_username">Username <span class="required">*</span></label>
+              <input type="text" id="id_username" name="username" class="form-control{% if adminform.form.username.errors %} error{% endif %}" placeholder="Enter username" value="{{ adminform.form.username.value|default:'' }}" required />
+              {% if adminform.form.username.errors %}
+                <div class="error-text">
+                  {% for error in adminform.form.username.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+              <div class="help-text">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+            </div>
+            <div class="form-group">
+              <label for="id_email">Email address <span class="required">*</span></label>
+              <input type="email" id="id_email" name="email" class="form-control{% if adminform.form.email.errors %} error{% endif %}" placeholder="Enter email address" value="{{ adminform.form.email.value|default:'' }}" required />
+              {% if adminform.form.email.errors %}
+                <div class="error-text">
+                  {% for error in adminform.form.email.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="id_role">Role</label>
+              <select id="id_role" name="role" class="form-control">
+                <option value="user"{% if adminform.form.role.value == 'user' %} selected{% endif %}>Regular User</option>
+                <option value="admin"{% if adminform.form.role.value == 'admin' %} selected{% endif %}>Administrator</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label for="id_bio">Bio</label>
+              <textarea id="id_bio" name="bio" class="form-control{% if adminform.form.bio.errors %} error{% endif %}" placeholder="Enter user biography" rows="3">{% if adminform.form.bio.value %}{{ adminform.form.bio.value }}{% endif %}</textarea>
+              {% if adminform.form.bio.errors %}
+                <div class="error-text">
+                  {% for error in adminform.form.bio.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+              <div class="help-text">Maximum 500 characters.</div>
+            </div>
+            <div class="form-group full-width">
+              <label for="id_profile_picture">Profile Picture URL</label>
+              <input type="url" id="id_profile_picture" name="profile_picture" class="form-control{% if adminform.form.profile_picture.errors %} error{% endif %}" placeholder="https://example.com/avatar.jpg" value="{{ adminform.form.profile_picture.value|default:'' }}" />
+              {% if adminform.form.profile_picture.errors %}
+                <div class="error-text">
+                  {% for error in adminform.form.profile_picture.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Permissions -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-shield" aria-hidden="true"></i>
+            Permissions
+            <small>Manage user access levels</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <div class="checkbox-group">
+                <input type="checkbox" id="id_is_staff" name="is_staff"{% if adminform.form.is_staff.value %} checked{% endif %} />
+                <label for="id_is_staff">Staff status</label>
+              </div>
+              <div class="help-text" style="margin-left:26px;">Designates whether the user can log into this admin site.</div>
+              {% if adminform.form.is_staff.errors %}
+                <div class="error-text" style="margin-left:26px;">
+                  {% for error in adminform.form.is_staff.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="form-group full-width">
+              <div class="checkbox-group">
+                <input type="checkbox" id="id_is_active" name="is_active"{% if adminform.form.is_active.value or adminform.form.is_active.value is None %} checked{% endif %} />
+                <label for="id_is_active">Active</label>
+              </div>
+              <div class="help-text" style="margin-left:26px;">Designates whether this user should be treated as active. Unselect this instead of deleting accounts.</div>
+              {% if adminform.form.is_active.errors %}
+                <div class="error-text" style="margin-left:26px;">
+                  {% for error in adminform.form.is_active.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if original %}
+        <!-- User Metadata -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-info-circle" aria-hidden="true"></i>
+            Account Metadata
+            <small>System timestamps and verification status</small>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Date joined</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {{ original.date_joined|date:"M j, Y" }} · {{ original.date_joined|time:"g:i A" }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Last login</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {% if original.last_login %}{{ original.last_login|date:"M j, Y" }} · {{ original.last_login|time:"g:i A" }}{% else %}<span style="color:var(--text-muted);">Never</span>{% endif %}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Created at</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {{ original.created_at|date:"M j, Y" }} · {{ original.created_at|time:"g:i A" }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Updated at</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {{ original.updated_at|date:"M j, Y" }} · {{ original.updated_at|time:"g:i A" }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email verified</label>
+              <div style="padding:8px 12px;font-size:13px;color:var(--text-secondary);background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);">
+                {% if original.is_email_verified %}
+                  <span style="color:var(--text-success);"><i class="ti ti-circle-check" aria-hidden="true"></i> Yes</span>
+                {% else %}
+                  <span style="color:var(--text-muted);"><i class="ti ti-circle-x" aria-hidden="true"></i> No</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" name="_save" class="btn btn-primary">
+            <i class="ti ti-device-floppy" aria-hidden="true"></i> Save
+          </button>
+          <button type="submit" name="_addanother" class="btn btn-success">
+            <i class="ti ti-plus" aria-hidden="true"></i> Save and add another
+          </button>
+          <button type="submit" name="_continue" class="btn btn-secondary">
+            <i class="ti ti-pencil" aria-hidden="true"></i> Save and continue editing
+          </button>
+          {% if original %}
+          <a href="{% url 'admin:users_user_delete' original.pk %}" class="btn btn-danger" style="margin-left:auto;">
+            <i class="ti ti-trash" aria-hidden="true"></i> Delete
+          </a>
+          {% endif %}
+        </div>
+      </form>
+
+      <footer class="page-footer">
+        &copy; 2026 Sudanile Kitchen — Preserving South Sudanese Culinary Heritage
+      </footer>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
