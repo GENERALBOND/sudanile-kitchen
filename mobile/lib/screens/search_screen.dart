@@ -104,6 +104,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final recipes = await _recipeService.getRecipes(
         category: _selectedCategory,
+        difficulty: _selectedDifficulty,
         search: _currentSearch,
         ordering: _currentOrdering,
         page: pageKey,

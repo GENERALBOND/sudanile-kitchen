@@ -65,11 +65,6 @@ class AuthService extends ChangeNotifier {
         'password': password,
       });
 
-      if (response.containsKey('email_not_verified') &&
-          response['email_not_verified'] == true) {
-        return {'success': false, 'email_not_verified': true};
-      }
-
       _token = response['access'];
       _user = User.fromJson(response['user']);
       final prefs = await SharedPreferences.getInstance();
@@ -79,16 +74,6 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       log('Login error: $e');
       return {'success': false, 'error': e.toString()};
-    }
-  }
-
-  Future<bool> resendVerification(String email) async {
-    try {
-      await _apiService.post('/users/resend-verification/', {'email': email});
-      return true;
-    } catch (e) {
-      log('Resend verification error: $e');
-      return false;
     }
   }
 

@@ -242,6 +242,19 @@
       </div>
       {% endif %}
 
+      {% if original and original.is_flagged %}
+      <div style="padding:14px 18px;border-radius:var(--radius);margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;font-size:13px;background:var(--bg-warning);color:var(--text-warning);border:0.5px solid var(--border-warning);">
+        <i class="ti ti-alert-triangle" style="font-size:18px;flex-shrink:0;margin-top:1px;" aria-hidden="true"></i>
+        <div>
+          <strong>Flagged as potential duplicate</strong>
+          {% if original.flagged_reason %}
+            <p style="margin:4px 0 0;font-size:12px;">{{ original.flagged_reason }}</p>
+          {% endif %}
+          <p style="margin:4px 0 0;font-size:12px;">This recipe is not published. Review carefully before approving.</p>
+        </div>
+      </div>
+      {% endif %}
+
       <form method="post" enctype="multipart/form-data" class="form-card">
         {% csrf_token %}
 

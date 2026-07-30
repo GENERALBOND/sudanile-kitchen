@@ -1,9 +1,10 @@
 import re
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django import forms
 from django.db import models
 from .models import Category, Recipe
+from .duplicate_check import find_duplicates
 
 
 class RecipeAdminForm(forms.ModelForm):
@@ -33,6 +34,10 @@ class RecipeAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field_name in ('prep_hours', 'prep_minutes', 'prep_seconds',
+                           'cook_hours', 'cook_minutes', 'cook_seconds'):
+            if field_name in self.fields:
+                self.fields[field_name].required = False
         if self.instance.pk:
             if self.instance.ingredients:
                 self.initial['ingredients'] = '\n'.join(
@@ -87,7 +92,25 @@ class RecipeAdminForm(forms.ModelForm):
         instance.cook_hours, instance.cook_minutes, instance.cook_seconds = cook
 
         status = self.cleaned_data.get('status', 'published')
-        instance.is_published = (status == 'published')
+        wants_published = (status == 'published')
+
+        if wants_published:
+            duplicates = find_duplicates(
+                instance.title,
+                ingredients=instance.ingredients,
+                category=instance.category,
+                exclude_id=instance.pk,
+            )
+            if duplicates:
+                instance.is_flagged = True
+                instance.flagged_reason = duplicates[0]['reason']
+                instance.is_published = False
+            else:
+                instance.is_flagged = False
+                instance.flagged_reason = None
+                instance.is_published = True
+        else:
+            instance.is_published = False
 
         if commit:
             instance.save()
@@ -98,9 +121,9 @@ class RecipeAdminForm(forms.ModelForm):
     def _parse_time(value):
         hours = minutes = seconds = 0
         if value:
-            h = re.search(r'(\d+)\s*(?:hour|hr|h)(?![a-z])', value, re.IGNORECASE)
-            m = re.search(r'(\d+)\s*(?:min|minute)(?![a-z])', value, re.IGNORECASE)
-            s = re.search(r'(\d+)\s*(?:sec|second)(?![a-z])', value, re.IGNORECASE)
+            h = re.search(r'(\d+)\s*(?:hours?|hrs?|h)\b', value, re.IGNORECASE)
+            m = re.search(r'(\d+)\s*(?:minutes?|mins?|min)\b', value, re.IGNORECASE)
+            s = re.search(r'(\d+)\s*(?:seconds?|secs?|sec)\b', value, re.IGNORECASE)
             if h:
                 hours = int(h.group(1))
             if m:
@@ -166,10 +189,10 @@ class RecipeAdmin(admin.ModelAdmin):
     add_form_template = "admin/recipes/recipe/add_form.html"
     change_form_template = "admin/recipes/recipe/add_form.html"
     change_list_template = "admin/recipes/recipe/change_list.html"
-    list_display = ('id', 'title', 'author', 'category', 'average_rating', 'is_published', 'created_at')
-    list_filter = ('category', 'difficulty', 'is_published')
+    list_display = ('id', 'title', 'author', 'category', 'average_rating', 'is_published', 'is_flagged', 'created_at')
+    list_filter = ('category', 'difficulty', 'is_published', 'is_flagged')
     search_fields = ('title', 'description', 'cultural_info')
-    readonly_fields = ('average_rating', 'total_reviews', 'view_count', 'created_at', 'updated_at')
+    readonly_fields = ('average_rating', 'total_reviews', 'view_count', 'created_at', 'updated_at', 'is_flagged', 'flagged_reason')
     fieldsets = (
         ('Basic Information', {
             'fields': ('title', 'description', 'cultural_info', 'author', 'category')
@@ -190,13 +213,31 @@ class RecipeAdmin(admin.ModelAdmin):
         }),
     )
 
+    actions = ['approve_flag', 'clear_flagged_flag']
+
     def get_changeform_initial_data(self, request):
         return {'author': request.user}
 
     def save_model(self, request, obj, form, change):
         if not change and not obj.author_id:
             obj.author = request.user
+        if obj.is_flagged and obj.is_published:
+            obj.is_published = False
         super().save_model(request, obj, form, change)
+
+    def approve_flag(self, request, queryset):
+        updated = queryset.filter(is_flagged=True).update(
+            is_flagged=False, flagged_reason=None, is_published=True
+        )
+        self.message_user(request, f'{updated} recipe(s) approved and published.', messages.SUCCESS)
+    approve_flag.short_description = 'Approve flagged recipes (mark as not duplicate)'
+
+    def clear_flagged_flag(self, request, queryset):
+        updated = queryset.filter(is_flagged=True).update(
+            is_flagged=False, flagged_reason=None
+        )
+        self.message_user(request, f'Cleared flag on {updated} recipe(s).', messages.WARNING)
+    clear_flagged_flag.short_description = 'Clear flag (keep current publish state)'
 
     def changelist_view(self, request, extra_context=None):
         """Inject a few counts and the current user's email into the changelist template."""

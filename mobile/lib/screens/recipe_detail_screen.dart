@@ -21,7 +21,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   late Recipe _recipe;
   List<Review> _reviews = [];
   bool _isLoading = true;
-  bool _isReviewing = false;
   int _userRating = 0;
   final TextEditingController _reviewController = TextEditingController();
 
@@ -76,33 +75,42 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  Future<void> _submitReview() async {
+  Future<void> _submitReviewWithRating(String reviewText) async {
     if (_userRating == 0) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a rating')),
+        const SnackBar(
+          content: Text('Please select a rating'),
+          duration: Duration(seconds: 2),
+        ),
       );
       return;
     }
 
-    setState(() => _isReviewing = true);
     final success = await _recipeService.submitReview(
       _recipe.id,
       _userRating,
-      _reviewController.text,
+      reviewText,
     );
-    setState(() => _isReviewing = false);
+
+    if (!mounted) return;
 
     if (success) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Review submitted!')),
+        const SnackBar(
+          content: Text('Review submitted!'),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.pop(context);
+      _reviewController.clear();
+      setState(() => _userRating = 0);
       _loadData();
     } else {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to submit review')),
+        const SnackBar(
+          content: Text('Failed to submit review'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -380,7 +388,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             ElevatedButton.icon(
-                              onPressed: () => _showReviewDialog(),
+                              onPressed: () => _showReviewBottomSheet(),
                               icon: const Icon(Icons.rate_review),
                               label: const Text('Write a Review'),
                               style: ElevatedButton.styleFrom(
@@ -480,7 +488,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
 
-  void _showReviewDialog() {
+  void _showReviewBottomSheet() {
     final authService = Provider.of<AuthService>(context, listen: false);
     if (!authService.isAuthenticated) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -489,51 +497,91 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       return;
     }
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Write a Review'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RatingBar.builder(
-              initialRating: 0,
-              minRating: 1,
-              direction: Axis.horizontal,
-              itemCount: 5,
-              itemBuilder: (context, _) =>
-                  const Icon(Icons.star, color: Colors.amber),
-              onRatingUpdate: (rating) =>
-                  setState(() => _userRating = rating.toInt()),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _reviewController,
-              decoration: const InputDecoration(
-                hintText: 'Share your experience...',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-          ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+        child: StatefulBuilder(
+          builder: (context, setSheetState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Write a Review',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: RatingBar.builder(
+                  initialRating: _userRating.toDouble(),
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  itemCount: 5,
+                  itemBuilder: (context, _) =>
+                      const Icon(Icons.star, color: Colors.amber),
+                  onRatingUpdate: (rating) {
+                    _userRating = rating.toInt();
+                    setSheetState(() {});
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _reviewController,
+                decoration: const InputDecoration(
+                  hintText: 'Share your experience...',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final reviewText = _reviewController.text;
+                    Navigator.pop(sheetContext);
+                    _submitReviewWithRating(reviewText);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Submit Review',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-          ElevatedButton(
-            onPressed: _isReviewing ? null : _submitReview,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: _isReviewing
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Submit'),
-          ),
-        ],
+        ),
       ),
     );
   }
