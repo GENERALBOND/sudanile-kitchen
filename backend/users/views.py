@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,87 +10,30 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.utils import timezone
-from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-import secrets
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
+
+logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        
-        # Generate email verification token
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        user.email_verification_token = token
-        user.email_verification_sent_at = timezone.now()
+
+        user.is_email_verified = True
         user.save()
-        
-        # Send verification email
-        verification_link = f"http://localhost:8000/api/users/verify-email/{uid}/{token}/"
-        
-        html_message = f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background-color: #FF9800; color: white; padding: 20px; text-align: center; }}
-                .content {{ padding: 20px; background-color: #f9f9f9; }}
-                .button {{ display: inline-block; padding: 12px 24px; background-color: #FF9800; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>🍽️ Sudanile Kitchen</h1>
-                </div>
-                <div class="content">
-                    <h2>Welcome {user.username}!</h2>
-                    <p>Thank you for registering with Sudanile Kitchen. Please verify your email address to start exploring South Sudanese cuisine.</p>
-                    <p>Click the button below to verify your email:</p>
-                    <div style="text-align: center;">
-                        <a href="{verification_link}" class="button">Verify Email</a>
-                    </div>
-                    <p>Or copy this link into your browser:</p>
-                    <p style="word-break: break-all;"><small>{verification_link}</small></p>
-                    <p>This link will expire in 24 hours.</p>
-                    <p>If you didn't create this account, please ignore this email.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        '''
-        
-        plain_message = strip_tags(html_message)
-        
-        try:
-            send_mail(
-                subject='Verify Your Email - Sudanile Kitchen',
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"Email send error: {e}")
-        
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'user': UserSerializer(user).data,
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-            'message': 'Please check your email to verify your account.'
         }, status=status.HTTP_201_CREATED)
 
 class VerifyEmailView(APIView):
@@ -147,13 +91,10 @@ class ResendVerificationEmailView(APIView):
             # Generate new token
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            user.email_verification_token = token
-            user.email_verification_sent_at = timezone.now()
-            user.save()
-            
-            # Send verification email
-            verification_link = f"http://localhost:8000/api/users/verify-email/{uid}/{token}/"
-            
+
+            base_url = getattr(settings, 'VERIFICATION_URL_BASE', 'http://localhost:8000')
+            verification_link = f"{base_url}/api/users/verify-email/{uid}/{token}/"
+
             html_message = f'''
             <!DOCTYPE html>
             <html>
@@ -170,7 +111,7 @@ class ResendVerificationEmailView(APIView):
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🍽️ Sudanile Kitchen</h1>
+                        <h1>Sudanile Kitchen</h1>
                     </div>
                     <div class="content">
                         <h2>Verify Your Email</h2>
@@ -184,18 +125,28 @@ class ResendVerificationEmailView(APIView):
             </body>
             </html>
             '''
-            
+
             plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject='Verify Your Email - Sudanile Kitchen',
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-            
+
+            try:
+                send_mail(
+                    subject='Verify Your Email - Sudanile Kitchen',
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error(f"Failed to resend verification email to {email}: {e}")
+                return Response({
+                    'error': 'Failed to send verification email. Please try again.'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            user.email_verification_token = token
+            user.email_verification_sent_at = timezone.now()
+            user.save()
+
             return Response({
                 'message': 'Verification email sent. Please check your inbox.'
             }, status=status.HTTP_200_OK)
@@ -218,13 +169,6 @@ class LoginView(APIView):
         user = authenticate(request, username=email, password=password)
         
         if user is not None:
-            # Check if email is verified
-            if not user.is_email_verified:
-                return Response({
-                    'error': 'Please verify your email before logging in.',
-                    'email_not_verified': True
-                }, status=status.HTTP_401_UNAUTHORIZED)
-            
             refresh = RefreshToken.for_user(user)
             return Response({
                 'user': UserSerializer(user).data,

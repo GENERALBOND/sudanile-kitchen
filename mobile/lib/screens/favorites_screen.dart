@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../widgets/recipe_card.dart';
 import 'recipe_detail_screen.dart';
 import 'login_screen.dart';
+import 'search_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -74,7 +75,10 @@ class FavoritesScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SearchScreen()),
+                      );
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                     child: const Text('Browse Recipes'),

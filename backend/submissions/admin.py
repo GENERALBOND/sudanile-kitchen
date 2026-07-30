@@ -4,6 +4,7 @@ from django import forms
 from django.utils import timezone
 from .models import RecipeSubmission
 from recipes.models import Recipe, Category
+from recipes.duplicate_check import find_duplicates
 
 
 class SubmissionAdminForm(forms.ModelForm):
@@ -89,27 +90,31 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
 
     def approve_submissions(self, request, queryset):
         approved_count = 0
+        flagged_count = 0
         error_count = 0
         
         for submission in queryset.filter(status='pending'):
             try:
-                # Get or create category
                 category, _ = Category.objects.get_or_create(name=submission.category_name)
                 
-                # Check if recipe already exists (to avoid duplicates)
                 existing_recipe = Recipe.objects.filter(title=submission.title).first()
                 if existing_recipe:
                     self.message_user(
-                        request, 
-                        f'⚠️ Recipe "{submission.title}" already exists!', 
+                        request,
+                        f'Recipe "{submission.title}" already exists!',
                         messages.WARNING
                     )
                     submission.status = 'approved'
                     submission.reviewed_at = timezone.now()
                     submission.save()
                     continue
+
+                duplicates = find_duplicates(
+                    submission.title,
+                    ingredients=submission.ingredients,
+                    category=category,
+                )
                 
-                # Create recipe from submission
                 recipe = Recipe.objects.create(
                     title=submission.title,
                     description=submission.description,
@@ -128,34 +133,49 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
                     video_url=submission.video_url,
                     category=category,
                     author=submission.user,
-                    is_published=True
+                    is_published=not bool(duplicates),
+                    is_flagged=bool(duplicates),
+                    flagged_reason=duplicates[0]['reason'] if duplicates else None,
                 )
                 
-                # Update submission status
                 submission.status = 'approved'
                 submission.reviewed_at = timezone.now()
                 submission.save()
                 
-                approved_count += 1
-                self.message_user(
-                    request, 
-                    f'✅ Approved "{submission.title}" - Recipe ID: {recipe.id}', 
-                    messages.SUCCESS
-                )
+                if duplicates:
+                    flagged_count += 1
+                    self.message_user(
+                        request,
+                        f'FLAGGED "{submission.title}" - duplicate of "{duplicates[0]["recipe"].title}" ({duplicates[0]["reason"]})',
+                        messages.WARNING
+                    )
+                else:
+                    approved_count += 1
+                    self.message_user(
+                        request,
+                        f'Approved "{submission.title}" - Recipe ID: {recipe.id}',
+                        messages.SUCCESS
+                    )
                 
             except Exception as e:
                 error_count += 1
                 self.message_user(
-                    request, 
-                    f'❌ Error approving "{submission.title}": {str(e)}', 
+                    request,
+                    f'Error approving "{submission.title}": {str(e)}',
                     messages.ERROR
                 )
         
         if approved_count > 0:
             self.message_user(
-                request, 
-                f'Successfully approved {approved_count} submission(s)', 
+                request,
+                f'Successfully approved {approved_count} submission(s)',
                 messages.SUCCESS
+            )
+        if flagged_count > 0:
+            self.message_user(
+                request,
+                f'{flagged_count} submission(s) flagged as duplicates and kept unpublished. Review them in the Recipes section.',
+                messages.WARNING
             )
     
     approve_submissions.short_description = "Approve selected submissions"

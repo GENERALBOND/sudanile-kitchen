@@ -15,6 +15,7 @@ class RecipeService {
 
   Future<List<Recipe>> getRecipes({
     String? category,
+    String? difficulty,
     String? search,
     String? ordering,
     int page = 1,
@@ -23,6 +24,7 @@ class RecipeService {
     try {
       Map<String, String> queryParams = {};
       if (category != null) queryParams['category'] = category;
+      if (difficulty != null) queryParams['difficulty'] = difficulty;
       if (search != null) queryParams['search'] = search;
       if (ordering != null) queryParams['ordering'] = ordering;
       queryParams['page'] = page.toString();

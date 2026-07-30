@@ -3,25 +3,25 @@ from django.dispatch import receiver
 from django.utils import timezone
 from .models import RecipeSubmission
 from recipes.models import Recipe, Category
+from recipes.duplicate_check import find_duplicates
+
 
 @receiver(pre_save, sender=RecipeSubmission)
 def create_recipe_on_approval(sender, instance, **kwargs):
-    """
-    Automatically create a Recipe when a submission is approved
-    """
-    # Check if this is an existing submission
     if instance.pk:
         try:
             old_instance = sender.objects.get(pk=instance.pk)
-            # If status changed from pending to approved
             if old_instance.status == 'pending' and instance.status == 'approved':
-                # Check if recipe already exists
                 existing_recipe = Recipe.objects.filter(title=instance.title).first()
                 if not existing_recipe:
-                    # Get or create category
                     category, _ = Category.objects.get_or_create(name=instance.category_name)
-                    
-                    # Create the recipe
+
+                    duplicates = find_duplicates(
+                        instance.title,
+                        ingredients=instance.ingredients,
+                        category=category,
+                    )
+
                     recipe = Recipe.objects.create(
                         title=instance.title,
                         description=instance.description,
@@ -40,14 +40,17 @@ def create_recipe_on_approval(sender, instance, **kwargs):
                         video_url=instance.video_url,
                         category=category,
                         author=instance.user,
-                        is_published=True
+                        is_published=not bool(duplicates),
+                        is_flagged=bool(duplicates),
+                        flagged_reason=duplicates[0]['reason'] if duplicates else None,
                     )
-                    
-                    # Set reviewed_at if not already set
+
                     if not instance.reviewed_at:
                         instance.reviewed_at = timezone.now()
-                        
-                    print(f"✅ Auto-created recipe from submission: {recipe.title} (ID: {recipe.id})")
+
+                    if duplicates:
+                        print(f"FLAGGED as duplicate: {recipe.title} (ID: {recipe.id}) - {duplicates[0]['reason']}")
+                    else:
+                        print(f"Auto-created recipe from submission: {recipe.title} (ID: {recipe.id})")
         except sender.DoesNotExist:
-            # New instance, nothing to check
             pass

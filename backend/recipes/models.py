@@ -44,6 +44,8 @@ class Recipe(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=True)
+    is_flagged = models.BooleanField(default=False)
+    flagged_reason = models.TextField(blank=True, null=True)
     
     @property
     def preparation_time_seconds(self):
