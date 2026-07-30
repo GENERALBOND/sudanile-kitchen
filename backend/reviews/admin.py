@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django import forms
+from django.db.models import Avg, Count
 from .models import Review
 
 
@@ -22,6 +23,7 @@ class ReviewAdmin(admin.ModelAdmin):
     form = ReviewAdminForm
     add_form_template = "admin/reviews/review/add_form.html"
     change_form_template = "admin/reviews/review/add_form.html"
+    change_list_template = "admin/reviews/review/change_list.html"
     list_display = ('id', 'user', 'recipe', 'rating', 'created_at')
     list_filter = ('rating', 'created_at')
     search_fields = ('user__email', 'recipe__title', 'comment')
@@ -34,3 +36,16 @@ class ReviewAdmin(admin.ModelAdmin):
         if not change and not obj.user_id:
             obj.user = request.user
         super().save_model(request, obj, form, change)
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        qs = self.get_queryset(request)
+        extra_context.update({
+            'user_email': getattr(request.user, 'email', ''),
+            'total_reviews': qs.count(),
+            'average_rating': qs.aggregate(Avg('rating'))['rating__avg'] or 0,
+            'five_star_count': qs.filter(rating=5).count(),
+            'low_rating_count': qs.filter(rating__lte=3).count(),
+            'unique_reviewers': qs.values('user').distinct().count(),
+        })
+        return super().changelist_view(request, extra_context=extra_context)

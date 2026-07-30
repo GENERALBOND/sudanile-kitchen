@@ -3,6 +3,8 @@ import re
 from django.contrib import admin, messages
 from django import forms
 from django.db import models
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import path
 from .models import Category, Recipe
 from .duplicate_check import find_duplicates
 
@@ -217,6 +219,25 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def get_changeform_initial_data(self, request):
         return {'author': request.user}
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('<path:object_id>/toggle-publish/',
+                self.admin_site.admin_view(self.toggle_publish_view),
+                name='recipes_recipe_toggle_publish'),
+        ]
+        return custom_urls + urls
+
+    def toggle_publish_view(self, request, object_id):
+        recipe = get_object_or_404(Recipe, pk=object_id)
+        if not recipe.is_published and recipe.is_flagged:
+            self.message_user(request, f'Cannot publish "{recipe.title}" - it is flagged.', messages.ERROR)
+        else:
+            recipe.is_published = not recipe.is_published
+            recipe.save(update_fields=['is_published'])
+            self.message_user(request, f'"{recipe.title}" is now {"published" if recipe.is_published else "unpublished"}.', messages.SUCCESS if recipe.is_published else messages.WARNING)
+        return redirect(request.META.get('HTTP_REFERER', 'admin:recipes_recipe_changelist'))
 
     def save_model(self, request, obj, form, change):
         if not change and not obj.author_id:
