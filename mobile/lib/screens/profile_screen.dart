@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
 import 'login_screen.dart';
 import 'account_settings_screen.dart';
 import 'notifications_screen.dart';
@@ -146,9 +148,10 @@ class ProfileScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStat('0', 'Recipes\nSaved'),
-                    _buildStat('0', 'Reviews\nWritten'),
-                    _buildStat('0', 'Recipes\nSubmitted'),
+                    _buildStat('${user.favoritesCount}', 'Recipes\nSaved'),
+                    _buildStat('${user.reviewsCount}', 'Reviews\nWritten'),
+                    _buildStat(
+                        '${user.submissionsCount}', 'Recipes\nSubmitted'),
                   ],
                 ),
               ),
@@ -184,11 +187,7 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Admin Dashboard'),
                   subtitle: const Text('Manage users, recipes, and submissions'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Admin dashboard coming soon!')),
-                    );
-                  },
+                  onTap: () => _openAdminDashboard(context),
                 ),
               ),
             ],
@@ -196,6 +195,17 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openAdminDashboard(BuildContext context) async {
+    final uri = Uri.parse('${ApiService.webBaseUrl}/admin/');
+    final messenger = ScaffoldMessenger.of(context);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not open the admin dashboard.')),
+      );
+    }
   }
 
   Widget _buildMenuItem({

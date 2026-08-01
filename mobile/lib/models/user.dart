@@ -6,6 +6,9 @@ class User {
   final String? profilePicture;
   final String? bio;
   final DateTime createdAt;
+  final int favoritesCount;
+  final int reviewsCount;
+  final int submissionsCount;
 
   User({
     required this.id,
@@ -15,6 +18,9 @@ class User {
     this.profilePicture,
     this.bio,
     required this.createdAt,
+    this.favoritesCount = 0,
+    this.reviewsCount = 0,
+    this.submissionsCount = 0,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -26,6 +32,9 @@ class User {
       profilePicture: json['profile_picture'],
       bio: json['bio'],
       createdAt: DateTime.parse(json['created_at']),
+      favoritesCount: json['favorites_count'] ?? 0,
+      reviewsCount: json['reviews_count'] ?? 0,
+      submissionsCount: json['submissions_count'] ?? 0,
     );
   }
 
@@ -38,6 +47,9 @@ class User {
       'profile_picture': profilePicture,
       'bio': bio,
       'created_at': createdAt.toIso8601String(),
+      'favorites_count': favoritesCount,
+      'reviews_count': reviewsCount,
+      'submissions_count': submissionsCount,
     };
   }
 }

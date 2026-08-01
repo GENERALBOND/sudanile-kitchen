@@ -22,9 +22,16 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
+    // Wait for Firebase's initial auth-state check (and the matching
+    // backend profile fetch, if signed in) to resolve.
+    await authService.ready;
+    if (!mounted) return;
+
+    final signedIn = authService.isAuthenticated && authService.isEmailVerified;
+
     // Preload data while splash screen is showing
-    if (authService.isAuthenticated) {
+    if (signedIn) {
       final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
       final recipeService = RecipeService();
       
@@ -42,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     
     // Navigate to appropriate screen
-    if (authService.isAuthenticated) {
+    if (signedIn) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),

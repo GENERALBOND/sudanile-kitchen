@@ -76,6 +76,64 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     setState(() => _isLoading = false);
   }
 
+  Future<void> _editProfilePhoto() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final urlController =
+        TextEditingController(text: authService.user?.profilePicture ?? '');
+
+    final newUrl = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Profile Photo'),
+        content: TextField(
+          controller: urlController,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(
+            labelText: 'Image URL',
+            hintText: 'https://example.com/photo.jpg',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          if ((authService.user?.profilePicture ?? '').isNotEmpty)
+            TextButton(
+              onPressed: () => Navigator.pop(context, ''),
+              child: const Text('Remove'),
+            ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, urlController.text.trim()),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (newUrl == null || !mounted) return;
+
+    try {
+      final apiService = ApiService();
+      await apiService.put('/users/profile/', {'profile_picture': newUrl});
+      if (!mounted) return;
+      await authService.refreshUser();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text(newUrl.isEmpty ? 'Photo removed.' : 'Photo updated!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update photo: ${e.toString()}')),
+      );
+    }
+  }
+
   Future<void> _changePassword() async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,14 +158,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
     setState(() => _isLoading = true);
 
-    try {
-      final apiService = ApiService();
-      await apiService.post('/users/change-password/', {
-        'old_password': _currentPasswordController.text,
-        'new_password': _newPasswordController.text,
-      });
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.changePassword(
+      _currentPasswordController.text,
+      _newPasswordController.text,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
+
+    if (result['success'] == true) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(
         const SnackBar(
@@ -120,8 +179,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       _confirmPasswordController.clear();
       setState(() => _isChangingPassword = false);
 
-      // Logout after password change
-      final authService = Provider.of<AuthService>(context, listen: false);
       await authService.logout();
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
@@ -129,11 +186,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         MaterialPageRoute(builder: (_) => const LoginScreen()),
         (route) => false,
       );
-    } catch (e) {
-      if (!mounted) return;
+    } else {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Current password is incorrect')),
+        SnackBar(content: Text(result['error'] ?? 'Failed to change password.')),
       );
     }
 
@@ -153,34 +209,27 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
     setState(() => _isLoading = true);
 
-    try {
-      final apiService = ApiService();
-      await apiService.deleteWithBody('/users/delete-account/', {
-        'password': _deletePasswordController.text,
-      });
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.deleteAccount(_deletePasswordController.text);
 
-      if (!mounted) return;
+    if (!mounted) return;
+
+    if (result['success'] == true) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(
         const SnackBar(
             content: Text(
                 'Account deleted successfully. We\'re sad to see you go!')),
       );
-
-      // Logout and clear all data
-      final authService = Provider.of<AuthService>(context, listen: false);
-      await authService.logout();
-      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
         (route) => false,
       );
-    } catch (e) {
-      if (!mounted) return;
+    } else {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete account: ${e.toString()}')),
+        SnackBar(content: Text(result['error'] ?? 'Failed to delete account.')),
       );
     }
 
@@ -243,12 +292,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           child: IconButton(
                             icon: const Icon(Icons.camera_alt,
                                 size: 20, color: Colors.white),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Photo upload coming soon!')),
-                              );
-                            },
+                            onPressed: _editProfilePhoto,
                           ),
                         ),
                       ),

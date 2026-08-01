@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import '../services/recipe_service.dart';
+import '../services/search_history_service.dart';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
 import 'recipe_detail_screen.dart';
@@ -28,12 +29,14 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _currentSearch;
   String? _currentOrdering = '-created_at';
   bool _isLoadingCategories = true;
+  List<String> _recentSearches = [];
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _loadAllRecipes();
+    _loadRecentSearches();
     _pagingController.addPageRequestListener((pageKey) {
       _fetchRecipes(pageKey);
     });
@@ -64,6 +67,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _loadAllRecipes() async {
     _allRecipes = await _recipeService.getRecipes();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final history = await SearchHistoryService.getHistory();
+    if (!mounted) return;
+    setState(() => _recentSearches = history);
   }
 
   void _updateSuggestions() {
@@ -128,8 +137,17 @@ class _SearchScreenState extends State<SearchScreen> {
       _pagingController.refresh();
     });
 
+    if (query.trim().isNotEmpty) {
+      SearchHistoryService.addSearch(query).then((_) => _loadRecentSearches());
+    }
+
     // Close keyboard
     FocusScope.of(context).unfocus();
+  }
+
+  void _searchFromHistory(String query) {
+    _searchController.text = query;
+    _performSearch(query);
   }
 
   void _clearSearch() {
@@ -292,6 +310,41 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
           ),
+
+          // Recent Searches (shown before the user starts typing)
+          if (!_showSuggestions &&
+              _searchController.text.isEmpty &&
+              _recentSearches.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      'Recent Searches',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey),
+                    ),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: _recentSearches
+                        .map((term) => ActionChip(
+                              avatar: const Icon(Icons.history, size: 16),
+                              label: Text(term),
+                              onPressed: () => _searchFromHistory(term),
+                            ))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
 
           // Suggestions List (appears when typing)
           if (_showSuggestions && _suggestions.isNotEmpty)

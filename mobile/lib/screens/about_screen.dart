@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/recipe_service.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
+
+  @override
+  State<AboutScreen> createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  final RecipeService _recipeService = RecipeService();
+  int? _recipeCount;
+  int? _categoryCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    // Kick both requests off before awaiting either, so they run concurrently.
+    final recipesFuture = _recipeService.getRecipes();
+    final categoriesFuture = _recipeService.getCategories();
+    final recipes = await recipesFuture;
+    final categories = await categoriesFuture;
+    if (!mounted) return;
+    setState(() {
+      _recipeCount = recipes.length;
+      _categoryCount = categories.length;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,11 +115,13 @@ class AboutScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStat('50+', 'Recipes'),
+                  _buildStat(
+                      _recipeCount == null ? '—' : '${_recipeCount!}',
+                      'Recipes'),
                   Container(height: 40, width: 1, color: Colors.grey.shade300),
-                  _buildStat('1000+', 'Users'),
-                  Container(height: 40, width: 1, color: Colors.grey.shade300),
-                  _buildStat('5', 'Categories'),
+                  _buildStat(
+                      _categoryCount == null ? '—' : '${_categoryCount!}',
+                      'Categories'),
                 ],
               ),
             ),

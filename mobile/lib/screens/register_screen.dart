@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -20,6 +19,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _registrationComplete = false;
+  String _registrationMessage = '';
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -36,10 +38,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      setState(() {
+        _registrationComplete = true;
+        _registrationMessage =
+            'Please check your email to verify your account.';
+      });
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,6 +55,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_registrationComplete) {
+      return _buildVerificationScreen();
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -117,8 +124,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         }
-                        if (!value.endsWith('@gmail.com')) {
-                          return 'Only @gmail.com email addresses are allowed';
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email';
                         }
                         return null;
                       },
@@ -220,4 +227,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Widget _buildVerificationScreen() {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.email_outlined,
+                size: 80,
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Verify Your Email',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _registrationMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Check your inbox and click the verification link to activate your account.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final authService =
+                            Provider.of<AuthService>(context, listen: false);
+                        try {
+                          final result =
+                              await authService.resendVerification();
+                          if (!mounted) return;
+                          if (result) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Verification email resent!')),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Failed to resend email')),
+                            );
+                          }
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Failed to resend email')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Resend Email'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                child: const Text('Back to Login'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

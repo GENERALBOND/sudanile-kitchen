@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/recipe_service.dart';
+import '../services/search_history_service.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
   const PrivacySecurityScreen({super.key});
@@ -152,60 +155,28 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             _buildSectionHeader('Data Management', Icons.data_usage),
 
             _buildActionTile(
-              icon: Icons.download,
-              title: 'Download My Data',
-              subtitle: 'Request a copy of all your data',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Data download request submitted! Check your email.')),
-                );
-              },
-            ),
-
-            _buildActionTile(
               icon: Icons.cleaning_services,
               title: 'Clear Search History',
               subtitle: 'Remove all your search history',
-              onTap: () => _showConfirmDialog('Clear Search History',
-                  'Are you sure you want to clear all search history?'),
+              onTap: () => _confirmAndRun(
+                title: 'Clear Search History',
+                message: 'Are you sure you want to clear all search history?',
+                action: SearchHistoryService.clearHistory,
+                doneMessage: 'Search history cleared.',
+              ),
             ),
 
             _buildActionTile(
               icon: Icons.delete_sweep,
               title: 'Clear Cache',
-              subtitle: 'Free up space by clearing cached data',
-              onTap: () => _showConfirmDialog('Clear Cache',
-                  'Clear all cached data? You will need to reload content.'),
-            ),
-
-            const Divider(),
-            const SizedBox(height: 8),
-
-            // Account Actions
-            _buildSectionHeader('Account Actions', Icons.account_circle),
-
-            _buildActionTile(
-              icon: Icons.history,
-              title: 'Login History',
-              subtitle: 'View your recent login activity',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Login history coming soon!')),
-                );
-              },
-            ),
-
-            _buildActionTile(
-              icon: Icons.devices,
-              title: 'Active Sessions',
-              subtitle: 'Manage devices where you\'re logged in',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Active sessions coming soon!')),
-                );
-              },
+              subtitle: 'Free up space by clearing cached images and data',
+              onTap: () => _confirmAndRun(
+                title: 'Clear Cache',
+                message:
+                    'Clear all cached data? You will need to reload content.',
+                action: _clearCache,
+                doneMessage: 'Cache cleared.',
+              ),
             ),
 
             const SizedBox(height: 32),
@@ -279,29 +250,44 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     );
   }
 
-  void _showConfirmDialog(String title, String message) {
-    showDialog(
+  void _clearCache() {
+    RecipeService().clearCache();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+  }
+
+  Future<void> _confirmAndRun({
+    required String title,
+    required String message,
+    required FutureOr<void> Function() action,
+    required String doneMessage,
+  }) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$title completed!')),
-              );
-            },
+            onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Confirm'),
           ),
         ],
       ),
+    );
+
+    if (confirmed != true) return;
+
+    await action();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(doneMessage)),
     );
   }
 }

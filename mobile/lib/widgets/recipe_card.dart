@@ -40,11 +40,23 @@ class RecipeCard extends StatelessWidget {
                   width: 100,
                   height: 100,
                   color: Colors.orange.shade200,
-                  child: const Icon(
-                    Icons.restaurant,
-                    size: 40,
-                    color: Colors.orange,
-                  ),
+                  child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          recipe.imageUrl!,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.restaurant,
+                            size: 40,
+                            color: Colors.orange,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.restaurant,
+                          size: 40,
+                          color: Colors.orange,
+                        ),
                 ),
               ),
               Expanded(
@@ -126,11 +138,23 @@ class RecipeCard extends StatelessWidget {
                   height: 130,
                   width: double.infinity,
                   color: Colors.orange.shade200,
-                  child: const Icon(
-                    Icons.restaurant,
-                    size: 50,
-                    color: Colors.orange,
-                  ),
+                  child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          recipe.imageUrl!,
+                          height: 130,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.restaurant,
+                            size: 50,
+                            color: Colors.orange,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.restaurant,
+                          size: 50,
+                          color: Colors.orange,
+                        ),
                 ),
               ),
               Padding(
