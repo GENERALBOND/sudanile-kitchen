@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -10,7 +11,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final _apiService = ApiService();
   bool _isLoading = false;
   bool _emailSent = false;
 
@@ -24,20 +24,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     setState(() => _isLoading = true);
 
-    try {
-      // This endpoint needs to be created in the backend
-      await _apiService.post('/users/forgot-password/', {
-        'email': _emailController.text.trim(),
-      });
-      
-      setState(() {
-        _emailSent = true;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      // Even if email doesn't exist, show success message for security
-      setState(() => _emailSent = true);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final success = await authService.sendPasswordResetEmail(
+      _emailController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      if (success) _emailSent = true;
+    });
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address.')),
+      );
     }
   }
 

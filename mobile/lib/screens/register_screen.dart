@@ -267,10 +267,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () async {
                         final authService =
                             Provider.of<AuthService>(context, listen: false);
-                        final email = _emailController.text;
                         try {
                           final result =
-                              await authService.resendVerification(email);
+                              await authService.resendVerification();
                           if (!mounted) return;
                           if (result) {
                             ScaffoldMessenger.of(context).showSnackBar(

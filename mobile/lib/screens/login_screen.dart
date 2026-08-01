@@ -78,9 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context);
                 final authService =
                     Provider.of<AuthService>(context, listen: false);
-                final email = _emailController.text;
                 try {
-                  await authService.resendVerification(email);
+                  await authService.resendVerification();
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Verification email resent!')),
