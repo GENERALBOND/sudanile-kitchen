@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.shortcuts import redirect, render
 from django.urls import path, include
 from django.views.generic import RedirectView
+from decouple import config
 from .admin_views import dashboard, auth_index
 from recipes.admin import CategoryAdmin
 from recipes.models import Category
@@ -16,12 +17,14 @@ admin.site.site_title = 'Sudanile Admin'
 category_admin = CategoryAdmin(Category, admin.site)
 
 def home(request):
+    context = {'demo_hint': config('DEMO_LOGIN_HINT', default='')}
     if request.method == 'POST':
         identifier = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
 
         if not identifier or not password:
-            return render(request, 'landing.html', {'error': 'Please enter both email/username and password.'})
+            context['error'] = 'Please enter both email/username and password.'
+            return render(request, 'landing.html', context)
 
         user = None
         if '@' in identifier:
@@ -33,9 +36,11 @@ def home(request):
             login(request, user)
             return redirect('admin:index')
 
-        return render(request, 'landing.html', {'error': 'Invalid admin credentials.', 'email': identifier})
+        context['error'] = 'Invalid admin credentials.'
+        context['email'] = identifier
+        return render(request, 'landing.html', context)
 
-    return render(request, 'landing.html')
+    return render(request, 'landing.html', context)
 
 urlpatterns = [
     path('', home, name='home'),

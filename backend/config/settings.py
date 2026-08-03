@@ -5,9 +5,9 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-key-change-this')
-DEBUG = True
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*,localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -109,7 +109,7 @@ SIMPLE_JWT = {
 }
 
 # Firebase project whose ID tokens the API accepts (see users.authentication).
-FIREBASE_PROJECT_ID = config('FIREBASE_PROJECT_ID', default='sudanile-5b766')
+FIREBASE_PROJECT_ID = config('FIREBASE_PROJECT_ID')
 
 # Email Configuration (used for submission review notifications)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')

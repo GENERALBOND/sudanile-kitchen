@@ -112,8 +112,7 @@ class AuthService extends ChangeNotifier {
   /// so no email-verification gate applies.
   ///
   /// The OAuth client ID is set at build/run time via
-  /// `--dart-define=GOOGLE_WEB_CLIENT_ID=...`, falling back to the project's
-  /// configured default.
+  /// `--dart-define=GOOGLE_WEB_CLIENT_ID=...` (or `--dart-define-from-file=.env`).
   Future<Map<String, dynamic>> signInWithGoogle() async {
     try {
       if (kIsWeb) {
@@ -125,12 +124,7 @@ class AuthService extends ChangeNotifier {
           return {'success': false, 'cancelled': true};
         }
       } else {
-        const defaultClientId =
-            '191937303536-9ptke3jtpvn75b3no9cet4sev4g1jpkd.apps.googleusercontent.com';
-        const webClientId = String.fromEnvironment(
-          'GOOGLE_WEB_CLIENT_ID',
-          defaultValue: defaultClientId,
-        );
+        const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
         final googleSignIn = GoogleSignIn(serverClientId: webClientId);
 
         final googleUser = await googleSignIn.signIn();
