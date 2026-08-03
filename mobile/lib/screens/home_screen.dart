@@ -90,6 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
             return;
           }
           setState(() => _selectedIndex = index);
+          // Refresh profile stats whenever the Profile tab is opened so the
+          // backend counts reflect the latest activity.
+          if (index == 3) {
+            Provider.of<AuthService>(context, listen: false).refreshUser();
+            Provider.of<FavoritesProvider>(context, listen: false)
+                .loadFavorites();
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,

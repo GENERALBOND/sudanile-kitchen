@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../providers/favorites_provider.dart';
 import 'login_screen.dart';
 import 'account_settings_screen.dart';
 import 'notifications_screen.dart';
@@ -21,6 +22,7 @@ class ProfileScreen extends StatelessWidget {
     }
     
     final authService = Provider.of<AuthService>(context);
+    final favoritesProvider = Provider.of<FavoritesProvider>(context);
     
     if (!authService.isAuthenticated) {
       return _buildNotAuthenticated(context);
@@ -148,7 +150,7 @@ class ProfileScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStat('${user.favoritesCount}', 'Recipes\nSaved'),
+                    _buildStat('${favoritesProvider.count}', 'Recipes\nSaved'),
                     _buildStat('${user.reviewsCount}', 'Reviews\nWritten'),
                     _buildStat(
                         '${user.submissionsCount}', 'Recipes\nSubmitted'),
@@ -198,7 +200,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _openAdminDashboard(BuildContext context) async {
-    final uri = Uri.parse('${ApiService.webBaseUrl}/admin/');
+    final uri = Uri.parse('${ApiService.webBaseUrl}/');
     final messenger = ScaffoldMessenger.of(context);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched) {

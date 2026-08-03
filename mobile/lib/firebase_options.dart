@@ -47,20 +47,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCZ61Dnuy_rstV6VBOMmZoLjGFOa4kfNxw',
-    appId: '1:684504206283:web:fed75cc378e5e4038bc44e',
-    messagingSenderId: '684504206283',
-    projectId: 'junubin-211',
-    authDomain: 'junubin-211.firebaseapp.com',
-    storageBucket: 'junubin-211.firebasestorage.app',
+    apiKey: 'AIzaSyC-lkFfOOr2RItCSq30WkqyUTbbDioeNyY',
+    appId: '1:191937303536:web:8f9b6475b60be3f6b94335',
+    messagingSenderId: '191937303536',
+    projectId: 'sudanile-5b766',
+    authDomain: 'sudanile-5b766.firebaseapp.com',
+    storageBucket: 'sudanile-5b766.firebasestorage.app',
+    measurementId: 'G-G106JD53VJ',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBxG8EiFlnOStkYl7mm7VBx04AZVPSFx-A',
-    appId: '1:684504206283:android:7c503f1bccbaa8688bc44e',
-    messagingSenderId: '684504206283',
-    projectId: 'junubin-211',
-    storageBucket: 'junubin-211.firebasestorage.app',
+    apiKey: 'AIzaSyAnsGgj5aRjdIF9Tu_skaFARML2h7DJDmE',
+    appId: '1:191937303536:android:8704607b30df2f42b94335',
+    messagingSenderId: '191937303536',
+    projectId: 'sudanile-5b766',
+    storageBucket: 'sudanile-5b766.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAoz7TEtDuZC7lqOp8xSwVa8nBdtrfMBNg',

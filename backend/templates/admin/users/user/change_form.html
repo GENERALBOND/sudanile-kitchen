@@ -371,6 +371,25 @@
                 </div>
               {% endif %}
             </div>
+            <div class="form-group full-width">
+              <label for="id_groups">Groups</label>
+              <div class="help-text">Assign this user to one or more permission groups.</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;margin-top:8px;">
+                {% for group in adminform.form.groups.field.queryset %}
+                  <div class="checkbox-group">
+                    <input type="checkbox" name="groups" value="{{ group.pk }}" id="id_groups_{{ group.pk }}"{% if original and group in original.groups.all %} checked{% endif %} />
+                    <label for="id_groups_{{ group.pk }}">{{ group.name }}</label>
+                  </div>
+                {% empty %}
+                  <div style="font-size:12px;color:var(--text-muted);">No groups available. Create groups under System &rarr; Authentication first.</div>
+                {% endfor %}
+              </div>
+              {% if adminform.form.groups.errors %}
+                <div class="error-text">
+                  {% for error in adminform.form.groups.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
           </div>
         </div>
 

@@ -3,14 +3,29 @@ from django.contrib.auth.password_validation import validate_password
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
+    favorites_count = serializers.SerializerMethodField()
+    reviews_count = serializers.SerializerMethodField()
+    submissions_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'profile_picture', 'bio', 'created_at')
+        fields = ('id', 'username', 'email', 'role', 'profile_picture', 'bio',
+                  'created_at', 'favorites_count', 'reviews_count',
+                  'submissions_count')
         read_only_fields = ('id', 'role', 'created_at', 'email')
         extra_kwargs = {
             'username': {'required': False},
             'bio': {'required': False},
         }
+
+    def get_favorites_count(self, obj):
+        return obj.favorites.count()
+
+    def get_reviews_count(self, obj):
+        return obj.reviews.count()
+
+    def get_submissions_count(self, obj):
+        return obj.submissions.count()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
