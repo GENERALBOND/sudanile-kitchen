@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
 import 'api_service.dart';
 
@@ -104,6 +106,73 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Signs in with Google and links the resulting Firebase account to the
+  /// backend Django user (created on first sign-in by the backend's
+  /// `FirebaseAuthentication` class). Google accounts are verified by Google,
+  /// so no email-verification gate applies.
+  ///
+  /// The OAuth client ID is set at build/run time via
+  /// `--dart-define=GOOGLE_WEB_CLIENT_ID=...` (or `--dart-define-from-file=.env`).
+  Future<Map<String, dynamic>> signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        // On web, Firebase Auth's popup flow provides the ID token directly,
+        // so google_sign_in isn't used here.
+        final provider = fb.GoogleAuthProvider();
+        final result = await _firebaseAuth.signInWithPopup(provider);
+        if (result.user == null) {
+          return {'success': false, 'cancelled': true};
+        }
+      } else {
+        const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+        final googleSignIn = GoogleSignIn(serverClientId: webClientId);
+
+        final googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          return {'success': false, 'cancelled': true};
+        }
+
+        final googleAuth = await googleUser.authentication;
+        final idToken = googleAuth.idToken;
+        if (idToken == null) {
+          return {
+            'success': false,
+            'error':
+                'Google sign-in is missing the OAuth web client ID. Configure '
+                    'GOOGLE_WEB_CLIENT_ID and try again.',
+          };
+        }
+
+        final credential = fb.GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: idToken,
+        );
+        await _firebaseAuth.signInWithCredential(credential);
+      }
+
+      await _loadUser();
+      notifyListeners();
+      return {'success': true};
+    } on fb.FirebaseAuthException catch (e) {
+      log('Google sign-in error: ${e.code}');
+      if (e.code == 'account-exists-with-different-credential') {
+        return {
+          'success': false,
+          'error':
+              'An account already exists with this email. Sign in with your '
+                  'email and password instead.',
+        };
+      }
+      return {'success': false, 'error': _friendlyAuthError(e)};
+    } catch (e) {
+      log('Google sign-in error: $e');
+      return {
+        'success': false,
+        'error': 'Google sign-in failed: $e',
+      };
+    }
+  }
+
   /// Resends the verification email to the currently signed-in (but
   /// unverified) Firebase user — there is no separate "resend by email"
   /// API without an authenticated session, matching Firebase's own model.
@@ -186,7 +255,19 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    // On web the sign-in used Firebase Auth's popup, so there's no
+    // google_sign_in session to clear; calling it there would re-init the
+    // plugin without a clientId and throw, blocking the Firebase sign-out.
+    if (!kIsWeb) {
+      try {
+        await GoogleSignIn().signOut();
+      } catch (e) {
+        log('GoogleSignIn signOut error: $e');
+      }
+    }
     await _firebaseAuth.signOut();
+    _user = null;
+    notifyListeners();
   }
 
   String _friendlyAuthError(fb.FirebaseAuthException e) {

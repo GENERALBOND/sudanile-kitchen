@@ -58,6 +58,19 @@ web/
 # Environment variables
 .env
 .env.local
+*.env
+!.env.example
+!security_test.env.example
+
+# Secret / credential files
+key.properties
+google-services.json
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+*.pfx
 
 # IDE
 *.swp
@@ -68,4 +81,5 @@ web/
 
 # Secret files
 security_report.txt
+security_test.env
 

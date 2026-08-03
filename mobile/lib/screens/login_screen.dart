@@ -110,6 +110,34 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _googleLogin() async {
+    setState(() => _isLoading = true);
+
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final result = await authService.signInWithGoogle();
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result['success'] == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } else if (result['cancelled'] == true) {
+      // User dismissed the Google account picker.
+      return;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['error']?.toString() ?? 'Google sign-in failed. Please try again.',
+          ),
+        ),
+      );
+    }
+  }
+
   void _continueAsGuest() {
     Navigator.pushReplacement(
       context,
@@ -248,6 +276,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const Expanded(child: Divider()),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _googleLogin,
+                      icon: const Icon(Icons.g_mobiledata, size: 24),
+                      label: const Text('Continue with Google'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     OutlinedButton.icon(

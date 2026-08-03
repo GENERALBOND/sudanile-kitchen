@@ -9,15 +9,23 @@ import json
 import time
 import hashlib
 import re
+import os
 from datetime import datetime
 import sys
 
-# Configuration
-BASE_URL = "http://localhost:8000/api"
-ADMIN_EMAIL = "admin@sudanile.com"
-ADMIN_PASSWORD = "Admin123!"
-REGULAR_EMAIL = "watumande17@gmail.com"
-REGULAR_PASSWORD = "Eliwa1234"
+# Configuration — read from environment variables so no credentials are
+# committed. See security_test.env.example for the expected variables.
+BASE_URL = os.environ.get("SECURITY_TEST_BASE_URL", "http://localhost:8000/api")
+ADMIN_EMAIL = os.environ.get("SECURITY_TEST_ADMIN_EMAIL", "")
+ADMIN_PASSWORD = os.environ.get("SECURITY_TEST_ADMIN_PASSWORD", "")
+REGULAR_EMAIL = os.environ.get("SECURITY_TEST_REGULAR_EMAIL", "")
+REGULAR_PASSWORD = os.environ.get("SECURITY_TEST_REGULAR_PASSWORD", "")
+
+if not all([ADMIN_EMAIL, ADMIN_PASSWORD, REGULAR_EMAIL, REGULAR_PASSWORD]):
+    print("[!] Missing credentials. Set SECURITY_TEST_ADMIN_EMAIL, "
+          "SECURITY_TEST_ADMIN_PASSWORD, SECURITY_TEST_REGULAR_EMAIL and "
+          "SECURITY_TEST_REGULAR_PASSWORD environment variables.")
+    sys.exit(1)
 
 # Colors for output (Windows compatible)
 GREEN = '\033[92m'

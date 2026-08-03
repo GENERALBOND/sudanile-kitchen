@@ -1,9 +1,81 @@
+import logging
+
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from .models import RecipeSubmission
 from recipes.models import Recipe, Category
 from recipes.duplicate_check import find_duplicates
+
+logger = logging.getLogger(__name__)
+
+
+def send_submission_review_email(submission):
+    """Notifies the submitting user whether their recipe was accepted/rejected."""
+    if submission.status not in ('approved', 'rejected'):
+        return
+
+    user = submission.user
+    if not user.email:
+        return
+
+    if submission.status == 'approved':
+        subject = 'Your recipe was approved - Sudanile Kitchen'
+        message = (
+            f"Hi {user.username},\n\n"
+            f"Good news! Your recipe \"{submission.title}\" has been approved "
+            f"and is now part of the Sudanile Kitchen collection. Thank you "
+            f"for sharing your culinary heritage with the community.\n\n"
+            f"Sudanile Kitchen"
+        )
+    else:
+        subject = 'Your recipe submission was not approved - Sudanile Kitchen'
+        message = (
+            f"Hi {user.username},\n\n"
+            f"Unfortunately, your recipe submission \"{submission.title}\" was "
+            f"not approved."
+        )
+        if submission.admin_notes:
+            message += f"\n\nReason: {submission.admin_notes}"
+        message += (
+            f"\n\nYou're welcome to review the feedback and submit the recipe "
+            f"again at any time.\n\n"
+            f"Sudanile Kitchen"
+        )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        logger.info(
+            f"Sent {submission.status} notification to {user.email} "
+            f"for \"{submission.title}\""
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to send submission notification to {user.email}: {e}"
+        )
+
+
+@receiver(pre_save, sender=RecipeSubmission)
+def notify_submission_review(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        return
+    if (
+        old_instance.status != instance.status
+        and instance.status in ('approved', 'rejected')
+    ):
+        send_submission_review_email(instance)
 
 
 @receiver(pre_save, sender=RecipeSubmission)

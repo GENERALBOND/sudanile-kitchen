@@ -181,10 +181,12 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
     approve_submissions.short_description = "Approve selected submissions"
     
     def reject_submissions(self, request, queryset):
-        count = queryset.filter(status='pending').update(
-            status='rejected',
-            reviewed_at=timezone.now()
-        )
+        count = 0
+        for submission in queryset.filter(status='pending'):
+            submission.status = 'rejected'
+            submission.reviewed_at = timezone.now()
+            submission.save()
+            count += 1
         self.message_user(request, f'Rejected {count} submission(s)', messages.WARNING)
     
     reject_submissions.short_description = "Reject selected submissions"
