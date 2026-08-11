@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import '../models/recipe.dart';
 import '../models/review.dart';
 import 'api_service.dart';
@@ -201,6 +204,50 @@ class RecipeService {
       log('❌ Error submitting recipe: $e');
       return false;
     }
+  }
+
+  /// Submits a recipe together with a user-picked image file (JPEG/PNG/GIF)
+  /// as a multipart request.
+  Future<bool> submitRecipeWithImage(
+      Map<String, dynamic> recipeData, XFile image) async {
+    try {
+      final fields = <String, String>{};
+      recipeData.forEach((key, value) {
+        if (value == null) {
+          fields[key] = '';
+        } else if (value is List || value is Map) {
+          fields[key] = json.encode(value);
+        } else {
+          fields[key] = value.toString();
+        }
+      });
+
+      final bytes = await image.readAsBytes();
+      await _apiService.postMultipart(
+        '/submissions/create/',
+        fields,
+        fileField: 'image',
+        fileBytes: bytes,
+        filename: image.name,
+        fileContentType: _mediaTypeFor(image),
+      );
+      return true;
+    } catch (e) {
+      log('❌ Error submitting recipe with image: $e');
+      return false;
+    }
+  }
+
+  MediaType _mediaTypeFor(XFile image) {
+    final mime = image.mimeType;
+    if (mime != null) {
+      final parts = mime.split('/');
+      if (parts.length == 2) return MediaType(parts[0], parts[1]);
+    }
+    final name = image.name.toLowerCase();
+    if (name.endsWith('.gif')) return MediaType('image', 'gif');
+    if (name.endsWith('.png')) return MediaType('image', 'png');
+    return MediaType('image', 'jpeg');
   }
 
   // Clear cache

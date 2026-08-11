@@ -4,7 +4,7 @@ from users.models import User
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
-    icon = models.URLField(blank=True, null=True)
+    icon = models.CharField(max_length=100, blank=True, null=True)
     
     def __str__(self):
         return self.name

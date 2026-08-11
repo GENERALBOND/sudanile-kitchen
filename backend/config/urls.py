@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.shortcuts import redirect, render
 from django.urls import path, include
@@ -65,3 +67,6 @@ urlpatterns = [
     path('api/favorites/', include('favorites.urls')),
     path('api/submissions/', include('submissions.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

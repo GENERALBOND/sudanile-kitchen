@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% if original %}{{ original.name }} | Change Category{% else %}Add Category{% endif %} | Sudanile Kitchen Admin</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -276,11 +277,15 @@
             </div>
             <div class="form-group">
               <label for="id_icon">Icon</label>
-              <input type="text" id="id_icon" name="icon" class="form-control{% if adminform.form.icon.errors %} error{% endif %}" placeholder="e.g., ti-tools-kitchen-2" value="{{ adminform.form.icon.value|default:'' }}" />
+              <select id="id_icon" name="icon" class="form-control{% if adminform.form.icon.errors %} error{% endif %}">
+                {% for value, label in adminform.form.fields.icon.choices %}
+                  <option value="{{ value }}"{% if adminform.form.icon.value == value %} selected{% endif %}>{{ label }}{% if value %} — {{ value }}{% endif %}</option>
+                {% endfor %}
+              </select>
               {% if adminform.form.icon.errors %}
                 <div class="error-text">{% for e in adminform.form.icon.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
               {% endif %}
-              <div class="help-text">Enter a Tabler icon class name (e.g., ti-tag, ti-tools-kitchen-2)</div>
+              <div class="help-text">Pick an icon for this category. It will be shown in the mobile app.</div>
             </div>
           </div>
         </div>
@@ -294,11 +299,11 @@
           </div>
           <div class="icon-preview">
             <div class="preview-box" id="icon-preview-box">
-              <i class="{% if adminform.form.icon.value %}{{ adminform.form.icon.value }}{% else %}ti ti-tag{% endif %}" id="preview-icon" aria-hidden="true"></i>
+              <span class="material-icons" id="preview-icon">{% if adminform.form.icon.value and adminform.form.icon.value != 'ti-tag' %}{{ adminform.form.icon.value }}{% else %}restaurant{% endif %}</span>
             </div>
             <div>
               <div class="help-text" style="font-size:13px;color:var(--text-secondary);">Preview of the selected icon</div>
-              <div class="help-text">Enter an icon class above to see it appear here</div>
+              <div class="help-text">Select an icon above to see it appear here</div>
             </div>
           </div>
         </div>
@@ -330,18 +335,20 @@
 </div>
 
 <script>
-  var iconInput = document.getElementById('id_icon');
+  var iconSelect = document.getElementById('id_icon');
   var previewIcon = document.getElementById('preview-icon');
 
-  if (iconInput && previewIcon) {
-    iconInput.addEventListener('input', function() {
-      var iconClass = this.value.trim();
-      if (iconClass) {
-        previewIcon.className = iconClass;
-      } else {
-        previewIcon.className = 'ti ti-tag';
-      }
-    });
+  function updatePreview() {
+    var value = iconSelect.value.trim();
+    if (value && value.indexOf('ti-') !== 0) {
+      previewIcon.textContent = value;
+    } else {
+      previewIcon.textContent = 'restaurant';
+    }
+  }
+
+  if (iconSelect && previewIcon) {
+    iconSelect.addEventListener('change', updatePreview);
   }
 </script>
 

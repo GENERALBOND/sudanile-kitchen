@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Categories — Sudanile Kitchen Admin</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -373,7 +374,11 @@
                   <div class="cat-swatch">
                     <div class="swatch" aria-hidden="true"></div>
                     <span class="cat-name">{{ category.name }}</span>
-                    <span class="cat-badge">{{ category.name|slice:":1" }}</span>
+                    {% if category.icon and category.icon|slice:":3" != "ti-" %}
+                      <span class="cat-badge"><span class="material-icons" style="font-size:14px;vertical-align:middle;">{{ category.icon }}</span></span>
+                    {% else %}
+                      <span class="cat-badge">{{ category.name|slice:":1" }}</span>
+                    {% endif %}
                   </div>
                 </td>
                 <td>

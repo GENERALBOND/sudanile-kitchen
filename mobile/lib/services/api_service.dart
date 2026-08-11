@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'dart:async';
 
 /// Thrown for non-2xx API responses. `toString()` returns just the message
@@ -123,6 +124,53 @@ class ApiService {
       log('📥 Status: ${response.statusCode}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        return json.decode(response.body);
+      }
+      throw _parseError(response, response.body);
+    } on TimeoutException {
+      log('⏰ Request timed out');
+      throw Exception('Connection timeout. Please check your network.');
+    } catch (e) {
+      log('❌ Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Sends a multipart/form-data POST. [fields] are sent as form fields and
+  /// [fileBytes] (when provided) is attached under [fileField] so the server
+  /// receives an actual file upload instead of a URL.
+  Future<dynamic> postMultipart(
+    String endpoint,
+    Map<String, String> fields, {
+    String? fileField,
+    List<int>? fileBytes,
+    String? filename,
+    MediaType? fileContentType,
+  }) async {
+    final url = '$baseUrl$endpoint';
+    log('📤 POST (multipart): $url');
+
+    try {
+      final token = await fb.FirebaseAuth.instance.currentUser?.getIdToken();
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
+      request.fields.addAll(fields);
+      if (fileField != null && fileBytes != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          fileField,
+          fileBytes,
+          filename: filename,
+          contentType: fileContentType,
+        ));
+      }
+
+      final streamedResponse = await request.send().timeout(timeout);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      log('📥 Status: ${response.statusCode}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (response.body.isEmpty) return null;
         return json.decode(response.body);
       }
       throw _parseError(response, response.body);
