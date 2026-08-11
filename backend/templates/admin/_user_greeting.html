@@ -1,0 +1,3 @@
+{% if user.is_authenticated %}
+<span class="topbar-user" style="font-size:12px;color:rgba(255,255,255,0.85);white-space:nowrap;">Welcome, {{ user.username|default:user.email }}</span>
+{% endif %}

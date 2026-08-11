@@ -2,9 +2,10 @@ import logging
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from config.renumber import lowest_free_id, sync_sequence
 from .models import RecipeSubmission
 from recipes.models import Recipe, Category
 from recipes.duplicate_check import find_duplicates
@@ -76,6 +77,17 @@ def notify_submission_review(sender, instance, **kwargs):
         and instance.status in ('approved', 'rejected')
     ):
         send_submission_review_email(instance)
+
+
+@receiver(pre_save, sender=RecipeSubmission)
+def use_next_available_id(sender, instance, **kwargs):
+    if instance.pk is None:
+        instance.pk = lowest_free_id(sender)
+
+
+@receiver(post_save, sender=RecipeSubmission)
+def keep_sequence_in_sync(sender, instance, **kwargs):
+    sync_sequence(sender)
 
 
 @receiver(pre_save, sender=RecipeSubmission)

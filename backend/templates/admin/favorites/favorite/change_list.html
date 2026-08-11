@@ -115,6 +115,11 @@
     .action-btn.delete { color: var(--text-danger); border-color: var(--border); }
     .empty-state { padding: 18px 12px; color: var(--text-muted); font-size: 12px; }
 
+    .save-rank { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #fff3e0; color: #E8650A; font-size: 12px; font-weight: 600; }
+    .save-rank.rank-1 { background: #E8650A; color: #fff; }
+    .save-count { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: #E8650A; }
+    .save-count i { font-size: 11px; }
+
     @media (max-width: 900px) {
       .sidebar { display: none; }
       .topbar-user { display: none; }
@@ -133,6 +138,7 @@
         Sudanile Kitchen Admin
       </div>
       <div class="topbar-right">
+        {% include 'admin/_user_greeting.html' %}
         <nav class="topbar-nav" aria-label="Top navigation">
           <a href="/">View site</a>
           <span class="sep">·</span>
@@ -186,6 +192,44 @@
             <div class="summary-title">{{ cl.result_count }} saved favorites</div>
             <div class="summary-sub">Newest favorites appear at the top and can be reviewed quickly from this dashboard.</div>
           </div>
+        </div>
+
+        <div class="table-card" role="region" aria-label="Most saved recipes">
+          <div class="table-head">
+            <div class="table-title"><i class="ti ti-trophy" aria-hidden="true"></i>&nbsp; Most saved recipes</div>
+            <div class="table-badge">Top 4 by user saves</div>
+          </div>
+          {% if top_saved_recipes %}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Recipe</th>
+                  <th>Category</th>
+                  <th>Saves</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entry in top_saved_recipes %}
+                <tr>
+                  <td><span class="save-rank{% if forloop.counter == 1 %} rank-1{% endif %}">{{ forloop.counter }}</span></td>
+                  <td>
+                    <a class="cell-title" href="{% url 'admin:recipes_recipe_change' entry.recipe.pk %}">{{ entry.recipe.title }}</a>
+                    <div class="cell-sub">ID {{ entry.recipe.pk }} · {{ entry.recipe.author.username|default:entry.recipe.author }}</div>
+                  </td>
+                  <td><div class="cell-sub">{{ entry.recipe.category.name|default:"Uncategorized" }}</div></td>
+                  <td>
+                    <span class="save-count"><i class="ti ti-heart-filled" aria-hidden="true"></i>{{ entry.save_count }} save{{ entry.save_count|pluralize }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state">No favorites saved yet — saved recipes will appear here once users bookmark them.</div>
+          {% endif %}
         </div>
 
         <div class="table-card" role="region" aria-label="Favorites list">
