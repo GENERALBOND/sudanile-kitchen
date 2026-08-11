@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/recipe_service.dart';
 import '../models/recipe.dart';
+import '../utils/category_icons.dart';
 import 'search_screen.dart';
 
 class AllCategoriesScreen extends StatefulWidget {
@@ -84,7 +85,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                                 borderRadius: BorderRadius.circular(35),
                               ),
                               child: Icon(
-                                _getCategoryIcon(category.name),
+                                categoryIcon(category.icon, category.name),
                                 size: 35,
                                 color: Colors.orange.shade800,
                               ),
@@ -105,18 +106,5 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                   },
                 ),
     );
-  }
-
-  IconData _getCategoryIcon(String categoryName) {
-    final name = categoryName.toLowerCase();
-    if (name.contains('main') || name.contains('dish')) return Icons.lunch_dining;
-    if (name.contains('stew') || name.contains('curry')) return Icons.soup_kitchen;
-    if (name.contains('bread') || name.contains('grain')) return Icons.bakery_dining;
-    if (name.contains('soup')) return Icons.kitchen;
-    if (name.contains('side')) return Icons.eco;
-    if (name.contains('beverage')) return Icons.local_cafe;
-    if (name.contains('snack')) return Icons.icecream;
-    if (name.contains('dessert')) return Icons.cake;
-    return Icons.restaurant_menu;
   }
 }

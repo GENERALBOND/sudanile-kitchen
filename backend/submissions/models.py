@@ -22,6 +22,7 @@ class RecipeSubmission(models.Model):
     cook_seconds = models.IntegerField(default=0, help_text="Cooking seconds")
     servings = models.IntegerField(default=4)
     difficulty = models.CharField(max_length=20, default='medium')
+    image = models.ImageField(upload_to='submissions/', blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     category_name = models.CharField(max_length=100)

@@ -449,6 +449,20 @@
           </div>
           <div class="form-grid">
             <div class="form-group">
+              <label for="id_image">Uploaded Image</label>
+              {% if adminform.form.image.value %}
+                <div style="margin-bottom:8px;">
+                  <img src="{{ adminform.form.image.value.url }}" alt="Current submission image" style="max-width:240px;max-height:160px;border-radius:8px;border:0.5px solid var(--border);display:block;" />
+                  <div class="help-text">Current image: {{ adminform.form.image.value.name }}</div>
+                </div>
+              {% else %}
+                <div class="help-text">No image uploaded by the user.</div>
+              {% endif %}
+              <input type="file" id="id_image" name="image" class="form-control{% if adminform.form.image.errors %} error{% endif %}" accept="image/jpeg,image/png,image/gif" />
+              {% if adminform.form.image.errors %}<div class="error-text">{% for e in adminform.form.image.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
+              <div class="help-text">Only JPEG, PNG, and GIF images are accepted.</div>
+            </div>
+            <div class="form-group">
               <label for="id_image_url">Image URL</label>
               <input type="url" id="id_image_url" name="image_url" class="form-control{% if adminform.form.image_url.errors %} error{% endif %}" placeholder="https://example.com/recipe-image.jpg" value="{{ adminform.form.image_url.value|default:'' }}" />
               {% if adminform.form.image_url.errors %}<div class="error-text">{% for e in adminform.form.image_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}

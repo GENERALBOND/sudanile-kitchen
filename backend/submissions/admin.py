@@ -75,6 +75,13 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
 
     def get_changeform_initial_data(self, request):
         return {'user': request.user}
+
+    def save_model(self, request, obj, form, change):
+        # Keep image_url in sync when an image is uploaded through the admin,
+        # so the approved Recipe points at an absolute, loadable URL.
+        if obj.image and not obj.image_url:
+            obj.image_url = request.build_absolute_uri(obj.image.url)
+        super().save_model(request, obj, form, change)
     
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}

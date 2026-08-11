@@ -135,15 +135,63 @@ class RecipeAdminForm(forms.ModelForm):
         return hours, minutes, seconds
 
 
+CATEGORY_ICON_CHOICES = [
+    ('', 'No icon (auto)'),
+    ('restaurant', 'Restaurant'),
+    ('restaurant_menu', 'Restaurant menu'),
+    ('lunch_dining', 'Main dish / lunch'),
+    ('dinner_dining', 'Dinner'),
+    ('bakery_dining', 'Bakery / bread'),
+    ('breakfast_dining', 'Breakfast'),
+    ('brunch_dining', 'Brunch'),
+    ('ramen_dining', 'Ramen / noodles'),
+    ('rice_bowl', 'Rice'),
+    ('soup_kitchen', 'Stew / soup'),
+    ('set_meal', 'Set meal'),
+    ('tapas', 'Tapas'),
+    ('flatware', 'Flatware'),
+    ('local_pizza', 'Pizza'),
+    ('kebab_dining', 'Kebab / grilled skewers'),
+    ('icecream', 'Ice cream'),
+    ('cake', 'Cake / dessert'),
+    ('cookie', 'Cookie'),
+    ('fastfood', 'Fast food / snack'),
+    ('egg', 'Egg'),
+    ('emoji_food_beverage', 'Hot drink'),
+    ('local_cafe', 'Coffee / cafe'),
+    ('coffee_maker', 'Kettle / coffee maker'),
+    ('local_bar', 'Drinks / bar'),
+    ('water_drop', 'Water'),
+    ('eco', 'Fresh / green'),
+    ('kitchen', 'Kitchen'),
+    ('microwave', 'Microwave'),
+    ('countertops', 'Countertop'),
+    ('outdoor_grill', 'Outdoor grill'),
+]
+
+
 class CategoryAdminForm(forms.ModelForm):
-    icon = forms.CharField(
+    icon = forms.ChoiceField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., ti-tag'}),
+        choices=CATEGORY_ICON_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text='Pick the Material icon shown for this category in the mobile app',
     )
 
     class Meta:
         model = Category
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Preserve legacy icon values (e.g. Tabler class names) so existing
+        # categories can still be edited without a validation error.
+        if self.instance and self.instance.pk and self.instance.icon:
+            values = [value for value, _ in self.fields['icon'].choices]
+            if self.instance.icon not in values:
+                self.fields['icon'].choices = list(self.fields['icon'].choices) + [
+                    (self.instance.icon, self.instance.icon)
+                ]
 
 
 @admin.register(Category)

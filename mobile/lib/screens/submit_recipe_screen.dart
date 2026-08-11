@@ -1,5 +1,7 @@
 import 'dart:developer';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
@@ -27,10 +29,19 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   final _cookMinutesController = TextEditingController();
   final _cookSecondsController = TextEditingController();
   final _servingsController = TextEditingController();
-  final _imageUrlController = TextEditingController();
   final _videoUrlController = TextEditingController();
   final _ingredientsController = TextEditingController();
   final _instructionsController = TextEditingController();
+
+  static const Set<String> _allowedImageMimeTypes = {
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+  };
+
+  XFile? _pickedImage;
+  Uint8List? _pickedImageBytes;
+  String? _imageError;
 
   List<Category> _categories = [];
   Category? _selectedCategory;
@@ -43,6 +54,38 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   void initState() {
     super.initState();
     _loadCategories();
+  }
+
+  bool _isAllowedImage(XFile file) {
+    final mime = file.mimeType?.toLowerCase();
+    if (mime != null) return _allowedImageMimeTypes.contains(mime);
+    final name = file.name.toLowerCase();
+    return name.endsWith('.jpg') ||
+        name.endsWith('.jpeg') ||
+        name.endsWith('.png') ||
+        name.endsWith('.gif');
+  }
+
+  Future<void> _pickImage() async {
+    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+
+    if (!_isAllowedImage(file)) {
+      setState(() {
+        _pickedImage = null;
+        _pickedImageBytes = null;
+        _imageError = 'Only JPEG, PNG, and GIF images are allowed.';
+      });
+      return;
+    }
+
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      _pickedImage = file;
+      _pickedImageBytes = bytes;
+      _imageError = null;
+    });
   }
 
   Future<void> _loadCategories() async {
@@ -141,9 +184,6 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         'servings': servings,
         'difficulty': _selectedDifficulty,
         'category_name': _selectedCategory!.name,
-        'image_url': _imageUrlController.text.trim().isNotEmpty
-            ? _imageUrlController.text.trim()
-            : null,
         'video_url': _videoUrlController.text.trim().isNotEmpty
             ? _videoUrlController.text.trim()
             : null,
@@ -153,7 +193,10 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
       final messenger = ScaffoldMessenger.of(currentContext);
       log('📤 Submitting recipe: $recipeData');
 
-      final success = await _recipeService.submitRecipe(recipeData);
+      final success = _pickedImage != null
+          ? await _recipeService.submitRecipeWithImage(
+              recipeData, _pickedImage!)
+          : await _recipeService.submitRecipe(recipeData);
 
       if (!mounted) return;
       setState(() => _isSubmitting = false);
@@ -215,8 +258,10 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                     _cookMinutesController.clear();
                     _cookSecondsController.clear();
                     _servingsController.clear();
-                    _imageUrlController.clear();
                     _videoUrlController.clear();
+                    _pickedImage = null;
+                    _pickedImageBytes = null;
+                    _imageError = null;
                     _selectedCategory = null;
                     _selectedDifficulty = 'medium';
                   });
@@ -489,14 +534,91 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _imageUrlController,
-                      decoration: const InputDecoration(
-                        labelText: 'Image URL',
-                        hintText: 'https://example.com/image.jpg',
-                        border: OutlineInputBorder(),
+
+                    // Image upload picker
+                    InkWell(
+                      onTap: _pickImage,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        height: 160,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.orange.shade200,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: _pickedImageBytes != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.memory(
+                                  _pickedImageBytes!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_a_photo,
+                                    size: 40,
+                                    color: Colors.orange.shade400,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Add a photo',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'JPEG, PNG, or GIF',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
+                    if (_pickedImage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            TextButton.icon(
+                              onPressed: _pickImage,
+                              icon: const Icon(Icons.swap_horiz, size: 18),
+                              label: const Text('Change photo'),
+                            ),
+                            TextButton.icon(
+                              onPressed: () => setState(() {
+                                _pickedImage = null;
+                                _pickedImageBytes = null;
+                                _imageError = null;
+                              }),
+                              icon: const Icon(Icons.close, size: 18),
+                              label: const Text('Remove'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (_imageError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          _imageError!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _videoUrlController,

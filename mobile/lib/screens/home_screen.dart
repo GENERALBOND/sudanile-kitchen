@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/recipe_service.dart';
 import '../models/recipe.dart';
 import '../providers/favorites_provider.dart';
+import '../utils/category_icons.dart';
 import 'recipe_detail_screen.dart';
 import 'search_screen.dart';
 import 'favorites_screen.dart';
@@ -424,7 +425,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Icon(
-                _getCategoryIcon(category.name),
+                categoryIcon(category.icon, category.name),
                 size: 25,
                 color: Colors.orange.shade800,
               ),
@@ -549,34 +550,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-  }
-
-  IconData _getCategoryIcon(String categoryName) {
-    final name = categoryName.toLowerCase();
-    if (name.contains('main') || name.contains('dish')) {
-      return Icons.lunch_dining;
-    }
-    if (name.contains('stew') || name.contains('curry')) {
-      return Icons.soup_kitchen;
-    }
-    if (name.contains('bread') || name.contains('grain')) {
-      return Icons.bakery_dining;
-    }
-    if (name.contains('soup')) {
-      return Icons.kitchen;
-    }
-    if (name.contains('side')) {
-      return Icons.eco;
-    }
-    if (name.contains('beverage')) {
-      return Icons.local_cafe;
-    }
-    if (name.contains('snack')) {
-      return Icons.icecream;
-    }
-    if (name.contains('dessert')) {
-      return Icons.cake;
-    }
-    return Icons.restaurant_menu;
   }
 }
