@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django import forms
+from django.db.models import Count
+from recipes.models import Recipe
 from .models import Favorite
 
 
@@ -31,3 +33,26 @@ class FavoriteAdmin(admin.ModelAdmin):
         if not change and not obj.user_id:
             obj.user = request.user
         super().save_model(request, obj, form, change)
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        top_saved = list(
+            Favorite.objects.values('recipe')
+            .annotate(save_count=Count('id'))
+            .order_by('-save_count')[:4]
+        )
+        recipe_ids = [entry['recipe'] for entry in top_saved]
+        recipes = {
+            recipe.pk: recipe
+            for recipe in Recipe.objects.filter(pk__in=recipe_ids)
+        }
+        top_saved_recipes = [
+            {'recipe': recipes[entry['recipe']], 'save_count': entry['save_count']}
+            for entry in top_saved
+            if entry['recipe'] in recipes
+        ]
+        extra_context.update({
+            'user_email': getattr(request.user, 'email', ''),
+            'top_saved_recipes': top_saved_recipes,
+        })
+        return super().changelist_view(request, extra_context=extra_context)

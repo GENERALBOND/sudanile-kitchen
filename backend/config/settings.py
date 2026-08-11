@@ -20,8 +20,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'users',
-    'recipes',
-    'reviews',
+    'recipes.apps.RecipesConfig',
+    'reviews.apps.ReviewsConfig',
     'favorites',
     'submissions',
 ]
