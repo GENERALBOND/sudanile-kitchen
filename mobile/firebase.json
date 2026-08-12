@@ -1,1 +1,54 @@
-{"flutter":{"platforms":{"ios":{"default":{"projectId":"junubin-211","appId":"1:684504206283:ios:c02efcfd0e6970168bc44e","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"sudanile-5b766","configurations":{"android":"1:191937303536:android:8704607b30df2f42b94335","web":"1:191937303536:web:8f9b6475b60be3f6b94335"}}},"android":{"default":{"projectId":"sudanile-5b766","appId":"1:191937303536:android:8704607b30df2f42b94335","fileOutput":"android/app/google-services.json"}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "ios": {
+        "default": {
+          "projectId": "junubin-211",
+          "appId": "1:684504206283:ios:c02efcfd0e6970168bc44e",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sudanile-5b766",
+          "configurations": {
+            "android": "1:191937303536:android:8704607b30df2f42b94335",
+            "web": "1:191937303536:web:8f9b6475b60be3f6b94335"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "sudanile-5b766",
+          "appId": "1:191937303536:android:8704607b30df2f42b94335",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "hosting",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "*.apk"
+    ],
+    "headers": [
+      {
+        "source": "**/*.apk",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/vnd.android.package-archive"
+          },
+          {
+            "key": "Content-Disposition",
+            "value": "attachment"
+          }
+        ]
+      }
+    ]
+  }
+}

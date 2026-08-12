@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "sudanile-5b766"
+  },
+  "targets": {
+    "sudanile-5b766": {
+      "hosting": {
+        "default": [
+          "sudanile-kitchen"
+        ]
+      }
+    }
+  }
+}
