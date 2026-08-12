@@ -231,7 +231,7 @@ class _AboutScreenState extends State<AboutScreen> {
                         }
                       }),
                       _buildSocialButton(Icons.camera_alt, 'Instagram', () async {
-                        final Uri url = Uri.parse('https://instagram.com/sudanile');
+                        final Uri url = Uri.parse('https://www.instagram.com/sudanilekitchen/');
                         if (await canLaunchUrl(url)) {
                           await launchUrl(url);
                         }
