@@ -106,7 +106,7 @@ CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
 if CLOUDINARY_CLOUD_NAME:
     INSTALLED_APPS.insert(0, 'cloudinary_storage')
     INSTALLED_APPS.append('cloudinary')
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES['default'] = {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'}
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
