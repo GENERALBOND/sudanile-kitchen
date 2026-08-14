@@ -3,6 +3,8 @@ class User {
   final String username;
   final String email;
   final String role;
+  final bool isStaff;
+  final bool isSuperuser;
   final String? profilePicture;
   final String? bio;
   final DateTime createdAt;
@@ -15,6 +17,8 @@ class User {
     required this.username,
     required this.email,
     required this.role,
+    this.isStaff = false,
+    this.isSuperuser = false,
     this.profilePicture,
     this.bio,
     required this.createdAt,
@@ -29,6 +33,8 @@ class User {
       username: json['username'],
       email: json['email'],
       role: json['role'],
+      isStaff: json['is_staff'] ?? false,
+      isSuperuser: json['is_superuser'] ?? false,
       profilePicture: json['profile_picture'],
       bio: json['bio'],
       createdAt: DateTime.parse(json['created_at']),
@@ -44,6 +50,8 @@ class User {
       'username': username,
       'email': email,
       'role': role,
+      'is_staff': isStaff,
+      'is_superuser': isSuperuser,
       'profile_picture': profilePicture,
       'bio': bio,
       'created_at': createdAt.toIso8601String(),

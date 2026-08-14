@@ -196,19 +196,23 @@ class RecipeService {
     }
   }
 
-  Future<bool> submitRecipe(Map<String, dynamic> recipeData) async {
+  /// Returns `null` on success, or a user-facing error message on failure
+  /// (e.g. the backend's "already submitted" rejection) so callers can show
+  /// the real reason instead of a generic retry prompt that causes duplicates.
+  Future<String?> submitRecipe(Map<String, dynamic> recipeData) async {
     try {
       await _apiService.post('/submissions/create/', recipeData);
-      return true;
+      return null;
     } catch (e) {
       log('❌ Error submitting recipe: $e');
-      return false;
+      return _errorMessage(e);
     }
   }
 
   /// Submits a recipe together with a user-picked image file (JPEG/PNG/GIF)
-  /// as a multipart request.
-  Future<bool> submitRecipeWithImage(
+  /// as a multipart request. Returns `null` on success, or a user-facing
+  /// error message on failure.
+  Future<String?> submitRecipeWithImage(
       Map<String, dynamic> recipeData, XFile image) async {
     try {
       final fields = <String, String>{};
@@ -231,11 +235,16 @@ class RecipeService {
         filename: image.name,
         fileContentType: _mediaTypeFor(image),
       );
-      return true;
+      return null;
     } catch (e) {
       log('❌ Error submitting recipe with image: $e');
-      return false;
+      return _errorMessage(e);
     }
+  }
+
+  String _errorMessage(Object e) {
+    if (e is ApiException) return e.message;
+    return e.toString().replaceFirst('Exception: ', '');
   }
 
   MediaType _mediaTypeFor(XFile image) {

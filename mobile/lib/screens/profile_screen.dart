@@ -72,13 +72,13 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: user.role == 'admin' ? Colors.red.shade100 : Colors.orange.shade100,
+                      color: authService.isAdmin ? Colors.red.shade100 : Colors.orange.shade100,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      user.role == 'admin' ? 'Administrator' : 'Member',
+                      authService.isAdmin ? 'Administrator' : 'Member',
                       style: TextStyle(
-                        color: user.role == 'admin' ? Colors.red.shade800 : Colors.orange.shade800,
+                        color: authService.isAdmin ? Colors.red.shade800 : Colors.orange.shade800,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -163,7 +163,21 @@ class ProfileScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 16),
-            
+
+            if (authService.isAdmin) ...[
+              Card(
+                color: Colors.orange.shade50,
+                child: ListTile(
+                  leading: const Icon(Icons.admin_panel_settings, color: Colors.orange),
+                  title: const Text('Admin Dashboard'),
+                  subtitle: const Text('Manage users, recipes, and submissions'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _openAdminDashboard(context),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // Sign Out Button
             Card(
               color: Colors.red.shade50,
@@ -182,20 +196,6 @@ class ProfileScreen extends StatelessWidget {
                 },
               ),
             ),
-            
-            if (authService.isAdmin) ...[
-              const SizedBox(height: 16),
-              Card(
-                color: Colors.orange.shade50,
-                child: ListTile(
-                  leading: const Icon(Icons.admin_panel_settings, color: Colors.orange),
-                  title: const Text('Admin Dashboard'),
-                  subtitle: const Text('Manage users, recipes, and submissions'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _openAdminDashboard(context),
-                ),
-              ),
-            ],
           ],
         ),
       ),

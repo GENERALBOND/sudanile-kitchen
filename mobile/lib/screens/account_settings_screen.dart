@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
@@ -78,53 +80,88 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   Future<void> _editProfilePhoto() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    final urlController =
-        TextEditingController(text: authService.user?.profilePicture ?? '');
+    final hasPhoto = (authService.user?.profilePicture ?? '').isNotEmpty;
 
-    final newUrl = await showDialog<String>(
+    final choice = await showModalBottomSheet<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Profile Photo'),
-        content: TextField(
-          controller: urlController,
-          keyboardType: TextInputType.url,
-          decoration: const InputDecoration(
-            labelText: 'Image URL',
-            hintText: 'https://example.com/photo.jpg',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          if ((authService.user?.profilePicture ?? '').isNotEmpty)
-            TextButton(
-              onPressed: () => Navigator.pop(context, ''),
-              child: const Text('Remove'),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.orange),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, 'gallery'),
             ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, urlController.text.trim()),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Save'),
-          ),
-        ],
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Colors.orange),
+              title: const Text('Take Photo'),
+              onTap: () => Navigator.pop(context, 'camera'),
+            ),
+            if (hasPhoto)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Remove Photo',
+                    style: TextStyle(color: Colors.red)),
+                onTap: () => Navigator.pop(context, 'remove'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('Cancel'),
+              onTap: () => Navigator.pop(context, 'cancel'),
+            ),
+          ],
+        ),
       ),
     );
 
-    if (newUrl == null || !mounted) return;
+    if (choice == null || choice == 'cancel' || !mounted) return;
 
+    if (choice == 'remove') {
+      await _removeProfilePhoto();
+      return;
+    }
+
+    final XFile? image;
+    try {
+      image = await ImagePicker().pickImage(
+        source: choice == 'camera' ? ImageSource.camera : ImageSource.gallery,
+        maxWidth: 1024,
+        imageQuality: 85,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Could not open the camera on this device.')),
+      );
+      return;
+    }
+    if (image == null || !mounted) return;
+
+    await _uploadProfilePhoto(image);
+  }
+
+  Future<void> _uploadProfilePhoto(XFile image) async {
+    setState(() => _isLoading = true);
     try {
       final apiService = ApiService();
-      await apiService.put('/users/profile/', {'profile_picture': newUrl});
+      final bytes = await image.readAsBytes();
+      await apiService.postMultipart(
+        '/users/upload-profile-picture/',
+        const {},
+        fileField: 'image',
+        fileBytes: bytes,
+        filename: image.name,
+        fileContentType: _mediaTypeFor(image),
+      );
+
       if (!mounted) return;
+      final authService = Provider.of<AuthService>(context, listen: false);
       await authService.refreshUser();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text(newUrl.isEmpty ? 'Photo removed.' : 'Photo updated!')),
+        const SnackBar(content: Text('Profile photo updated!')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -132,6 +169,43 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         SnackBar(content: Text('Failed to update photo: ${e.toString()}')),
       );
     }
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _removeProfilePhoto() async {
+    setState(() => _isLoading = true);
+    try {
+      final apiService = ApiService();
+      await apiService.delete('/users/upload-profile-picture/');
+
+      if (!mounted) return;
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.refreshUser();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Photo removed.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove photo: ${e.toString()}')),
+      );
+    }
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+  }
+
+  MediaType _mediaTypeFor(XFile image) {
+    final mime = image.mimeType;
+    if (mime != null) {
+      final parts = mime.split('/');
+      if (parts.length == 2) return MediaType(parts[0], parts[1]);
+    }
+    final name = image.name.toLowerCase();
+    if (name.endsWith('.gif')) return MediaType('image', 'gif');
+    if (name.endsWith('.png')) return MediaType('image', 'png');
+    return MediaType('image', 'jpeg');
   }
 
   Future<void> _changePassword() async {

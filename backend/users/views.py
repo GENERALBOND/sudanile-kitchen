@@ -1,9 +1,12 @@
 import logging
+import uuid
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.core.files.storage import default_storage
+from PIL import Image
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
 from .authentication import firebase_uid_from_token, delete_firebase_user
@@ -81,6 +84,81 @@ class DeleteAccountView(APIView):
         user.delete()
         logger.info('Deleted account for %s', email)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProfilePictureUploadView(APIView):
+    """Uploads (or removes) the caller's profile picture.
+
+    POST with a multipart ``image`` field (JPEG/PNG/GIF only) stores the file in
+    media storage and points the user's ``profile_picture`` at the resulting
+    absolute URL. DELETE clears the picture. Both return the updated profile.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    ALLOWED_CONTENT_TYPES = {'image/jpeg', 'image/png', 'image/gif'}
+    ALLOWED_FORMATS = {'JPEG', 'PNG', 'GIF'}
+
+    def _validate_image(self, image):
+        content_type = getattr(image, 'content_type', '')
+        if content_type and content_type not in self.ALLOWED_CONTENT_TYPES:
+            return (
+                f'Unsupported image format "{content_type}". '
+                'Only JPEG, PNG, and GIF images are allowed.'
+            ), None
+        try:
+            image.seek(0)
+            with Image.open(image) as img:
+                fmt = img.format
+            image.seek(0)
+        except Exception:
+            return (
+                'The uploaded file is not a valid image. '
+                'Only JPEG, PNG, and GIF images are allowed.'
+            ), None
+        if fmt not in self.ALLOWED_FORMATS:
+            return (
+                f'Unsupported image format "{fmt}". '
+                'Only JPEG, PNG, and GIF images are allowed.'
+            ), None
+        return None, fmt
+
+    def post(self, request):
+        user = request.user
+        image = request.FILES.get('image')
+        if image is None:
+            return Response(
+                {'error': 'No image provided.'}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        error, fmt = self._validate_image(image)
+        if error:
+            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
+
+        ext = {'JPEG': 'jpg', 'PNG': 'png', 'GIF': 'gif'}.get(fmt, 'jpg')
+        filename = f'profile_pictures/{uuid.uuid4().hex}.{ext}'
+        try:
+            saved_name = default_storage.save(filename, image)
+            url = default_storage.url(saved_name)
+            absolute_url = (
+                url if url.startswith('http') else request.build_absolute_uri(url)
+            )
+        except Exception as exc:
+            logger.error('Profile picture upload failed: %s', exc)
+            return Response(
+                {'error': 'Could not save the image. Please try again.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        user.profile_picture = absolute_url
+        user.save(update_fields=['profile_picture', 'updated_at'])
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        user = request.user
+        user.profile_picture = None
+        user.save(update_fields=['profile_picture', 'updated_at'])
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
 
 class ChangePasswordView(APIView):

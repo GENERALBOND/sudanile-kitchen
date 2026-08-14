@@ -24,7 +24,9 @@ class AuthService extends ChangeNotifier {
   // backend profile (_user) is supplementary: if it fails to load we must NOT
   // demote a signed-in user to guest mode.
   bool get isAuthenticated => _firebaseAuth.currentUser != null;
-  bool get isAdmin => _user?.role == 'admin';
+  bool get isAdmin =>
+      _user != null &&
+      (_user!.role == 'admin' || _user!.isStaff || _user!.isSuperuser);
   bool get isEmailVerified => _firebaseAuth.currentUser?.emailVerified ?? false;
 
   AuthService() {

@@ -103,6 +103,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   }
 
   Future<void> _submitRecipe() async {
+    if (_isSubmitting) return;
     final authService = Provider.of<AuthService>(context, listen: false);
     if (!authService.isAuthenticated) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -201,15 +202,14 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
-      if (success) {
+      if (success == null) {
         setState(() => _submitted = true);
         messenger.showSnackBar(
           const SnackBar(content: Text('Recipe submitted successfully!')),
         );
       } else {
         messenger.showSnackBar(
-          const SnackBar(
-              content: Text('Failed to submit recipe. Please try again.')),
+          SnackBar(content: Text(success)),
         );
       }
     } catch (e) {

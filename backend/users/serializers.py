@@ -9,10 +9,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'profile_picture', 'bio',
-                  'created_at', 'favorites_count', 'reviews_count',
-                  'submissions_count')
-        read_only_fields = ('id', 'role', 'created_at', 'email')
+        fields = ('id', 'username', 'email', 'role', 'is_staff',
+                  'is_superuser', 'profile_picture', 'bio', 'created_at',
+                  'favorites_count', 'reviews_count', 'submissions_count')
+        read_only_fields = ('id', 'role', 'is_staff', 'is_superuser',
+                            'created_at', 'email')
         extra_kwargs = {
             'username': {'required': False},
             'bio': {'required': False},

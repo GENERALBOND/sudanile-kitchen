@@ -36,6 +36,11 @@ class ApiService {
 
   static const Duration timeout = Duration(seconds: 5); // 5 second timeout
 
+  /// File uploads (multipart) legitimately take longer than a JSON round
+  /// trip — give them more room so they don't spuriously time out while the
+  /// server is still saving the file.
+  static const Duration uploadTimeout = Duration(seconds: 30);
+
   Future<Map<String, String>> _getHeaders() async {
     // getIdToken() returns the cached token and transparently refreshes it
     // in the background when it's close to expiring — no manual refresh
@@ -164,7 +169,7 @@ class ApiService {
         ));
       }
 
-      final streamedResponse = await request.send().timeout(timeout);
+      final streamedResponse = await request.send().timeout(uploadTimeout);
       final response = await http.Response.fromStream(streamedResponse);
 
       log('📥 Status: ${response.statusCode}');
