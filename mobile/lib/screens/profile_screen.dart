@@ -27,8 +27,11 @@ class ProfileScreen extends StatelessWidget {
     if (!authService.isAuthenticated) {
       return _buildNotAuthenticated(context);
     }
-    
-    final user = authService.user!;
+
+    final user = authService.user;
+    if (user == null) {
+      return _buildProfileUnavailable(context);
+    }
     
     return Scaffold(
       appBar: AppBar(
@@ -319,6 +322,65 @@ class ProfileScreen extends StatelessWidget {
               child: const Text('Sign In'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Shown when the user is signed in to Firebase but the backend profile
+  /// hasn't loaded (or failed to). Instead of demoting to guest mode, give a
+  /// retry plus a way out.
+  Widget _buildProfileUnavailable(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        backgroundColor: Colors.orange,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.cloud_off, size: 60, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                "We couldn't load your profile",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Please check your connection and try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () async {
+                  final authService =
+                      Provider.of<AuthService>(context, listen: false);
+                  await authService.refreshUser();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                child: const Text('Retry'),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () async {
+                  final authService =
+                      Provider.of<AuthService>(context, listen: false);
+                  await authService.logout();
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  }
+                },
+                child: const Text('Sign Out'),
+              ),
+            ],
+          ),
         ),
       ),
     );

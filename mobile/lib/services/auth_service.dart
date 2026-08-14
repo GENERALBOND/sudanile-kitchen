@@ -20,7 +20,10 @@ class AuthService extends ChangeNotifier {
   Future<void> get ready => _readyCompleter.future;
 
   User? get user => _user;
-  bool get isAuthenticated => _firebaseAuth.currentUser != null && _user != null;
+  // The Firebase session is the source of truth for authentication. The
+  // backend profile (_user) is supplementary: if it fails to load we must NOT
+  // demote a signed-in user to guest mode.
+  bool get isAuthenticated => _firebaseAuth.currentUser != null;
   bool get isAdmin => _user?.role == 'admin';
   bool get isEmailVerified => _firebaseAuth.currentUser?.emailVerified ?? false;
 
@@ -32,6 +35,11 @@ class AuthService extends ChangeNotifier {
     if (firebaseUser == null) {
       _user = null;
     } else {
+      // A different Firebase account may have signed in — drop any profile
+      // cached for the previous account before (re)loading the new one.
+      if (_user != null && _user!.email != firebaseUser.email) {
+        _user = null;
+      }
       await _loadUser();
     }
     if (!_readyCompleter.isCompleted) _readyCompleter.complete();
@@ -60,7 +68,8 @@ class AuthService extends ChangeNotifier {
       _user = User.fromJson(response);
     } catch (e) {
       log('Error loading user: $e');
-      _user = null;
+      // Keep the last known profile: the Firebase session is still valid, so
+      // a transient backend error must not silently turn the user into a guest.
     }
   }
 
