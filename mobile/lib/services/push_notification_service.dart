@@ -43,7 +43,7 @@ class PushNotificationService {
           badge: true,
           sound: true,
           provisional: false,
-        );
+        ).timeout(const Duration(seconds: 10));
         log('FCM permission: ${settings.authorizationStatus.name}');
       }
     } catch (e) {
@@ -85,7 +85,9 @@ class PushNotificationService {
 
   Future<void> _refreshTokenAndRegister() async {
     try {
-      _token = await _messaging.getToken();
+      // Guard against a dead/unresponsive FCM client (e.g. no Play services)
+      // so a background init can never hang the app's startup pipeline.
+      _token = await _messaging.getToken().timeout(const Duration(seconds: 15));
       await syncSettings();
     } catch (e) {
       // On web this needs the firebase-messaging service worker; fail quietly.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +16,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialise push notifications (token registration + foreground banners).
-  await PushNotificationService.instance.initialize(navigatorKey: navigatorKey);
+  // Initialise push notifications in the background. Fire-and-forget on
+  // purpose: on some devices FCM's permission prompt / token fetch can block
+  // (or never resolve), and startup must never wait on it — otherwise the app
+  // hangs on the launch logo with no UI. Token registration + foreground
+  // banners just kick in whenever FCM finishes initialising.
+  unawaited(PushNotificationService.instance.initialize(navigatorKey: navigatorKey));
   // Keep the device's FCM registration in sync with sign-in / sign-out.
   fb.FirebaseAuth.instance.authStateChanges().listen((_) async {
     await PushNotificationService.instance.onAuthChanged();
