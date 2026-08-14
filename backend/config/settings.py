@@ -24,7 +24,8 @@ INSTALLED_APPS = [
     'recipes.apps.RecipesConfig',
     'reviews.apps.ReviewsConfig',
     'favorites',
-    'submissions',
+    'submissions.apps.SubmissionsConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
@@ -148,3 +149,10 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@sudanile.com'
 # Templates Configuration
 import os
 TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
+
+# Firebase Cloud Messaging (push notifications).
+# Set FIREBASE_SERVICE_ACCOUNT to the path of the downloaded service-account
+# JSON, or leave both blank to use GOOGLE_APPLICATION_CREDENTIALS. When no
+# credentials are available, pushes are silently skipped (the app still works).
+FIREBASE_SERVICE_ACCOUNT = config('FIREBASE_SERVICE_ACCOUNT', default='')
+FIREBASE_SERVICE_ACCOUNT_JSON = config('FIREBASE_SERVICE_ACCOUNT_JSON', default='')

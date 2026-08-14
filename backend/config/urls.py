@@ -66,6 +66,7 @@ urlpatterns = [
     path('api/reviews/', include('reviews.urls')),
     path('api/favorites/', include('favorites.urls')),
     path('api/submissions/', include('submissions.urls')),
+    path('api/notifications/', include('notifications.urls')),
 ]
 
 if settings.DEBUG:

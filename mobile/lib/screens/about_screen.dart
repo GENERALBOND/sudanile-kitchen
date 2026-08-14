@@ -214,27 +214,19 @@ class _AboutScreenState extends State<AboutScreen> {
                           scheme: 'mailto',
                           path: 'support@sudanile.com',
                         );
-                        if (await canLaunchUrl(emailUri)) {
-                          await launchUrl(emailUri);
-                        }
+                        await _launchExternal(emailUri);
                       }),
                       _buildSocialButton(Icons.public, 'Website', () async {
                         final Uri url = Uri.parse('https://sudanile.com');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        }
+                        await _launchExternal(url);
                       }),
                       _buildSocialButton(Icons.facebook, 'Facebook', () async {
-                        final Uri url = Uri.parse('https://facebook.com/sudanile');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        }
+                        final Uri url = Uri.parse('https://www.facebook.com/profile.php?id=61593135125460');
+                        await _launchExternal(url);
                       }),
                       _buildSocialButton(Icons.camera_alt, 'Instagram', () async {
                         final Uri url = Uri.parse('https://www.instagram.com/sudanilekitchen/');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        }
+                        await _launchExternal(url);
                       }),
                     ],
                   ),
@@ -360,5 +352,29 @@ class _AboutScreenState extends State<AboutScreen> {
         Text(label, style: const TextStyle(fontSize: 10)),
       ],
     );
+  }
+
+  /// Launches [uri] in the external browser/email app. Unlike the previous
+  /// `canLaunchUrl`-gate (which silently does nothing when the platform can't
+  /// confirm an app is available — the reason no links opened on Android 11+),
+  /// this always attempts the launch and surfaces a clear error if it truly
+  /// fails.
+  Future<void> _launchExternal(Uri uri) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Could not open ${uri.scheme} link.')),
+        );
+      }
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('No app is available to open this link.')),
+      );
+    }
   }
 }

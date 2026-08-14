@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/push_notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -49,6 +50,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await prefs.setBool('review_replies_alerts', _reviewRepliesAlerts);
     await prefs.setBool('weekly_digest', _weeklyDigest);
     await prefs.setBool('marketing_emails', _marketingEmails);
+
+    // Push notifications only: sync the device's FCM tags with the backend so
+    // the new settings take effect immediately.
+    await PushNotificationService.instance.syncSettings();
+
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Notification settings saved!')),
