@@ -42,6 +42,56 @@ def _google_request():
     return google_requests.Request(_CACHED_SESSION)
 
 
+def firebase_uid_from_token(token):
+    """Return the Firebase Auth uid (the token's `sub` claim), or None."""
+    if not token:
+        return None
+    try:
+        claims = google_id_token.verify_token(
+            token,
+            request=_google_request(),
+            audience=getattr(settings, 'FIREBASE_PROJECT_ID', None),
+            certs_url=FIREBASE_CERT_URL,
+        )
+        return claims.get('sub')
+    except Exception as exc:
+        logger.debug('Could not resolve Firebase uid from token: %s', exc)
+        return None
+
+
+def delete_firebase_user(uid):
+    """Best-effort deletion of the Firebase Auth account via the Admin SDK.
+
+    Uses the same (lazily resolved, fully guarded) credentials as the
+    notifications push client, so this never crashes the API request when the
+    Admin SDK or its credentials aren't configured — the Django record is the
+    authoritative deletion and is handled by the caller.
+    """
+    if not uid:
+        return
+    try:
+        from notifications.push import _credentials_options
+
+        import firebase_admin
+        from firebase_admin import auth
+
+        try:
+            app = firebase_admin.get_app()
+        except ValueError:
+            options = _credentials_options()
+            if options is None:
+                logger.warning(
+                    'FCM not configured; skipped deleting Firebase account %s', uid
+                )
+                return
+            app = firebase_admin.initialize_app(credential=options)
+
+        auth.delete_user(uid, app=app)
+        logger.info('Deleted Firebase Auth account %s', uid)
+    except Exception as exc:
+        logger.warning('Could not delete Firebase account %s: %s', uid, exc)
+
+
 class FirebaseAuthentication(BaseAuthentication):
     """Validates a Firebase ID token sent as a `Bearer` credential.
 

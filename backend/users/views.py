@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
+from .authentication import firebase_uid_from_token, delete_firebase_user
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,38 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         return self.request.user
+
+class DeleteAccountView(APIView):
+    """Deletes the caller's account.
+
+    Removes the Django user (favorites, reviews, submissions and push-device
+    tokens follow via CASCADE) and, when the request carried a Firebase ID
+    token, best-effort deletes the matching Firebase Auth account so the user
+    can't simply sign back in and get a freshly auto-created profile.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        if user.is_staff or user.is_superuser:
+            return Response(
+                {'error': 'Staff accounts cannot be deleted via the API.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # request.auth is the raw Bearer token for Firebase-authenticated
+        # requests (the web/JWT path uses non-string tokens, in which case
+        # there is no Firebase account to clean up).
+        token = request.auth if isinstance(request.auth, str) else None
+        uid = firebase_uid_from_token(token) if token else None
+        delete_firebase_user(uid)
+
+        email = user.email
+        user.delete()
+        logger.info('Deleted account for %s', email)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
