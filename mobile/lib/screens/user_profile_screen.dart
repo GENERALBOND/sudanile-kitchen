@@ -5,8 +5,8 @@ import '../providers/community_provider.dart';
 import '../services/community_service.dart';
 import 'community_post_detail_screen.dart';
 
-/// A member's profile page in the community: avatar, bio, stats and their
-/// posts. Used both for "My Posts" and when tapping another member.
+/// A member's profile page in the community: avatar, bio, public stats and
+/// their posts. Used both for "My Posts" and when tapping another member.
 class UserProfileScreen extends StatefulWidget {
   final int userId;
   final String? userName;
@@ -80,6 +80,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(child: _buildProfileHeader(provider)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 4),
+                    child: Text(
+                      'Posts',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                  ),
+                ),
                 if (provider.isLoading)
                   const SliverToBoxAdapter(
                     child: Padding(
@@ -127,6 +140,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                   ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
             ),
           );
@@ -139,14 +153,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final profile = _profile;
 
     return Container(
-      color: Colors.white,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.orange.shade50, Colors.white],
+        ),
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (_isLoadingProfile)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(color: Colors.orange),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(color: Colors.orange),
+              ),
             )
           else if (_profileFailed)
             Column(
@@ -155,37 +182,43 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Profile unavailable',
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ],
             )
           else ...[
-            CircleAvatar(
-              radius: 45,
-              backgroundColor: Colors.orange.shade100,
-              backgroundImage: profile!.profilePicture != null
-                  ? NetworkImage(profile.profilePicture!)
-                  : null,
-              child: profile.profilePicture == null
-                  ? Text(
-                      profile.username.isNotEmpty
-                          ? profile.username[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                          fontSize: 36,
-                          color: Colors.orange,
-                          fontWeight: FontWeight.bold),
-                    )
-                  : null,
+            Center(
+              child: CircleAvatar(
+                radius: 45,
+                backgroundColor: Colors.orange.shade100,
+                backgroundImage: profile!.profilePicture != null
+                    ? NetworkImage(profile.profilePicture!)
+                    : null,
+                child: profile.profilePicture == null
+                    ? Text(
+                        profile.username.isNotEmpty
+                            ? profile.username[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                            fontSize: 36,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold),
+                      )
+                    : null,
+              ),
             ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  profile.username,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold),
+                Flexible(
+                  child: Text(
+                    profile.username,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 if (profile.isAdmin) ...[
                   const SizedBox(width: 6),
@@ -207,9 +240,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ],
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               'Joined ${profile.createdAt.day}/${profile.createdAt.month}/${profile.createdAt.year}',
+              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: Colors.grey),
             ),
             if (profile.bio.isNotEmpty) ...[
@@ -227,7 +261,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _buildStat('${profile.postCount}', 'Posts'),
                 _buildStat('${profile.likeCount}', 'Likes'),
                 _buildStat('${profile.commentCount}', 'Comments'),
-                _buildStat('${profile.favoritesCount}', 'Saved'),
               ],
             ),
           ],
@@ -262,10 +295,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           const SizedBox(height: 16),
           Text(
             'No posts yet',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700]),
           ),
           const SizedBox(height: 6),
-          Text(
+          const Text(
             'This member has not shared any dishes yet.',
             style: TextStyle(fontSize: 13, color: Colors.grey),
             textAlign: TextAlign.center,
@@ -309,7 +343,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -321,26 +355,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                     ],
                     Row(
                       children: [
-                        Icon(
-                          post.isLikedByMe
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          size: 14,
-                          color: post.isLikedByMe ? Colors.red : Colors.grey,
-                        ),
-                        const SizedBox(width: 3),
-                        Text('${post.likeCount}',
-                            style: const TextStyle(fontSize: 11)),
+                        _buildLikeButton(provider, post),
                         const SizedBox(width: 12),
                         const Icon(Icons.comment_outlined,
-                            size: 13, color: Colors.grey),
+                            size: 14, color: Colors.grey),
                         const SizedBox(width: 3),
-                        Text('${post.commentCount}',
-                            style: const TextStyle(fontSize: 11)),
+                        Text(
+                          '${post.commentCount}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
                   ],
@@ -348,6 +375,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLikeButton(CommunityProvider provider, CommunityPost post) {
+    return InkWell(
+      onTap: () => provider.toggleLike(post),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+        child: Row(
+          children: [
+            Icon(
+              post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+              size: 15,
+              color: post.isLikedByMe ? Colors.red : Colors.grey,
+            ),
+            const SizedBox(width: 3),
+            Text(
+              '${post.likeCount}',
+              style: TextStyle(
+                fontSize: 12,
+                color: post.isLikedByMe ? Colors.red : Colors.black87,
+              ),
+            ),
+          ],
         ),
       ),
     );
