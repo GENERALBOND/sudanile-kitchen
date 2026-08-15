@@ -105,6 +105,16 @@ def _build_message(title, body, data=None, url=None):
     return messaging.Message(
         notification=messaging.Notification(title=title, body=body),
         data=payload,
+        # High priority so FCM delivers immediately instead of being deferred
+        # while the device is in Doze/app standby (the default "normal"
+        # priority is what causes notifications to arrive late).
+        android=messaging.AndroidConfig(
+            priority='high',
+            notification=messaging.AndroidNotification(sound='default'),
+        ),
+        apns=messaging.APNSConfig(
+            payload=messaging.APNSPayload(aps=messaging.Aps(sound='default')),
+        ),
     )
 
 
