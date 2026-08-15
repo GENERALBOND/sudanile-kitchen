@@ -39,6 +39,17 @@ class CommunityService {
     }
   }
 
+  /// Fetches a single post by id (used to open a post from a push tap).
+  Future<CommunityPost?> getPost(int postId) async {
+    try {
+      final response = await _apiService.get('/community/$postId/');
+      return CommunityPost.fromJson(response);
+    } catch (e) {
+      log('❌ Error fetching community post: $e');
+      return null;
+    }
+  }
+
   /// Creates a post and returns `(post, error)` — exactly one is non-null.
   /// `post` is the serialized post returned by the server so the feed can
   /// prepend it without an extra fetch.

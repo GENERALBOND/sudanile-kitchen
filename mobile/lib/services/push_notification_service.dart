@@ -9,7 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart';
 import '../screens/home_screen.dart';
+import '../screens/community_post_detail_screen.dart';
 import '../screens/recipe_detail_screen.dart';
+import 'community_service.dart';
 import 'recipe_service.dart';
 
 /// Wraps Firebase Cloud Messaging: requests permission, keeps the device's
@@ -23,6 +25,7 @@ class PushNotificationService {
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final ApiService _api = ApiService();
+  final CommunityService _communityService = CommunityService();
   final RecipeService _recipeService = RecipeService();
 
   GlobalKey<NavigatorState>? navigatorKey;
@@ -120,6 +123,9 @@ class PushNotificationService {
       if (prefs.getBool('community_updates_alerts') ?? true) {
         tags.add('community_updates');
       }
+      if (prefs.getBool('likes_comments_alerts') ?? true) {
+        tags.add('likes_comments');
+      }
     }
 
     try {
@@ -195,10 +201,30 @@ class PushNotificationService {
       }
     }
 
+    if ((type == 'post_like' || type == 'post_comment') &&
+        data['post_id'] != null) {
+      final postId = int.tryParse(data['post_id'].toString());
+      if (postId != null) {
+        _openCommunityPost(navigator, postId);
+        return;
+      }
+    }
+
     // Default: land on Home (which also covers community updates).
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
       (route) => false,
+    );
+  }
+
+  Future<void> _openCommunityPost(
+      NavigatorState navigator, int postId) async {
+    final post = await _communityService.getPost(postId);
+    if (post == null) return;
+    navigator.push(
+      MaterialPageRoute(
+        builder: (_) => CommunityPostDetailScreen(post: post),
+      ),
     );
   }
 

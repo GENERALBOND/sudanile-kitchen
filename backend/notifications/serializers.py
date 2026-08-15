@@ -2,7 +2,12 @@ from rest_framework import serializers
 from .models import DeviceToken, CommunityUpdate
 
 
-VALID_TAGS = ('new_recipes', 'recipe_approval', 'community_updates')
+VALID_TAGS = (
+    'new_recipes',
+    'recipe_approval',
+    'community_updates',
+    'likes_comments',
+)
 
 
 class DeviceTokenSerializer(serializers.ModelSerializer):

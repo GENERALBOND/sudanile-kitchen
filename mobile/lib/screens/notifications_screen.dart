@@ -15,6 +15,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _recipeApprovalAlerts = true;
   bool _newRecipesAlerts = true;
   bool _communityUpdatesAlerts = true;
+  bool _likesCommentsAlerts = true;
   bool _reviewRepliesAlerts = true;
   bool _weeklyDigest = false;
   bool _marketingEmails = false;
@@ -34,6 +35,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _newRecipesAlerts = prefs.getBool('new_recipes_alerts') ?? true;
       _communityUpdatesAlerts =
           prefs.getBool('community_updates_alerts') ?? true;
+      _likesCommentsAlerts = prefs.getBool('likes_comments_alerts') ?? true;
       _reviewRepliesAlerts = prefs.getBool('review_replies_alerts') ?? true;
       _weeklyDigest = prefs.getBool('weekly_digest') ?? false;
       _marketingEmails = prefs.getBool('marketing_emails') ?? false;
@@ -47,6 +49,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await prefs.setBool('recipe_approval_alerts', _recipeApprovalAlerts);
     await prefs.setBool('new_recipes_alerts', _newRecipesAlerts);
     await prefs.setBool('community_updates_alerts', _communityUpdatesAlerts);
+    await prefs.setBool('likes_comments_alerts', _likesCommentsAlerts);
     await prefs.setBool('review_replies_alerts', _reviewRepliesAlerts);
     await prefs.setBool('weekly_digest', _weeklyDigest);
     await prefs.setBool('marketing_emails', _marketingEmails);
@@ -128,6 +131,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               subtitle: 'News and updates from the Sudanile Kitchen community',
               value: _communityUpdatesAlerts,
               onChanged: (val) => setState(() => _communityUpdatesAlerts = val),
+            ),
+            _buildSwitchTile(
+              icon: Icons.thumb_up_alt,
+              title: 'Likes & Comments',
+              subtitle: 'Get notified when someone likes or comments on your post',
+              value: _likesCommentsAlerts,
+              onChanged: (val) => setState(() => _likesCommentsAlerts = val),
             ),
             _buildSwitchTile(
               icon: Icons.comment,

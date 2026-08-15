@@ -50,5 +50,5 @@ class UnregisterDeviceTokenView(APIView):
             return Response(
                 {'error': 'token is required.'}, status=status.HTTP_400_BAD_REQUEST
             )
-        DeviceToken.objects.filter(token=token, user=request.user).delete()
+        DeviceToken.objects.filter(token=token).delete()
         return Response({'message': 'Token removed.'}, status=status.HTTP_200_OK)

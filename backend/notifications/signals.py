@@ -6,6 +6,10 @@ listen on Recipe / RecipeSubmission lifecycle events:
   * a recipe is (newly) published   -> "new_recipes"  subscribers
   * a submission is approved        -> the submitting user's devices,
                                        tagged "recipe_approval"
+  * a community post is liked       -> the post owner's devices,
+                                       tagged "likes_comments"
+  * a community post is commented   -> the post owner's devices,
+                                       tagged "likes_comments"
 """
 
 import logging
@@ -15,6 +19,7 @@ from django.dispatch import receiver
 
 from recipes.models import Recipe
 from submissions.models import RecipeSubmission
+from community.models import PostComment, PostLike
 from . import push
 
 logger = logging.getLogger(__name__)
@@ -90,3 +95,51 @@ def notify_submission_review_push(sender, instance, **kwargs):
             )
     except Exception as exc:
         logger.error('Failed to push approval update: %s', exc)
+
+
+def _truncate(text, length):
+    text = (text or '').strip()
+    return text if len(text) <= length else text[: length - 1] + '…'
+
+
+@receiver(post_save, sender=PostLike)
+def notify_post_like(sender, instance, created, **kwargs):
+    """Alert the post's owner when someone new likes their post."""
+    if not created:
+        return
+    if instance.user_id == instance.post.user_id:
+        # Don't notify the owner about their own like.
+        return
+    try:
+        caption = _truncate(instance.post.caption, 60) or 'Your dish photo'
+        push.notify_user(
+            instance.post.user,
+            'likes_comments',
+            f'{instance.user.username} liked your post',
+            f'"{caption}" received a like.',
+            data={'type': 'post_like', 'post_id': instance.post_id},
+            url=f'/posts/{instance.post_id}',
+        )
+    except Exception as exc:
+        logger.error('Failed to push like update: %s', exc)
+
+
+@receiver(post_save, sender=PostComment)
+def notify_post_comment(sender, instance, created, **kwargs):
+    """Alert the post's owner when someone comments on their post."""
+    if not created:
+        return
+    if instance.user_id == instance.post.user_id:
+        return
+    try:
+        preview = _truncate(instance.comment, 120)
+        push.notify_user(
+            instance.post.user,
+            'likes_comments',
+            f'{instance.user.username} commented on your post',
+            preview,
+            data={'type': 'post_comment', 'post_id': instance.post_id},
+            url=f'/posts/{instance.post_id}',
+        )
+    except Exception as exc:
+        logger.error('Failed to push comment update: %s', exc)

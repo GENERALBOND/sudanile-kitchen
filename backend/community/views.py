@@ -50,6 +50,25 @@ class PostCreateView(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 
 
+class PostDetailView(generics.RetrieveAPIView):
+    """A single post — used by the mobile app to open a post from a
+    notification tap."""
+
+    serializer_class = PostSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self):
+        return get_object_or_404(
+            Post.objects.select_related('user', 'recipe'),
+            id=self.kwargs.get('post_id'),
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+
 class PostDeleteView(APIView):
     """Owners (and admins) may delete a post."""
 
