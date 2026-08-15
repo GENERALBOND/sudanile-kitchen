@@ -97,7 +97,9 @@ def _build_message(title, body, data=None, url=None):
         from firebase_admin import messaging
     except ImportError:  # pragma: no cover
         return None
-    payload = dict(data or {})
+    # FCM requires every data value to be a string; ids arrive as ints, so
+    # coerce everything up front (otherwise every push fails validation).
+    payload = {str(k): str(v) for k, v in (data or {}).items()}
     if url:
         payload['url'] = url
     return messaging.Message(

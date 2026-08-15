@@ -1,4 +1,5 @@
 import logging
+import time
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -46,22 +47,32 @@ def send_submission_review_email(submission):
             f"Sudanile Kitchen"
         )
 
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
-        logger.info(
-            f"Sent {submission.status} notification to {user.email} "
-            f"for \"{submission.title}\""
-        )
-    except Exception as e:
-        logger.error(
-            f"Failed to send submission notification to {user.email}: {e}"
-        )
+    # Transient network errors (e.g. "Network is unreachable" on some hosts)
+    # often clear on a retry, so try a couple of times before giving up. Each
+    # attempt is bounded by EMAIL_TIMEOUT so the total stays under gunicorn's
+    # worker timeout.
+    for attempt in (1, 2):
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            logger.info(
+                f"Sent {submission.status} notification to {user.email} "
+                f"for \"{submission.title}\""
+            )
+            return
+        except Exception as e:
+            logger.error(
+                f"Failed to send submission notification to {user.email} "
+                f"(attempt {attempt}): {e}"
+            )
+            if attempt == 1:
+                time.sleep(1)
+
 
 
 @receiver(pre_save, sender=RecipeSubmission)

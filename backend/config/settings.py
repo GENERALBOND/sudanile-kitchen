@@ -148,7 +148,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@sudanile.com')
 # Bound SMTP connects so a slow/unreachable mail server can't hang the request
 # past gunicorn's worker timeout (30s default) and take the whole site down.
-EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=5, cast=int)
 
 # Templates Configuration
 import os
