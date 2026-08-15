@@ -30,8 +30,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     _loadProfile();
-    Provider.of<CommunityProvider>(context, listen: false)
-        .loadFirstPage(userId: widget.userId);
+    // Defer until after the frame builds: this screen pushes its own fresh
+    // ChangeNotifierProvider, and loadFirstPage() notifies listeners
+    // synchronously — firing it during mount/initState trips the
+    // "!__dirty is not true" assertion (setState during build).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Provider.of<CommunityProvider>(context, listen: false)
+          .loadFirstPage(userId: widget.userId);
+    });
   }
 
   @override

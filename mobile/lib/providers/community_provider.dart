@@ -21,6 +21,18 @@ class CommunityProvider extends ChangeNotifier {
   String get sort => _sort;
   int? get userId => _userId;
 
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> loadFirstPage({
     String? sort,
     int? userId,
@@ -30,7 +42,7 @@ class CommunityProvider extends ChangeNotifier {
     _page = 1;
     _hasMore = true;
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _posts = await _communityService.getPosts(
@@ -44,13 +56,13 @@ class CommunityProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasMore || _isLoading) return;
     _isLoadingMore = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final nextPage = await _communityService.getPosts(
@@ -70,7 +82,7 @@ class CommunityProvider extends ChangeNotifier {
     }
 
     _isLoadingMore = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> refresh() => loadFirstPage(sort: _sort, userId: _userId);
@@ -85,7 +97,7 @@ class CommunityProvider extends ChangeNotifier {
       isLikedByMe: !wasLiked,
       likeCount: _posts[index].likeCount + (wasLiked ? -1 : 1),
     );
-    notifyListeners();
+    _safeNotify();
 
     final result = await _communityService.toggleLike(post.id);
     if (result == null && _posts.length > index) {
@@ -94,7 +106,7 @@ class CommunityProvider extends ChangeNotifier {
         isLikedByMe: wasLiked,
         likeCount: post.likeCount,
       );
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -102,16 +114,16 @@ class CommunityProvider extends ChangeNotifier {
     final index = _posts.indexWhere((p) => p.id == postId);
     if (index == -1) return;
     _posts[index] = _posts[index].copyWith(commentCount: _posts[index].commentCount + 1);
-    notifyListeners();
+    _safeNotify();
   }
 
   void removePost(int postId) {
     _posts.removeWhere((p) => p.id == postId);
-    notifyListeners();
+    _safeNotify();
   }
 
   void prependPost(CommunityPost post) {
     _posts = [post, ..._posts];
-    notifyListeners();
+    _safeNotify();
   }
 }
