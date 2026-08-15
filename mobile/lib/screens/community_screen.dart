@@ -207,7 +207,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => CommunityPostDetailScreen(post: post),
+            builder: (_) => ChangeNotifierProvider<CommunityProvider>.value(
+              value: provider,
+              child: CommunityPostDetailScreen(post: post),
+            ),
           ),
         );
       },

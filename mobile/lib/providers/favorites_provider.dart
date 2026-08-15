@@ -53,14 +53,34 @@ class FavoritesProvider extends ChangeNotifier {
     return _favoriteIds.contains(recipeId);
   }
 
-  Future<void> refreshFavorites() async {
-    await loadFavorites();
+  /// Optimistically removes a favorite immediately (required by Dismissible,
+  /// which expects the item to leave the tree when dismissed) and reverts if
+  /// the API call fails. Returns whether the removal succeeded.
+  Future<bool> removeFavorite(Recipe recipe) async {
+    final lengthBefore = _favorites.length;
+    _favorites.removeWhere((r) => r.id == recipe.id);
+    final removed = lengthBefore - _favorites.length;
+    _favoriteIds.remove(recipe.id);
+    notifyListeners();
+
+    final success = await _recipeService.removeFromFavorites(recipe.id);
+    if (!success && removed > 0) {
+      _favorites.add(recipe);
+      _favoriteIds.add(recipe.id);
+      notifyListeners();
+    }
+    return success;
   }
 
-  // Remove from favorites by recipe ID
-  Future<void> removeFavorite(int recipeId) async {
-    final recipe = _favorites.firstWhere((r) => r.id == recipeId,
-        orElse: () => throw Exception());
-    await toggleFavorite(recipe);
+  /// Clears all cached favorites (e.g. on sign-out so the previous account's
+  /// data never leaks into the next session).
+  void clear() {
+    _favorites = [];
+    _favoriteIds = {};
+    notifyListeners();
+  }
+
+  Future<void> refreshFavorites() async {
+    await loadFavorites();
   }
 }

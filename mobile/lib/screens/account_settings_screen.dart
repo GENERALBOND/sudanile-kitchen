@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../providers/favorites_provider.dart';
 import 'login_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
@@ -253,7 +254,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       _confirmPasswordController.clear();
       setState(() => _isChangingPassword = false);
 
+      final favProvider =
+          Provider.of<FavoritesProvider>(context, listen: false);
       await authService.logout();
+      favProvider.clear();
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -290,6 +294,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
     if (result['success'] == true) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
+      Provider.of<FavoritesProvider>(context, listen: false).clear();
       scaffoldMessenger.showSnackBar(
         const SnackBar(
             content: Text(

@@ -63,16 +63,8 @@ class RecipeService {
   }
 
   Future<Recipe?> getRecipe(int id) async {
-    // Check cache first
-    if (_cachedRecipes.isNotEmpty) {
-      try {
-        final cached = _cachedRecipes.firstWhere((r) => r.id == id);
-        return cached;
-      } catch (e) {
-        // Not in cache, fetch from API
-      }
-    }
-
+    // Always fetch the live detail so ratings, view counts and any edits are
+    // reflected (a cached first-page copy would be stale).
     try {
       final response = await _apiService.get('/recipes/$id/');
       return Recipe.fromJson(response);

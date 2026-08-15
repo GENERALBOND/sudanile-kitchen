@@ -340,7 +340,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => CommunityPostDetailScreen(post: post),
+            builder: (_) => ChangeNotifierProvider<CommunityProvider>.value(
+              value: provider,
+              child: CommunityPostDetailScreen(post: post),
+            ),
           ),
         );
       },

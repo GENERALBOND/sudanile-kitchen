@@ -34,6 +34,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Future<void> _loadData() async {
     final recipeData = await _recipeService.getRecipe(_recipe.id);
+    if (!mounted) return;
     if (recipeData != null) setState(() => _recipe = recipeData);
 
     final reviews = await _recipeService.getReviews(_recipe.id);
@@ -484,7 +485,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ? NetworkImage(review.userProfilePicture!)
                       : null,
                   child: review.userProfilePicture == null
-                      ? Text(review.userName[0].toUpperCase())
+                      ? Text(
+                          review.userName.isNotEmpty
+                              ? review.userName[0].toUpperCase()
+                              : '?')
                       : null,
                 ),
                 const SizedBox(width: 12),

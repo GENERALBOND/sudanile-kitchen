@@ -186,7 +186,10 @@ class ProfileScreen extends StatelessWidget {
                 title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
                 trailing: const Icon(Icons.chevron_right, color: Colors.red),
                 onTap: () async {
+                  final favProvider =
+                      Provider.of<FavoritesProvider>(context, listen: false);
                   await authService.logout();
+                  favProvider.clear();
                   if (context.mounted) {
                     Navigator.pushReplacement(
                       context,
@@ -369,7 +372,10 @@ class ProfileScreen extends StatelessWidget {
                 onPressed: () async {
                   final authService =
                       Provider.of<AuthService>(context, listen: false);
+                  final favProvider =
+                      Provider.of<FavoritesProvider>(context, listen: false);
                   await authService.logout();
+                  favProvider.clear();
                   if (context.mounted) {
                     Navigator.pushReplacement(
                       context,

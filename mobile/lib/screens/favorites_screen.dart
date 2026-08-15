@@ -104,10 +104,15 @@ class FavoritesScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 20),
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
-                  onDismissed: (_) {
-                    favProvider.toggleFavorite(recipe);
+                  onDismissed: (_) async {
+                    final success = await favProvider.removeFavorite(recipe);
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${recipe.title} removed from favorites')),
+                      SnackBar(
+                        content: Text(success
+                            ? '${recipe.title} removed from favorites'
+                            : 'Could not remove ${recipe.title}. Please try again.'),
+                      ),
                     );
                   },
                   child: RecipeCard(
