@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/community_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 import 'services/push_notification_service.dart';
@@ -39,6 +40,7 @@ class SudanileKitchenApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
       ],
       child: MaterialApp(
         title: 'Sudanile Kitchen',

@@ -13,6 +13,8 @@ import 'profile_screen.dart';
 import 'login_screen.dart';
 import 'submit_recipe_screen.dart';
 import 'all_categories_screen.dart';
+import 'community_screen.dart';
+import 'new_post_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -80,20 +82,21 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildHomeContent(),
           const SearchScreen(),
           isGuest ? _buildGuestFavorites() : const FavoritesScreen(),
+          const CommunityScreen(),
           ProfileScreen(isGuestMode: isGuest),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (isGuest && (index == 2 || index == 3)) {
+          if (isGuest && (index == 2 || index == 4)) {
             _showLoginRequiredDialog();
             return;
           }
           setState(() => _selectedIndex = index);
           // Refresh profile stats whenever the Profile tab is opened so the
           // backend counts reflect the latest activity.
-          if (index == 3) {
+          if (index == 4) {
             Provider.of<AuthService>(context, listen: false).refreshUser();
             Provider.of<FavoritesProvider>(context, listen: false)
                 .loadFavorites();
@@ -108,6 +111,8 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(
               icon: Icon(Icons.favorite), label: 'Favorites'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.people), label: 'Community'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -115,6 +120,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           if (isGuest) {
             _showLoginRequiredDialog();
+          } else if (_selectedIndex == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NewPostScreen()),
+            );
           } else {
             Navigator.push(
               context,

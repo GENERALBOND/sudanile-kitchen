@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'favorites',
     'submissions.apps.SubmissionsConfig',
     'notifications.apps.NotificationsConfig',
+    'community.apps.CommunityConfig',
 ]
 
 MIDDLEWARE = [

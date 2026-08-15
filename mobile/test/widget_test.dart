@@ -4,6 +4,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudanile_kitchen/models/recipe.dart';
 import 'package:sudanile_kitchen/models/user.dart';
+import 'package:sudanile_kitchen/models/community_post.dart';
 
 void main() {
   group('Recipe.fromJson', () {
@@ -97,6 +98,90 @@ void main() {
       expect(user.favoritesCount, 3);
       expect(user.reviewsCount, 0);
       expect(user.submissionsCount, 0);
+    });
+  });
+
+  group('CommunityPost.fromJson', () {
+    test('parses a full community post payload', () {
+      final post = CommunityPost.fromJson({
+        'id': 10,
+        'user': 7,
+        'user_name': 'amina',
+        'user_profile_picture': null,
+        'caption': 'Made kisra tonight!',
+        'image_url': 'https://example.com/kisra.jpg',
+        'recipe': 1,
+        'recipe_title': 'Kisra',
+        'recipe_image_url': 'https://example.com/kisra.jpg',
+        'like_count': 12,
+        'comment_count': 3,
+        'is_liked_by_me': true,
+        'created_at': '2026-01-01T00:00:00Z',
+      });
+
+      expect(post.id, 10);
+      expect(post.userId, 7);
+      expect(post.userName, 'amina');
+      expect(post.caption, 'Made kisra tonight!');
+      expect(post.recipeId, 1);
+      expect(post.recipeTitle, 'Kisra');
+      expect(post.likeCount, 12);
+      expect(post.commentCount, 3);
+      expect(post.isLikedByMe, true);
+    });
+
+    test('falls back to safe defaults for missing optional fields', () {
+      final post = CommunityPost.fromJson({'id': 11});
+
+      expect(post.userName, '');
+      expect(post.caption, '');
+      expect(post.imageUrl, isNull);
+      expect(post.recipeId, isNull);
+      expect(post.likeCount, 0);
+      expect(post.commentCount, 0);
+      expect(post.isLikedByMe, false);
+    });
+
+    test('copyWith updates engagement counts without touching the rest', () {
+      final post = CommunityPost.fromJson({
+        'id': 12,
+        'user': 7,
+        'user_name': 'amina',
+        'like_count': 5,
+        'comment_count': 2,
+        'is_liked_by_me': false,
+        'created_at': '2026-01-01T00:00:00Z',
+      });
+
+      final updated = post.copyWith(
+        isLikedByMe: true,
+        likeCount: 6,
+        commentCount: 3,
+      );
+
+      expect(updated.isLikedByMe, true);
+      expect(updated.likeCount, 6);
+      expect(updated.commentCount, 3);
+      expect(updated.id, 12);
+      expect(updated.userName, 'amina');
+    });
+  });
+
+  group('CommunityComment.fromJson', () {
+    test('parses a comment payload', () {
+      final comment = CommunityComment.fromJson({
+        'id': 1,
+        'post': 10,
+        'user': 7,
+        'user_name': 'amina',
+        'user_profile_picture': null,
+        'comment': 'Looks delicious!',
+        'created_at': '2026-01-01T00:00:00Z',
+      });
+
+      expect(comment.id, 1);
+      expect(comment.userName, 'amina');
+      expect(comment.comment, 'Looks delicious!');
     });
   });
 }

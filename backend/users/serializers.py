@@ -28,6 +28,32 @@ class UserSerializer(serializers.ModelSerializer):
     def get_submissions_count(self, obj):
         return obj.submissions.count()
 
+
+class PublicProfileSerializer(UserSerializer):
+    """Profile data safe to show to any viewer (used by the community feed).
+
+    Excludes the private email address and adds the member's community stats.
+    """
+
+    post_count = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = ('id', 'username', 'role', 'profile_picture', 'bio',
+                  'created_at', 'favorites_count', 'reviews_count',
+                  'submissions_count', 'post_count', 'like_count',
+                  'comment_count')
+
+    def get_post_count(self, obj):
+        return obj.community_posts.count()
+
+    def get_like_count(self, obj):
+        return obj.community_likes.count()
+
+    def get_comment_count(self, obj):
+        return obj.community_comments.count()
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)

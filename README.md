@@ -17,6 +17,7 @@ backend/               Django REST API + admin panel
   favorites/           Saved recipes
   submissions/         Community recipe submissions (with image upload)
   notifications/       FCM push notifications, device tokens, community updates
+  community/           Community feed (posts, likes, comments)
   templates/           Landing page + admin dashboard templates
   .env.example         Backend environment template
 mobile/                Flutter app
@@ -39,6 +40,7 @@ security_test.py       API security test suite
 - **Save favorites** — build a personal recipe collection
 - **Rate & review** — 1–5 star ratings with comments (one review per recipe per user)
 - **Submit recipes** — contribute family recipes for admin review, with optional image upload
+- **Community feed** — share photos of dishes you've cooked, like and comment on others' posts, and tap a member to see all their posts
 - **Guest mode** — browse without an account
 - **Google sign-in** — plus email/password with email-verification gating
 - **Push notifications** — opt-in alerts for new recipes, submission decisions, and community updates
@@ -245,6 +247,18 @@ All endpoints live under `/api/`. Authenticated endpoints accept a `Bearer` Fire
 | GET | `/` | Required | List submissions (admins see all; users see their own) |
 | POST | `/create/` | Required | Submit a recipe for review (multipart `image` upload allowed; JPEG/PNG/GIF) |
 
+### Community — `/api/community/`
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/` | Public | List posts (`?user=<id>` filters one member; `?sort=popular` orders by likes) |
+| POST | `/create/` | Required | Share a post (multipart `image` + optional `caption` / `recipe`; JPEG/PNG/GIF) |
+| POST | `/<post_id>/like/` | Required | Like / unlike a post (toggles) |
+| POST | `/<post_id>/report/` | Required | Report a post for admin review |
+| DELETE | `/<post_id>/delete/` | Required | Delete a post (owner or admin) |
+| GET | `/<post_id>/comments/` | Public | List a post's comments |
+| POST | `/<post_id>/comments/create/` | Required | Add a comment to a post |
+| DELETE | `/comments/<comment_id>/delete/` | Required | Delete a comment (owner or admin) |
+
 ### Notifications — `/api/notifications/`
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
@@ -278,6 +292,9 @@ Reference: `database/ERD.png` and `database/schema.sql` (PostgreSQL port — Dja
 | `submissions_recipesubmission` | Community recipe submissions (status, admin notes, image) |
 | `notifications_devicetoken` | FCM push registrations (token, platform, tags) |
 | `notifications_communityupdate` | Community news/updates for push |
+| `community_post` | Community feed posts (photo, caption, optional linked recipe, flagged flag) |
+| `community_postlike` | Likes on posts (unique per user+post) |
+| `community_postcomment` | Comments on posts |
 
 ---
 

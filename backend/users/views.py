@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from django.core.files.storage import default_storage
 from PIL import Image
 from .models import User
-from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer
+from .serializers import UserSerializer, RegisterSerializer, ChangePasswordSerializer, PublicProfileSerializer
 from .authentication import firebase_uid_from_token, delete_firebase_user
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,18 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         return self.request.user
+
+class PublicProfileView(generics.RetrieveAPIView):
+    """A member's public profile, for the community feed.
+
+    Exposes community stats and no private email address, so any user (or
+    guest) can view another member's profile page.
+    """
+
+    queryset = User.objects.all()
+    serializer_class = PublicProfileSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_url_kwarg = 'user_id'
 
 class DeleteAccountView(APIView):
     """Deletes the caller's account.
