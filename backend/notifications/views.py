@@ -7,14 +7,25 @@ from .models import DeviceToken
 
 
 class PushStatusView(APIView):
-    """Health check: whether FCM push credentials are configured and valid."""
+    """Health check: whether FCM push credentials are configured and valid,
+    plus aggregate registration stats (no per-user data)."""
 
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         from . import push
+        from .models import DeviceToken
 
-        return Response({'fcm_configured': push.messaging_configured()})
+        tag_counts = {}
+        for device in DeviceToken.objects.all():
+            for tag in (device.tags or []):
+                tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+        return Response({
+            'fcm_configured': push.messaging_configured(),
+            'device_token_count': DeviceToken.objects.count(),
+            'tag_counts': tag_counts,
+        })
 
 
 class RegisterDeviceTokenView(APIView):
