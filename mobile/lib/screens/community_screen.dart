@@ -5,6 +5,7 @@ import '../providers/community_provider.dart';
 import '../services/auth_service.dart';
 import 'community_post_detail_screen.dart';
 import 'user_profile_screen.dart';
+import 'login_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -349,6 +350,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            child: const Text('Login',
+                style: TextStyle(color: Colors.orange)),
           ),
         ],
       ),

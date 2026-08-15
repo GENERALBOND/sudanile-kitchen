@@ -34,7 +34,7 @@ class ApiService {
   /// at server-rendered pages rather than JSON endpoints (e.g. Django Admin).
   static String get webBaseUrl => baseUrl.replaceFirst(RegExp(r'/api/?$'), '');
 
-  static const Duration timeout = Duration(seconds: 5); // 5 second timeout
+  static const Duration timeout = Duration(seconds: 15); // 15 second timeout
 
   /// File uploads (multipart) legitimately take longer than a JSON round
   /// trip — give them more room so they don't spuriously time out while the

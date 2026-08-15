@@ -57,6 +57,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
   }
 
+  Future<void> _retryLoad() async {
+    setState(() {
+      _isLoadingProfile = true;
+      _profileFailed = false;
+    });
+    final provider = Provider.of<CommunityProvider>(context, listen: false);
+    await Future.wait([_loadProfile(), provider.refresh()]);
+  }
+
   Future<void> _refresh() async {
     final provider = Provider.of<CommunityProvider>(context, listen: false);
     await Future.wait([_loadProfile(), provider.refresh()]);
@@ -184,6 +193,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   'Profile unavailable',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Check your connection and try again.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _retryLoad,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Retry'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                    side: const BorderSide(color: Colors.orange),
+                  ),
                 ),
               ],
             )
