@@ -9,6 +9,7 @@ The Firebase Admin SDK is initialised lazily and every send is guarded, so the
 rest of the app keeps working even when FCM credentials aren't configured yet.
 """
 
+import base64
 import json
 import logging
 import os
@@ -28,7 +29,10 @@ def _credentials_options():
     credentials_path = getattr(settings, 'FIREBASE_SERVICE_ACCOUNT', None)
     # 2) An inline service-account JSON string.
     credentials_json = getattr(settings, 'FIREBASE_SERVICE_ACCOUNT_JSON', '')
-    # 3) Standard Google default credentials (GOOGLE_APPLICATION_CREDENTIALS).
+    # 3) A base64-encoded inline service-account JSON string (single-line,
+    #    so it pastes cleanly into single-line env vars on Render / Heroku).
+    credentials_b64 = getattr(settings, 'FIREBASE_SERVICE_ACCOUNT_BASE64', '')
+    # 4) Standard Google default credentials (GOOGLE_APPLICATION_CREDENTIALS).
     env_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 
     from firebase_admin import credentials
@@ -39,6 +43,9 @@ def _credentials_options():
             return credentials.Certificate(credentials_path)
         if credentials_json:
             return credentials.Certificate(json.loads(credentials_json))
+        if credentials_b64:
+            decoded = base64.b64decode(credentials_b64).decode('utf-8')
+            return credentials.Certificate(json.loads(decoded))
         if env_path and os.path.isfile(env_path):
             return credentials.Certificate(env_path)
     except Exception as exc:  # pragma: no cover - config validation path

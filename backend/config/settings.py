@@ -153,7 +153,11 @@ TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
 
 # Firebase Cloud Messaging (push notifications).
 # Set FIREBASE_SERVICE_ACCOUNT to the path of the downloaded service-account
-# JSON, or leave both blank to use GOOGLE_APPLICATION_CREDENTIALS. When no
-# credentials are available, pushes are silently skipped (the app still works).
+# JSON, FIREBASE_SERVICE_ACCOUNT_JSON to its inline JSON, or
+# FIREBASE_SERVICE_ACCOUNT_BASE64 to its base64-encoded form (recommended for
+# single-line env vars on Render). Leave all blank to use
+# GOOGLE_APPLICATION_CREDENTIALS. When no credentials are available, pushes
+# are silently skipped (the app still works).
 FIREBASE_SERVICE_ACCOUNT = config('FIREBASE_SERVICE_ACCOUNT', default='')
 FIREBASE_SERVICE_ACCOUNT_JSON = config('FIREBASE_SERVICE_ACCOUNT_JSON', default='')
+FIREBASE_SERVICE_ACCOUNT_BASE64 = config('FIREBASE_SERVICE_ACCOUNT_BASE64', default='')
