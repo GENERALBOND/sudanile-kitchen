@@ -6,6 +6,17 @@ from .serializers import DeviceTokenSerializer
 from .models import DeviceToken
 
 
+class PushStatusView(APIView):
+    """Health check: whether FCM push credentials are configured and valid."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from . import push
+
+        return Response({'fcm_configured': push.messaging_configured()})
+
+
 class RegisterDeviceTokenView(APIView):
     """Upserts the caller's FCM token together with its alert tags."""
 

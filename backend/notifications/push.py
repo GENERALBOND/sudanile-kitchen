@@ -187,3 +187,8 @@ def notify_user(user, tag, title, body, data=None, url=None):
         if tag in (device.tags or [])
     ]
     _send_to_tokens(tokens, title, body, data, url)
+
+
+def messaging_configured():
+    """True when FCM credentials initialised successfully (for health checks)."""
+    return _messaging() is not None
