@@ -164,18 +164,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(12),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.85,
-            ),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final post = provider.posts[index];
-                return _buildPostCard(provider, post);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildPostCard(provider, post),
+                );
               },
               childCount: provider.posts.length,
             ),
@@ -202,95 +199,213 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Widget _buildPostCard(CommunityProvider provider, CommunityPost post) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider<CommunityProvider>.value(
-              value: provider,
-              child: CommunityPostDetailScreen(post: post),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildAuthorRow(provider, post),
+            GestureDetector(
+              onTap: () => _openPostDetail(provider, post),
+              child: _postImage(post),
+            ),
+            if (post.caption.isNotEmpty)
+              GestureDetector(
+                onTap: () => _openPostDetail(provider, post),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+                  child: Text(
+                    post.caption,
+                    style: const TextStyle(fontSize: 14, height: 1.4),
+                  ),
+                ),
+              ),
+            if (post.recipeId != null)
+              GestureDetector(
+                onTap: () => _openPostDetail(provider, post),
+                child: _buildRecipeChip(post),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+              child: Text(
+                '${post.likeCount} ${post.likeCount == 1 ? 'like' : 'likes'}'
+                ' · ${post.commentCount} ${post.commentCount == 1 ? 'comment' : 'comments'}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
+            _buildActionRow(provider, post),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthorRow(CommunityProvider provider, CommunityPost post) {
+    return InkWell(
+      onTap: () => _openUserPosts(post),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.orange.shade100,
+              backgroundImage: post.userProfilePicture != null
+                  ? NetworkImage(post.userProfilePicture!)
+                  : null,
+              child: post.userProfilePicture == null
+                  ? Text(
+                      post.userName.isNotEmpty
+                          ? post.userName[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                          color: Colors.orange, fontWeight: FontWeight.bold),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.userName,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    _timeAgo(post.createdAt),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: _postImage(post),
-                ),
+      ),
+    );
+  }
+
+  Widget _buildRecipeChip(CommunityPost post) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.restaurant, size: 14, color: Colors.orange.shade700),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                post.recipeTitle ?? 'View recipe',
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.orange),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.userName,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (post.caption.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        post.caption,
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Icon(
-                          post.isLikedByMe
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          size: 14,
-                          color: post.isLikedByMe
-                              ? Colors.red
-                              : Colors.grey,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${post.likeCount}',
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.comment_outlined,
-                            size: 13, color: Colors.grey),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${post.commentCount}',
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionRow(CommunityProvider provider, CommunityPost post) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildActionButton(
+              icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+              color: post.isLikedByMe ? Colors.red : Colors.grey.shade700,
+              label: 'Like',
+              onTap: () => provider.toggleLike(post),
+            ),
+          ),
+          Expanded(
+            child: _buildActionButton(
+              icon: Icons.comment_outlined,
+              color: Colors.grey.shade700,
+              label: 'Comment',
+              onTap: () => _openPostDetail(provider, post),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600, color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openPostDetail(CommunityProvider provider, CommunityPost post) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<CommunityProvider>.value(
+          value: provider,
+          child: CommunityPostDetailScreen(post: post),
+        ),
+      ),
+    );
+  }
+
+  void _openUserPosts(CommunityPost post) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider(
+          create: (_) => CommunityProvider(),
+          child: UserProfileScreen(
+            userId: post.userId,
+            userName: post.userName,
           ),
         ),
       ),
@@ -298,20 +413,29 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Widget _postImage(CommunityPost post) {
-    if (post.imageUrl == null || post.imageUrl!.isEmpty) {
-      return Container(
-        color: Colors.orange.shade100,
-        child: const Icon(Icons.food_bank, size: 50, color: Colors.orange),
-      );
-    }
-    return Image.network(
-      post.imageUrl!,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: Colors.orange.shade100,
-        child: const Icon(Icons.food_bank, size: 50, color: Colors.orange),
-      ),
-    );
+    final Widget image = post.imageUrl == null || post.imageUrl!.isEmpty
+        ? Container(
+            color: Colors.orange.shade100,
+            child: const Icon(Icons.food_bank, size: 60, color: Colors.orange),
+          )
+        : Image.network(
+            post.imageUrl!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: Colors.orange.shade100,
+              child: const Icon(Icons.food_bank, size: 60, color: Colors.orange),
+            ),
+          );
+    return AspectRatio(aspectRatio: 1, child: image);
+  }
+
+  String _timeAgo(DateTime dateTime) {
+    final difference = DateTime.now().difference(dateTime);
+    if (difference.inMinutes < 1) return 'Just now';
+    if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
+    if (difference.inHours < 24) return '${difference.inHours}h ago';
+    if (difference.inDays < 7) return '${difference.inDays}d ago';
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 
   Widget _buildEmptyState() {
