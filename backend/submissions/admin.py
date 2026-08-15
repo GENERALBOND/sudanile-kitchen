@@ -1,10 +1,15 @@
+import logging
+
 from django.contrib import admin
 from django.contrib import messages
 from django import forms
+from django.db import transaction
 from django.utils import timezone
 from .models import RecipeSubmission
 from recipes.models import Recipe, Category
 from recipes.duplicate_check import find_duplicates
+
+logger = logging.getLogger(__name__)
 
 
 class SubmissionAdminForm(forms.ModelForm):
@@ -81,7 +86,20 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
         # so the approved Recipe points at an absolute, loadable URL.
         if obj.image and not obj.image_url:
             obj.image_url = request.build_absolute_uri(obj.image.url)
-        super().save_model(request, obj, form, change)
+        # Approving auto-creates a Recipe and fires FCM/email side effects. If
+        # any of that fails, roll back to a savepoint so the submission stays
+        # pending and the admin sees the real reason instead of a bare 500 (or
+        # a killed worker on Render's single-process gunicorn).
+        try:
+            with transaction.atomic():
+                super().save_model(request, obj, form, change)
+        except Exception as exc:
+            logger.exception('Failed to save submission (pk=%s)', obj.pk)
+            self.message_user(
+                request,
+                f'Approval failed and was rolled back: {exc}',
+                level=messages.ERROR,
+            )
     
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}

@@ -80,7 +80,12 @@ def _messaging():
             logger.warning('FCM not configured; push notifications disabled.')
             return None
         try:
-            _app = initialize_app(credential=options)
+            # Bound FCM's HTTP timeout so a slow/unreachable Google API never
+            # hangs the request past gunicorn's worker timeout (30s default).
+            _app = initialize_app(
+                credential=options,
+                options={'httpTimeout': 15},
+            )
         except Exception as exc:  # pragma: no cover - invalid credentials
             logger.error('FCM initialisation failed: %s', exc)
             return None

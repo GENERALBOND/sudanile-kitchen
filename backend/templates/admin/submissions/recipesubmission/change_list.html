@@ -195,6 +195,14 @@
 
     .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
 
+    .admin-messages { display: flex; flex-direction: column; gap: 8px; }
+    .admin-msg { display: flex; align-items: center; gap: 7px; font-size: 12px; padding: 10px 14px; border-radius: var(--radius); border: 0.5px solid; }
+    .admin-msg i { font-size: 14px; flex-shrink: 0; }
+    .admin-msg-error, .admin-msg-danger { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+    .admin-msg-success { background: var(--bg-success); color: var(--text-success); border-color: var(--border-success); }
+    .admin-msg-warning { background: var(--bg-warning); color: var(--text-warning); border-color: var(--border-warning); }
+    .admin-msg-info { background: var(--bg-accent); color: var(--text-accent); border-color: #c8ddf0; }
+
     @media (max-width: 900px) {
       .sidebar { display: none; }
       .topbar-user { display: none; }
@@ -248,6 +256,14 @@
     </nav>
 
     <main class="main">
+      {% if messages %}
+      <div class="admin-messages">
+        {% for message in messages %}
+        <div class="admin-msg admin-msg-{{ message.tags }}"><i class="ti ti-info-circle" aria-hidden="true"></i> {{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="{% url 'admin:index' %}">Home</a>
         <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
