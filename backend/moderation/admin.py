@@ -96,7 +96,7 @@ class ReportAdmin(admin.ModelAdmin):
                 '<span style="color:var(--body-quiet-color)">{}</span>',
                 obj.comment_id, obj.comment.post_id, obj.comment.user.email, text,
             )
-        return format_html('<em>Content deleted — see snapshot below.</em>')
+        return '<em>Content deleted — see snapshot below.</em>'
 
     @admin.display(description='Status')
     def status_badge(self, obj):
