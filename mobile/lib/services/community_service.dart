@@ -149,13 +149,25 @@ class CommunityService {
     }
   }
 
-  Future<bool> reportPost(int postId) async {
+  /// Submits a report against a post or comment with a reason. Returns
+  /// `null` on success, or a user-facing error message on failure.
+  Future<String?> report({
+    required String targetType,
+    required int targetId,
+    required String reason,
+    String details = '',
+  }) async {
     try {
-      await _apiService.post('/community/$postId/report/', {});
-      return true;
+      await _apiService.post('/community/report/', {
+        'target_type': targetType,
+        'target_id': targetId,
+        'reason': reason,
+        if (details.isNotEmpty) 'details': details,
+      });
+      return null;
     } catch (e) {
-      log('❌ Error reporting post: $e');
-      return false;
+      log('❌ Error reporting content: $e');
+      return _errorMessage(e);
     }
   }
 

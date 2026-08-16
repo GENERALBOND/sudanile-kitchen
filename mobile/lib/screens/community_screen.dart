@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/community_post.dart';
 import '../providers/community_provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/report_sheet.dart';
 import 'community_post_detail_screen.dart';
 import 'user_profile_screen.dart';
 import 'login_screen.dart';
@@ -261,11 +262,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Widget _buildAuthorRow(
       BuildContext context, CommunityProvider provider, CommunityPost post) {
+    final isOwn = Provider.of<AuthService>(context).user?.id == post.userId;
     return InkWell(
       onTap: () => _openUserPosts(post),
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
         child: Row(
           children: [
             CircleAvatar(
@@ -305,9 +307,42 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 ],
               ),
             ),
+            if (!isOwn)
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                onSelected: (value) {
+                  if (value == 'report') _reportPost(post);
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'report',
+                    child: Text('Report post'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
+    );
+  }
+
+  void _reportPost(CommunityPost post) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (!authService.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please login to report content.')),
+      );
+      return;
+    }
+    showReportSheet(
+      context,
+      targetType: 'post',
+      targetId: post.id,
+      targetLabel: 'post',
     );
   }
 

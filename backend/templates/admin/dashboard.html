@@ -271,6 +271,7 @@
         <div class="sidebar-section sidebar-system">
           <div class="sidebar-label">System</div>
           <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+          <a class="sidebar-item" href="/admin/moderation/report/"><i class="ti ti-flag" aria-hidden="true"></i>Reports</a>
         </div>
       </nav>
 
@@ -303,6 +304,13 @@
               <div class="stat-icon" style="background:var(--bg-danger);color:var(--text-danger);"><i class="ti ti-heart" aria-hidden="true"></i></div>
               <div class="stat-val">{{ total_favorites }}</div>
               <div class="stat-lbl">Favorites</div>
+            </div>
+            <div class="stat-card">
+              <a href="/admin/moderation/report/" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;">
+                <div class="stat-icon" style="background:var(--bg-danger);color:var(--text-danger);"><i class="ti ti-flag" aria-hidden="true"></i></div>
+                <div class="stat-val">{{ pending_reports }}</div>
+                <div class="stat-lbl">Reports</div>
+              </a>
             </div>
           </div>
         </section>

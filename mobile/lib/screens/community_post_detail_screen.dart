@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/community_post.dart';
 import '../providers/community_provider.dart';
 import '../services/auth_service.dart';
 import '../services/community_service.dart';
 import '../services/recipe_service.dart';
+import '../widgets/report_sheet.dart';
 import 'recipe_detail_screen.dart';
 import 'user_profile_screen.dart';
 
@@ -149,35 +151,30 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
   }
 
   Future<void> _reportPost() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Report Post'),
-        content: const Text(
-            'Are you sure you want to report this post as inappropriate?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Report'),
-          ),
-        ],
-      ),
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (!authService.isAuthenticated) {
+      _showLoginRequired();
+      return;
+    }
+    await showReportSheet(
+      context,
+      targetType: 'post',
+      targetId: _post.id,
+      targetLabel: 'post',
     );
-    if (confirmed != true) return;
+  }
 
-    final success = await _communityService.reportPost(_post.id);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success
-            ? 'Post reported. Our team will review it.'
-            : 'Failed to report post.'),
-      ),
+  Future<void> _reportComment(CommunityComment comment) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (!authService.isAuthenticated) {
+      _showLoginRequired();
+      return;
+    }
+    await showReportSheet(
+      context,
+      targetType: 'comment',
+      targetId: comment.id,
+      targetLabel: 'comment',
     );
   }
 
@@ -545,67 +542,77 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
     final canDelete = _currentUserId == comment.userId ||
         Provider.of<AuthService>(context, listen: false).isAdmin;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.orange.shade100,
-            backgroundImage: comment.userProfilePicture != null
-                ? NetworkImage(comment.userProfilePicture!)
-                : null,
-            child: comment.userProfilePicture == null
-                ? Text(
-                    comment.userName.isNotEmpty
-                        ? comment.userName[0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.orange),
-                  )
-                : null,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        comment.userName,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onLongPress: canDelete
+          ? null
+          : () {
+              HapticFeedback.mediumImpact();
+              _reportComment(comment);
+            },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: Colors.orange.shade100,
+              backgroundImage: comment.userProfilePicture != null
+                  ? NetworkImage(comment.userProfilePicture!)
+                  : null,
+              child: comment.userProfilePicture == null
+                  ? Text(
+                      comment.userName.isNotEmpty
+                          ? comment.userName[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                          fontSize: 12, color: Colors.orange),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          comment.userName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _timeAgo(comment.createdAt),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      const SizedBox(width: 8),
+                      Text(
+                        _timeAgo(comment.createdAt),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(comment.comment, style: const TextStyle(fontSize: 14)),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(comment.comment,
+                      style: const TextStyle(fontSize: 14)),
+                ],
+              ),
             ),
-          ),
-          if (canDelete)
-            IconButton(
-              icon: Icon(Icons.delete_outline,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
-              onPressed: () => _deleteComment(comment),
-            ),
-        ],
+            if (canDelete)
+              IconButton(
+                icon: Icon(Icons.delete_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                onPressed: () => _deleteComment(comment),
+              ),
+          ],
+        ),
       ),
     );
   }

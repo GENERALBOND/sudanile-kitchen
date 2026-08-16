@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'submissions.apps.SubmissionsConfig',
     'notifications.apps.NotificationsConfig',
     'community.apps.CommunityConfig',
+    'moderation.apps.ModerationConfig',
 ]
 
 MIDDLEWARE = [
@@ -164,3 +165,7 @@ TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
 FIREBASE_SERVICE_ACCOUNT = config('FIREBASE_SERVICE_ACCOUNT', default='')
 FIREBASE_SERVICE_ACCOUNT_JSON = config('FIREBASE_SERVICE_ACCOUNT_JSON', default='')
 FIREBASE_SERVICE_ACCOUNT_BASE64 = config('FIREBASE_SERVICE_ACCOUNT_BASE64', default='')
+
+# Moderation: number of pending reports on one post/comment before it is
+# automatically hidden from the feed until a moderator reviews it.
+REPORT_AUTO_HIDE_THRESHOLD = config('REPORT_AUTO_HIDE_THRESHOLD', default=3, cast=int)
