@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Post, PostComment, PostLike
+from moderation.models import Report
 from .serializers import (
     PostSerializer,
     PostCreateSerializer,
@@ -98,7 +99,8 @@ class PostLikeToggleView(APIView):
 
 
 class PostReportView(APIView):
-    """Flags a post so admins can review it."""
+    """Legacy report endpoint kept for older app builds: flags a post so
+    admins can review it. New clients should use CommunityReportView."""
 
     permission_classes = [permissions.IsAuthenticated]
 
@@ -109,13 +111,73 @@ class PostReportView(APIView):
         return Response({'message': 'Post reported.'}, status=status.HTTP_200_OK)
 
 
+class CommunityReportView(APIView):
+    """Create a report against a community post or comment.
+
+    One report per user per target. Once a target reaches the auto-hide
+    threshold it is hidden from the feed until a moderator reviews it.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        target_type = request.data.get('target_type')
+        target_id = request.data.get('target_id')
+        reason = request.data.get('reason')
+        details = (request.data.get('details') or '').strip()
+
+        if target_type not in ('post', 'comment'):
+            return Response(
+                {'error': 'target_type must be "post" or "comment".'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not target_id:
+            return Response(
+                {'error': 'target_id is required.'}, status=status.HTTP_400_BAD_REQUEST
+            )
+        valid_reasons = {r[0] for r in Report.REASON_CHOICES}
+        if reason not in valid_reasons:
+            return Response(
+                {'error': f'reason must be one of: {", ".join(sorted(valid_reasons))}.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if target_type == 'post':
+            post = get_object_or_404(Post, id=target_id)
+            comment = None
+        else:
+            comment = get_object_or_404(PostComment, id=target_id)
+            post = None
+
+        if Report.objects.filter(
+            reporter=request.user,
+            **({'post_id': target_id} if target_type == 'post' else {'comment_id': target_id}),
+        ).exists():
+            return Response(
+                {'message': 'Thanks — we already received your report.'},
+                status=status.HTTP_200_OK,
+            )
+
+        Report.objects.create(
+            target_type=target_type,
+            post=post,
+            comment=comment,
+            reporter=request.user,
+            reason=reason,
+            details=details,
+        )
+        return Response(
+            {'message': "Thanks — we'll review this."}, status=status.HTTP_201_CREATED
+        )
+
+
 class PostCommentListView(generics.ListAPIView):
     serializer_class = PostCommentSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
-        return PostComment.objects.filter(post_id=post_id).select_related('user')
+        return PostComment.objects.filter(post_id=post_id, is_flagged=False).select_related('user')
 
 
 class PostCommentCreateView(generics.CreateAPIView):
