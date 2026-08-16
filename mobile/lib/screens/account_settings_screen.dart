@@ -5,6 +5,7 @@ import 'package:http_parser/http_parser.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../providers/favorites_provider.dart';
+import '../providers/theme_provider.dart';
 import 'login_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
@@ -380,7 +381,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     user.email,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -390,8 +393,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
             // Edit Profile Section
             if (!_isEditing) ...[
-              _buildInfoTile('Username', user.username),
-              _buildInfoTile('Bio',
+              _buildInfoTile(context, 'Username', user.username),
+              _buildInfoTile(context, 'Bio',
                   user.bio?.isNotEmpty == true ? user.bio! : 'No bio yet'),
               const SizedBox(height: 16),
               ElevatedButton.icon(
@@ -560,6 +563,53 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
             const SizedBox(height: 32),
 
+            // Appearance - Dark / Light mode
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              'Appearance',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Choose how the app looks. System follows your device setting.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Consumer<ThemeProvider>(
+              builder: (context, themeProvider, _) {
+                return SegmentedButton<AppThemeMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: AppThemeMode.system,
+                      label: Text('System'),
+                      icon: Icon(Icons.brightness_auto),
+                    ),
+                    ButtonSegment(
+                      value: AppThemeMode.light,
+                      label: Text('Light'),
+                      icon: Icon(Icons.light_mode),
+                    ),
+                    ButtonSegment(
+                      value: AppThemeMode.dark,
+                      label: Text('Dark'),
+                      icon: Icon(Icons.dark_mode_outlined),
+                    ),
+                  ],
+                  selected: {themeProvider.mode},
+                  showSelectedIcon: false,
+                  onSelectionChanged: (selection) {
+                    themeProvider.setMode(selection.first);
+                  },
+                );
+              },
+            ),
+
+            const SizedBox(height: 32),
+
             // Danger Zone - Delete Account
             Container(
               decoration: BoxDecoration(
@@ -683,7 +733,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  Widget _buildInfoTile(String label, String value) {
+  Widget _buildInfoTile(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
@@ -691,7 +741,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 4),
           Text(

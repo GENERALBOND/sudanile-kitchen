@@ -75,13 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final isGuest = widget.isGuestMode || !authService.isAuthenticated;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          _buildHomeContent(),
+          _buildHomeContent(context),
           const SearchScreen(),
-          isGuest ? _buildGuestFavorites() : const FavoritesScreen(),
+          isGuest ? _buildGuestFavorites(context) : const FavoritesScreen(),
           const CommunityScreen(),
           ProfileScreen(isGuestMode: isGuest),
         ],
@@ -103,9 +102,6 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
@@ -138,9 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildGuestFavorites() {
+  Widget _buildGuestFavorites(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Favorites'),
         backgroundColor: Colors.orange,
@@ -149,13 +144,20 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.favorite_border, size: 80, color: Colors.grey),
+            Icon(
+              Icons.favorite_border,
+              size: 80,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(height: 16),
             const Text('Login to save favorites',
                 style: TextStyle(fontSize: 18)),
             const SizedBox(height: 8),
-            const Text('Create an account to save your favorite recipes',
-                style: TextStyle(color: Colors.grey)),
+            Text(
+              'Create an account to save your favorite recipes',
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
@@ -199,13 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHomeContent() {
+  Widget _buildHomeContent(BuildContext context) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 40,
               height: 40,
               child: CircularProgressIndicator(
@@ -213,10 +215,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Loading delicious recipes...',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -308,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: _categories.length > 4 ? 4 : _categories.length,
                   itemBuilder: (context, index) {
                     final category = _categories[index];
-                    return _buildCategoryCard(category);
+                    return _buildCategoryCard(context, category);
                   },
                 ),
               ),
@@ -364,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
-                      child: _buildRecipeCard(recipe),
+                      child: _buildRecipeCard(context, recipe),
                     );
                   },
                 ),
@@ -377,19 +380,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.all(40),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.no_food, size: 80, color: Colors.grey),
+                    Icon(
+                      Icons.no_food,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(height: 16),
                     const Text('No Recipes Yet',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    Text('Add recipes in the admin panel',
-                        style: TextStyle(color: Colors.grey[600])),
+                    Text(
+                      'Add recipes in the admin panel',
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ),
@@ -402,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoryCard(Category category) {
+  Widget _buildCategoryCard(BuildContext context, Category category) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -414,11 +425,11 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -460,14 +471,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRecipeCard(Recipe recipe) {
+  Widget _buildRecipeCard(BuildContext context, Recipe recipe) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -527,13 +538,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.access_time,
-                          size: 12, color: Colors.grey),
+                      Icon(
+                        Icons.access_time,
+                        size: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${recipe.totalTime} min',
-                        style:
-                            const TextStyle(fontSize: 11, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),

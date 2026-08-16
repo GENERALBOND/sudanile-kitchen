@@ -68,9 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Check your inbox for the verification link.',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -173,9 +174,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Sign in to discover South Sudanese cuisine',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 40),
               Form(
@@ -272,7 +274,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text('OR',
-                              style: TextStyle(color: Colors.grey[400])),
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant)),
                         ),
                         const Expanded(child: Divider()),
                       ],
@@ -287,7 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -300,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
                       ),
                     ),
                   ],

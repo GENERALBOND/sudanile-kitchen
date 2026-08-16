@@ -223,7 +223,6 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Post'),
         backgroundColor: Colors.orange,
@@ -291,15 +290,18 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                         ],
                         if (_post.recipeId != null) ...[
                           const SizedBox(height: 12),
-                          _buildRecipeLink(),
+                          _buildRecipeLink(context),
                         ],
                         const SizedBox(height: 8),
-                        _buildActionRow(),
+                        _buildActionRow(context),
                         const SizedBox(height: 8),
                         Text(
                           _timeAgo(_post.createdAt),
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         const Divider(),
@@ -315,13 +317,16 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                             const SizedBox(width: 6),
                             Text(
                               '(${_post.commentCount})',
-                              style: const TextStyle(
-                                  fontSize: 14, color: Colors.grey),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        _buildCommentsSection(),
+                        _buildCommentsSection(context),
                       ],
                     ),
                   ),
@@ -386,7 +391,7 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
     );
   }
 
-  Widget _buildRecipeLink() {
+  Widget _buildRecipeLink(BuildContext context) {
     return InkWell(
       onTap: _openRecipe,
       borderRadius: BorderRadius.circular(10),
@@ -423,9 +428,12 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Cooked this recipe',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -447,21 +455,23 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
     );
   }
 
-  Widget _buildActionRow() {
+  Widget _buildActionRow(BuildContext context) {
     return Row(
       children: [
         _buildActionButton(
           icon: _post.isLikedByMe
               ? Icons.favorite
               : Icons.favorite_border,
-          color: _post.isLikedByMe ? Colors.red : Colors.grey.shade700,
+          color: _post.isLikedByMe
+              ? Colors.red
+              : Theme.of(context).colorScheme.onSurfaceVariant,
           label: '${_post.likeCount}',
           onTap: _toggleLike,
         ),
         const SizedBox(width: 24),
         _buildActionButton(
           icon: Icons.comment_outlined,
-          color: Colors.grey.shade700,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           label: '${_post.commentCount}',
           onTap: () {
             FocusScope.of(context).requestFocus(FocusNode());
@@ -500,7 +510,7 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
     );
   }
 
-  Widget _buildCommentsSection() {
+  Widget _buildCommentsSection(BuildContext context) {
     if (_isLoadingComments) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
@@ -516,18 +526,22 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
         child: Center(
           child: Text(
             'No comments yet. Be the first to share your thoughts!',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
       );
     }
 
     return Column(
-      children: _comments.map((comment) => _buildCommentTile(comment)).toList(),
+      children: _comments
+        .map((comment) => _buildCommentTile(context, comment))
+        .toList(),
     );
   }
 
-  Widget _buildCommentTile(CommunityComment comment) {
+  Widget _buildCommentTile(
+      BuildContext context, CommunityComment comment) {
     final canDelete = _currentUserId == comment.userId ||
         Provider.of<AuthService>(context, listen: false).isAdmin;
 
@@ -572,7 +586,10 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                     const SizedBox(width: 8),
                     Text(
                       _timeAgo(comment.createdAt),
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -583,8 +600,9 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
           ),
           if (canDelete)
             IconButton(
-              icon: const Icon(Icons.delete_outline,
-                  size: 18, color: Colors.grey),
+              icon: Icon(Icons.delete_outline,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               onPressed: () => _deleteComment(comment),
             ),
         ],
@@ -609,13 +627,14 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
     if (!authService.isAuthenticated) {
       return Container(
         padding: const EdgeInsets.all(12),
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         child: Row(
           children: [
             Expanded(
               child: Text(
                 'Login to join the conversation',
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             TextButton(
@@ -630,7 +649,7 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       child: Row(
         children: [
           Expanded(
@@ -645,11 +664,13 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                     horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide:
+                      BorderSide(color: Theme.of(context).dividerColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide:
+                      BorderSide(color: Theme.of(context).dividerColor),
                 ),
               ),
             ),

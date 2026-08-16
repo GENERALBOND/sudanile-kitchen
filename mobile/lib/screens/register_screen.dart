@@ -85,9 +85,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Join our community of food lovers',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 32),
               Form(
@@ -254,10 +255,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Check your inbox and click the verification link to activate your account.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 32),
               Row(

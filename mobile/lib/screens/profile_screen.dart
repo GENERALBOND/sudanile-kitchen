@@ -66,7 +66,8 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     user.email,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -153,10 +154,12 @@ class ProfileScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStat('${favoritesProvider.count}', 'Recipes\nSaved'),
-                    _buildStat('${user.reviewsCount}', 'Reviews\nWritten'),
-                    _buildStat(
-                        '${user.submissionsCount}', 'Recipes\nSubmitted'),
+                    _buildStat(context, '${favoritesProvider.count}',
+                        'Recipes\nSaved'),
+                    _buildStat(context, '${user.reviewsCount}',
+                        'Reviews\nWritten'),
+                    _buildStat(context, '${user.submissionsCount}',
+                        'Recipes\nSubmitted'),
                   ],
                 ),
               ),
@@ -231,7 +234,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String value, String label) {
+  Widget _buildStat(BuildContext context, String value, String label) {
     return Column(
       children: [
         Text(
@@ -241,7 +244,10 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -345,17 +351,22 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_off, size: 60, color: Colors.grey),
+              Icon(
+                Icons.cloud_off,
+                size: 60,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 16),
               const Text(
                 "We couldn't load your profile",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Please check your connection and try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
               ElevatedButton(

@@ -68,9 +68,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Enter your email address below and we\'ll send you a link to reset your password.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 32),
             
@@ -139,10 +141,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Click the link in the email to create a new password.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(

@@ -7,9 +7,11 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/community_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 import 'services/push_notification_service.dart';
+import 'utils/app_themes.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -41,22 +43,18 @@ class SudanileKitchenApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => CommunityProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Sudanile Kitchen',
-        debugShowCheckedModeBanner: false,
-        navigatorKey: navigatorKey,
-        theme: ThemeData(
-          primarySwatch: Colors.orange,
-          fontFamily: 'Poppins',
-          appBarTheme: const AppBarTheme(
-            elevation: 0,
-            centerTitle: true,
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-          ),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) => MaterialApp(
+          title: 'Sudanile Kitchen',
+          debugShowCheckedModeBanner: false,
+          navigatorKey: navigatorKey,
+          theme: buildLightTheme(),
+          darkTheme: buildDarkTheme(),
+          themeMode: themeProvider.themeMode,
+          home: const SplashScreen(),
         ),
-        home: const SplashScreen(),
       ),
     );
   }

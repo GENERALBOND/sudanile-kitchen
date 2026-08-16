@@ -81,7 +81,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(_profile?.username ?? widget.userName ?? 'Profile'),
         backgroundColor: Colors.orange,
@@ -95,7 +94,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(child: _buildProfileHeader(provider)),
+                SliverToBoxAdapter(child: _buildProfileHeader(context, provider)),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 16, 12, 4),
@@ -104,7 +103,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -119,7 +118,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   )
                 else if (provider.posts.isEmpty)
-                  SliverToBoxAdapter(child: _buildNoPosts())
+                  SliverToBoxAdapter(child: _buildNoPosts(context))
                 else
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
@@ -134,7 +133,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           final post = provider.posts[index];
-                          return _buildPostCard(provider, post);
+                          return _buildPostCard(context, provider, post);
                         },
                         childCount: provider.posts.length,
                       ),
@@ -165,7 +164,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader(CommunityProvider provider) {
+  Widget _buildProfileHeader(BuildContext context, CommunityProvider provider) {
     final profile = _profile;
 
     return Container(
@@ -177,7 +176,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           colors: [Colors.orange.shade50, Colors.white],
         ),
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
@@ -194,18 +193,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           else if (_profileFailed)
             Column(
               children: [
-                const Icon(Icons.person_off, size: 50, color: Colors.grey),
+                Icon(
+                  Icons.person_off,
+                  size: 50,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Profile unavailable',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Check your connection and try again.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
@@ -276,7 +283,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Text(
               'Joined ${profile.createdAt.day}/${profile.createdAt.month}/${profile.createdAt.year}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             if (profile.bio.isNotEmpty) ...[
               const SizedBox(height: 10),
@@ -290,9 +300,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStat('${profile.postCount}', 'Posts'),
-                _buildStat('${profile.likeCount}', 'Likes'),
-                _buildStat('${profile.commentCount}', 'Comments'),
+                _buildStat(context, '${profile.postCount}', 'Posts'),
+                _buildStat(context, '${profile.likeCount}', 'Likes'),
+                _buildStat(context, '${profile.commentCount}', 'Comments'),
               ],
             ),
           ],
@@ -301,7 +311,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildStat(String value, String label) {
+  Widget _buildStat(BuildContext context, String value, String label) {
     return Column(
       children: [
         Text(
@@ -312,28 +322,41 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildNoPosts() {
+  Widget _buildNoPosts(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
       child: Column(
         children: [
-          const Icon(Icons.photo_camera_outlined, size: 70, color: Colors.grey),
+          Icon(
+            Icons.photo_camera_outlined,
+            size: 70,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           Text(
             'No posts yet',
             style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'This member has not shared any dishes yet.',
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -341,7 +364,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildPostCard(CommunityProvider provider, CommunityPost post) {
+  Widget _buildPostCard(
+      BuildContext context, CommunityProvider provider, CommunityPost post) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -356,11 +380,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -385,8 +409,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     if (post.caption.isNotEmpty) ...[
                       Text(
                         post.caption,
-                        style: const TextStyle(
-                            fontSize: 11, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -394,10 +420,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ],
                     Row(
                       children: [
-                        _buildLikeButton(provider, post),
+                        _buildLikeButton(context, provider, post),
                         const SizedBox(width: 12),
-                        const Icon(Icons.comment_outlined,
-                            size: 14, color: Colors.grey),
+                        Icon(
+                          Icons.comment_outlined,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           '${post.commentCount}',
@@ -415,7 +444,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildLikeButton(CommunityProvider provider, CommunityPost post) {
+  Widget _buildLikeButton(
+      BuildContext context, CommunityProvider provider, CommunityPost post) {
     return InkWell(
       onTap: () => provider.toggleLike(post),
       borderRadius: BorderRadius.circular(8),
@@ -426,14 +456,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Icon(
               post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
               size: 15,
-              color: post.isLikedByMe ? Colors.red : Colors.grey,
+              color: post.isLikedByMe
+                  ? Colors.red
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 3),
             Text(
               '${post.likeCount}',
               style: TextStyle(
                 fontSize: 12,
-                color: post.isLikedByMe ? Colors.red : Colors.black87,
+                color: post.isLikedByMe
+                    ? Colors.red
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

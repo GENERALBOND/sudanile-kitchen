@@ -248,7 +248,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 const SizedBox(width: 8),
                                 Text(
                                   '${_recipe.averageRating} (${_recipe.totalReviews} reviews)',
-                                  style: TextStyle(color: Colors.grey[600]),
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant),
                                 ),
                               ],
                             ),
@@ -258,13 +261,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildInfoChip(Icons.timer,
+                                _buildInfoChip(context, Icons.timer,
                                     _recipe.preparationTimeDisplay, 'Prep'),
-                                _buildInfoChip(Icons.timer,
+                                _buildInfoChip(context, Icons.timer,
                                     _recipe.cookingTimeDisplay, 'Cook'),
-                                _buildInfoChip(Icons.people,
+                                _buildInfoChip(context, Icons.people,
                                     '${_recipe.servings}', 'Servings'),
-                                _buildInfoChip(Icons.fitness_center,
+                                _buildInfoChip(context, Icons.fitness_center,
                                     _recipe.difficulty, 'Difficulty'),
                               ],
                             ),
@@ -426,8 +429,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 ),
                               )
                             else
-                              ..._reviews
-                                  .map((review) => _buildReviewCard(review)),
+                              ..._reviews.map(
+                                  (review) => _buildReviewCard(context, review)),
                             const SizedBox(height: 32),
                           ],
                         ),
@@ -452,7 +455,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
   }
 
-  Widget _buildInfoChip(IconData icon, String value, String label) {
+  Widget _buildInfoChip(
+      BuildContext context, IconData icon, String value, String label) {
     return Column(
       children: [
         Container(
@@ -465,12 +469,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         ),
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildReviewCard(Review review) {
+  Widget _buildReviewCard(BuildContext context, Review review) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -512,7 +522,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ),
                 Text(
                   '${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -556,7 +569,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

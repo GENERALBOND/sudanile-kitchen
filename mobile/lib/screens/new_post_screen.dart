@@ -152,7 +152,6 @@ class _NewPostScreenState extends State<NewPostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Share a Post'),
         backgroundColor: Colors.orange,
@@ -208,7 +207,9 @@ class _NewPostScreenState extends State<NewPostScreen> {
                                   'JPEG, PNG, or GIF',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[600],
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -361,10 +362,13 @@ class _NewPostScreenState extends State<NewPostScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Your post will be visible to the whole community.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 32),
                 ],

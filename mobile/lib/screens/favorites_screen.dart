@@ -21,11 +21,15 @@ class FavoritesScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.favorite_border, size: 80, color: Colors.grey),
+              Icon(Icons.favorite_border,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(height: 16),
               const Text('No favorites yet', style: TextStyle(fontSize: 18)),
               const SizedBox(height: 8),
-              const Text('Sign in to save your favorite recipes', style: TextStyle(color: Colors.grey)),
+              Text('Sign in to save your favorite recipes',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
@@ -67,11 +71,15 @@ class FavoritesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.favorite_border, size: 80, color: Colors.grey),
+                  Icon(Icons.favorite_border,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(height: 16),
                   const Text('No favorites yet', style: TextStyle(fontSize: 18)),
                   const SizedBox(height: 8),
-                  const Text('Start saving recipes you love!', style: TextStyle(color: Colors.grey)),
+                  Text('Start saving recipes you love!',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {

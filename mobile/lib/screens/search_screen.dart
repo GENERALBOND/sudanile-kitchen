@@ -195,7 +195,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.white,
+                fillColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -320,14 +321,14 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
                       'Recent Searches',
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
                   Wrap(
@@ -352,7 +353,7 @@ class _SearchScreenState extends State<SearchScreen> {
               constraints: const BoxConstraints(
                 maxHeight: 300,
               ),
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: _suggestions.length,
@@ -366,8 +367,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                     subtitle: Text(
                       recipe.categoryName,
-                      style:
-                          TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 12),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -429,16 +431,23 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
                   ),
-                  noItemsFoundIndicatorBuilder: (_) => const Center(
+                  noItemsFoundIndicatorBuilder: (_) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off, size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text('No recipes found',
+                        Icon(Icons.search_off,
+                            size: 64,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant),
+                        const SizedBox(height: 16),
+                        const Text('No recipes found',
                             style: TextStyle(fontSize: 18)),
                         Text('Try adjusting your search',
-                            style: TextStyle(color: Colors.grey)),
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant)),
                       ],
                     ),
                   ),

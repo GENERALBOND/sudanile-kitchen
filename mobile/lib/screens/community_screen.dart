@@ -71,7 +71,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     final isGuest = !Provider.of<AuthService>(context).isAuthenticated;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('Community'),
         backgroundColor: Colors.orange,
@@ -85,7 +84,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
       ),
       body: Column(
         children: [
-          _buildSortSelector(),
+          _buildSortSelector(context),
           Expanded(
             child: Consumer<CommunityProvider>(
               builder: (context, provider, _) {
@@ -102,9 +101,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _buildSortSelector() {
+  Widget _buildSortSelector(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -113,9 +112,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
             builder: (context, provider, _) {
               return Row(
                 children: [
-                  _sortButton('Latest', 'latest', provider.sort),
+                  _sortButton(context, 'Latest', 'latest', provider.sort),
                   const SizedBox(width: 8),
-                  _sortButton('Popular', 'popular', provider.sort),
+                  _sortButton(context, 'Popular', 'popular', provider.sort),
                 ],
               );
             },
@@ -125,7 +124,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _sortButton(String label, String value, String current) {
+  Widget _sortButton(BuildContext context, String label, String value,
+      String current) {
     final selected = current == value;
     return InkWell(
       onTap: () => _changeSort(value),
@@ -133,7 +133,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? Colors.orange : Colors.grey.shade100,
+          color: selected
+              ? Colors.orange
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -141,7 +143,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : Colors.grey.shade700,
+            color: selected
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -171,7 +175,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 final post = provider.posts[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildPostCard(provider, post),
+                  child: _buildPostCard(context, provider, post),
                 );
               },
               childCount: provider.posts.length,
@@ -198,14 +202,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _buildPostCard(CommunityProvider provider, CommunityPost post) {
+  Widget _buildPostCard(
+      BuildContext context, CommunityProvider provider, CommunityPost post) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -216,7 +221,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildAuthorRow(provider, post),
+            _buildAuthorRow(context, provider, post),
             GestureDetector(
               onTap: () => _openPostDetail(provider, post),
               child: _postImage(post),
@@ -242,17 +247,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
               child: Text(
                 '${post.likeCount} ${post.likeCount == 1 ? 'like' : 'likes'}'
                 ' · ${post.commentCount} ${post.commentCount == 1 ? 'comment' : 'comments'}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
-            _buildActionRow(provider, post),
+            _buildActionRow(context, provider, post),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAuthorRow(CommunityProvider provider, CommunityPost post) {
+  Widget _buildAuthorRow(
+      BuildContext context, CommunityProvider provider, CommunityPost post) {
     return InkWell(
       onTap: () => _openUserPosts(post),
       borderRadius: BorderRadius.circular(12),
@@ -290,7 +298,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   ),
                   Text(
                     _timeAgo(post.createdAt),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -332,7 +342,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _buildActionRow(CommunityProvider provider, CommunityPost post) {
+  Widget _buildActionRow(
+      BuildContext context, CommunityProvider provider, CommunityPost post) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
       child: Row(
@@ -340,7 +351,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
           Expanded(
             child: _buildActionButton(
               icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
-              color: post.isLikedByMe ? Colors.red : Colors.grey.shade700,
+              color: post.isLikedByMe
+                  ? Colors.red
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
               label: 'Like',
               onTap: () => provider.toggleLike(post),
             ),
@@ -348,7 +361,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
           Expanded(
             child: _buildActionButton(
               icon: Icons.comment_outlined,
-              color: Colors.grey.shade700,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               label: 'Comment',
               onTap: () => _openPostDetail(provider, post),
             ),
@@ -445,7 +458,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(height: constraints.maxHeight * 0.2),
-            const Icon(Icons.photo_camera_outlined, size: 80, color: Colors.grey),
+            Icon(
+                Icons.photo_camera_outlined,
+                size: 80,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             const SizedBox(height: 16),
             const Center(
               child: Text(
@@ -454,10 +471,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Center(
+            Center(
               child: Text(
                 'Be the first to share a dish you cooked!',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(height: 24),

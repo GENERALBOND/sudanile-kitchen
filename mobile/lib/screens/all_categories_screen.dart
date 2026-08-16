@@ -64,11 +64,11 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withValues(alpha: 0.1),
+                              color: Colors.black.withValues(alpha: 0.15),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),

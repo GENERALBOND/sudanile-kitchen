@@ -239,8 +239,9 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
               const Text('Recipe Submitted!',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('Your recipe is pending review.',
-                  style: TextStyle(color: Colors.grey)),
+              Text('Your recipe is pending review.',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
@@ -579,7 +580,9 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                                     'JPEG, PNG, or GIF',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[600],
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -651,10 +654,13 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                     const SizedBox(height: 16),
 
                     // Info Text
-                    const Text(
+                    Text(
                       'Your recipe will be reviewed by our team before being published.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 32),
                   ],

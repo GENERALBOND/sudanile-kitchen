@@ -62,7 +62,8 @@ class _AboutScreenState extends State<AboutScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Icon(Icons.restaurant_menu, size: 60, color: Colors.orange),
+                    child: const Icon(
+                        Icons.restaurant_menu, size: 60, color: Colors.orange),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -116,10 +117,15 @@ class _AboutScreenState extends State<AboutScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStat(
+                      context,
                       _recipeCount == null ? '—' : '${_recipeCount!}',
                       'Recipes'),
-                  Container(height: 40, width: 1, color: Colors.grey.shade300),
+                  Container(
+                      height: 40,
+                      width: 1,
+                      color: Theme.of(context).dividerColor),
                   _buildStat(
+                      context,
                       _categoryCount == null ? '—' : '${_categoryCount!}',
                       'Categories'),
                 ],
@@ -138,31 +144,37 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildFeatureItem(
+                    context,
                     Icons.restaurant,
                     'Authentic Recipes',
                     'Traditional South Sudanese recipes passed down through generations',
                   ),
                   _buildFeatureItem(
+                    context,
                     Icons.search,
                     'Smart Search',
                     'Search by ingredients, name, or category',
                   ),
                   _buildFeatureItem(
+                    context,
                     Icons.favorite,
                     'Save Favorites',
                     'Build your personal recipe collection',
                   ),
                   _buildFeatureItem(
+                    context,
                     Icons.rate_review,
                     'Rate & Review',
                     'Share your experience with the community',
                   ),
                   _buildFeatureItem(
+                    context,
                     Icons.add_box,
                     'Submit Recipes',
                     'Contribute your family recipes to preserve heritage',
                   ),
                   _buildFeatureItem(
+                    context,
                     Icons.video_library,
                     'Video Tutorials',
                     'Step-by-step cooking guides',
@@ -183,6 +195,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildTeamMember(
+                    context,
                     'Sudanile Kitchen Team',
                     'Culinary Heritage Preservation',
                     'Dedicated to documenting and sharing South Sudanese cuisine', 
@@ -196,7 +209,7 @@ class _AboutScreenState extends State<AboutScreen> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -241,12 +254,15 @@ class _AboutScreenState extends State<AboutScreen> {
                 children: [
                   Text(
                     'Version 1.0.0',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '© 2026 Sudanile Kitchen. All rights reserved.',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -260,7 +276,7 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
-  Widget _buildStat(String value, String label) {
+  Widget _buildStat(BuildContext context, String value, String label) {
     return Column(
       children: [
         Text(
@@ -268,12 +284,17 @@ class _AboutScreenState extends State<AboutScreen> {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
+        Text(label,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12),
+            textAlign: TextAlign.center),
       ],
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String title, String description) {
+  Widget _buildFeatureItem(
+      BuildContext context, IconData icon, String title, String description) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -294,7 +315,10 @@ class _AboutScreenState extends State<AboutScreen> {
               children: [
                 Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(description, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(description,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 13)),
               ],
             ),
           ),
@@ -303,16 +327,17 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
-  Widget _buildTeamMember(String name, String role, String bio) {
+  Widget _buildTeamMember(
+      BuildContext context, String name, String role, String bio) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade200,
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -331,7 +356,11 @@ class _AboutScreenState extends State<AboutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(role, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(role,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            Theme.of(context).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 4),
                 Text(bio, style: const TextStyle(fontSize: 12)),
               ],

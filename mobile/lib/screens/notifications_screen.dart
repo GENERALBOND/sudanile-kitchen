@@ -84,7 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 16),
 
             // Main Notification Toggles
-            _buildSectionHeader('Notification Channels'),
+            _buildSectionHeader(context, 'Notification Channels'),
             _buildSwitchTile(
               icon: Icons.email,
               title: 'Email Notifications',
@@ -104,7 +104,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 8),
 
             // Recipe Related Alerts
-            _buildSectionHeader('Recipe Alerts'),
+            _buildSectionHeader(context, 'Recipe Alerts'),
             _buildSwitchTile(
               icon: Icons.check_circle,
               title: 'Recipe Approval',
@@ -124,7 +124,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 8),
 
             // Community Updates
-            _buildSectionHeader('Community Updates'),
+            _buildSectionHeader(context, 'Community Updates'),
             _buildSwitchTile(
               icon: Icons.people,
               title: 'Community Updates',
@@ -151,7 +151,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 8),
 
             // Digest & Marketing
-            _buildSectionHeader('Digest & Marketing'),
+            _buildSectionHeader(context, 'Digest & Marketing'),
             _buildSwitchTile(
               icon: Icons.calendar_today,
               title: 'Weekly Digest',
@@ -201,15 +201,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: Colors.grey,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
