@@ -62,8 +62,13 @@ class _AboutScreenState extends State<AboutScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Icon(
-                        Icons.restaurant_menu, size: 60, color: Colors.orange),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
