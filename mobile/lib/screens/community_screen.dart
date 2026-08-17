@@ -22,11 +22,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-
-    final provider = Provider.of<CommunityProvider>(context, listen: false);
-    if (provider.posts.isEmpty) {
-      provider.loadFirstPage();
-    }
+    // Defer until after the frame builds: loadFirstPage() notifies listeners
+    // synchronously, and firing it during mount/initState trips the
+    // setState-during-build assertion and crashes the app at startup
+    // (HomeScreen's IndexedStack builds this tab on launch).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final provider = Provider.of<CommunityProvider>(context, listen: false);
+      if (provider.posts.isEmpty) {
+        provider.loadFirstPage();
+      }
+    });
   }
 
   @override

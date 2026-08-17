@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recipe Submissions — Sudanile Kitchen Admin</title>
+  <title>Moderation Reports — Sudanile Kitchen Admin</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -104,11 +104,9 @@
     .page-header { display: flex; align-items: center; justify-content: space-between; }
     .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
     .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-    .add-btn { display: flex; align-items: center; gap: 7px; background: #E8650A; color: #fff; border: none; border-radius: var(--radius); padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: opacity 0.12s; }
-    .add-btn:hover { opacity: 0.88; }
 
     /* STAT CARDS */
-    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .stat-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
     .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
     .stat-val { font-size: 22px; font-weight: 500; color: var(--text-primary); line-height: 1; }
@@ -120,10 +118,9 @@
     .chip:hover { border-color: var(--border-strong); background: var(--surface-1); }
     .chip.active { background: #fff3e0; color: #E8650A; border-color: #fcd5a8; font-weight: 500; }
     .chip.pending { background: var(--bg-warning); color: var(--text-warning); border-color: var(--border-warning); }
-    .chip.approved { background: var(--bg-success); color: var(--text-success); border-color: var(--border-success); }
-    .chip.rejected { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+    .chip.danger { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+    .chip.success { background: var(--bg-success); color: var(--text-success); border-color: var(--border-success); }
     .chip i { font-size: 12px; }
-    .chip-sep { width: 0.5px; height: 18px; background: var(--border); flex-shrink: 0; }
 
     /* TOOLBAR */
     .toolbar { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 14px; }
@@ -140,9 +137,7 @@
     .table-wrap { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     thead { border-bottom: 0.5px solid var(--border); }
-    thead th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); background: var(--surface-1); white-space: nowrap; cursor: pointer; }
-    thead th:hover { color: var(--text-primary); }
-    thead th.sorted { color: #E8650A; }
+    thead th { padding: 9px 14px; text-align: left; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); background: var(--surface-1); white-space: nowrap; }
     th.chk, td.chk { width: 36px; padding-left: 14px; }
     tbody tr { border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
     tbody tr:nth-child(even) { background: var(--surface-1); }
@@ -152,46 +147,51 @@
 
     .id-link { color: #E8650A; text-decoration: none; font-weight: 500; }
     .id-link:hover { text-decoration: underline; }
-    .id-link.warn { color: var(--text-warning); }
 
-    .submitter { display: flex; align-items: center; gap: 8px; }
+    .target { display: flex; flex-direction: column; gap: 3px; min-width: 220px; }
+    .target-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-primary); }
+    .target-head i { color: var(--text-muted); font-size: 13px; }
+    .target-snap { font-size: 11px; color: var(--text-secondary); line-height: 1.4; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .target-author { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+    .reporter { display: flex; align-items: center; gap: 8px; }
     .avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #fff; flex-shrink: 0; }
-    .submitter-email { font-size: 12px; color: var(--text-secondary); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .reporter-email { font-size: 12px; color: var(--text-secondary); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .recipe-name { font-weight: 500; color: var(--text-primary); }
+    .reason-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); white-space: nowrap; }
+    .reason-badge i { font-size: 12px; color: var(--text-muted); }
+    .reason-other { background: var(--bg-accent); color: var(--text-accent); border-color: #c8ddf0; }
 
     .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
-    .status-pending  { background: var(--bg-warning); color: var(--text-warning); border: 0.5px solid var(--border-warning); }
-    .status-approved { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
-    .status-rejected { background: var(--bg-danger); color: var(--text-danger); border: 0.5px solid var(--border-danger); }
+    .status-pending     { background: var(--bg-warning); color: var(--text-warning); border: 0.5px solid var(--border-warning); }
+    .status-auto_hidden { background: var(--bg-danger); color: var(--text-danger); border: 0.5px solid var(--border-danger); }
+    .status-resolved    { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
+    .status-dismissed   { background: var(--surface-1); color: var(--text-muted); border: 0.5px solid var(--border); }
 
     .date-cell { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .count-cell { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+    .count-cell strong { color: var(--text-warning); }
 
     .inline-actions { display: flex; align-items: center; gap: 5px; }
     .act-btn { display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 4px 9px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-1); color: var(--text-secondary); cursor: pointer; transition: all 0.12s; text-decoration: none; white-space: nowrap; }
-    .act-btn.approve { background: var(--bg-success); color: var(--text-success); border-color: var(--border-success); }
-    .act-btn.approve:hover { opacity: 0.8; }
-    .act-btn.reject { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
-    .act-btn.reject:hover { opacity: 0.8; }
+    .act-btn.success { background: var(--bg-success); color: var(--text-success); border-color: var(--border-success); }
+    .act-btn.success:hover { opacity: 0.8; }
+    .act-btn.danger { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
+    .act-btn.danger:hover { opacity: 0.8; }
+    .act-btn.warning { background: var(--bg-warning); color: var(--text-warning); border-color: var(--border-warning); }
+    .act-btn.warning:hover { opacity: 0.8; }
     .act-btn.view:hover { background: #fff3e0; color: #E8650A; border-color: #fcd5a8; }
     .act-btn i { font-size: 12px; }
 
-    .row-actions { display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.12s; }
-    tbody tr:hover .row-actions { opacity: 1; }
-    .row-actions.always { opacity: 1; }
-    .row-btn { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; text-decoration: none; transition: all 0.12s; }
-    .row-btn:hover { background: var(--surface-1); color: var(--text-primary); }
-    .row-btn.del:hover { background: var(--bg-danger); color: var(--text-danger); border-color: var(--border-danger); }
-
     .row-pending { background: color-mix(in srgb, var(--bg-warning) 20%, transparent) !important; }
+    .row-danger { background: color-mix(in srgb, var(--bg-danger) 20%, transparent) !important; }
 
     .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 0.5px solid var(--border); background: var(--surface-1); font-size: 12px; color: var(--text-muted); }
     .pagination { display: flex; align-items: center; gap: 4px; }
-    .pg-btn { padding: 4px 9px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+    .pg-btn { padding: 4px 9px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface-2); font-size: 11px; color: var(--text-secondary); cursor: pointer; text-decoration: none; }
+    .pg-btn:hover { border-color: var(--border-strong); }
     .pg-btn.active { background: #E8650A; color: #fff; border-color: #E8650A; }
-
-    .sort-icon { font-size: 9px; margin-left: 2px; opacity: 0.4; }
-    .sorted .sort-icon { opacity: 1; }
+    .pg-btn.disabled { opacity: 0.4; pointer-events: none; }
 
     .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
 
@@ -212,7 +212,6 @@
       table { font-size: 11px; }
       .inline-actions { flex-direction: column; gap: 3px; }
     }
-
 
   </style>
 </head>
@@ -239,7 +238,7 @@
         <a class="sidebar-item" href="{% url 'admin:index' %}"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</a>
         <a class="sidebar-item" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
         <a class="sidebar-item" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
-        <a class="sidebar-item active" href="/admin/submissions/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item" href="{% url 'admin:submissions_recipesubmission_changelist' %}"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
         <a class="sidebar-item" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
         <a class="sidebar-item" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
       </div>
@@ -252,7 +251,7 @@
       <div class="sidebar-section sidebar-sys">
         <div class="sidebar-label">System</div>
         <a class="sidebar-item" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
-        <a class="sidebar-item" href="/admin/reports/"><i class="ti ti-flag" aria-hidden="true"></i>Reports</a>
+        <a class="sidebar-item active" href="/admin/reports/"><i class="ti ti-flag" aria-hidden="true"></i>Reports</a>
       </div>
     </nav>
 
@@ -268,139 +267,182 @@
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="{% url 'admin:index' %}">Home</a>
         <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
-        <a href="/admin/submissions/">Submissions</a>
+        <a href="{% url 'admin_auth_index' %}">System</a>
         <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
-        <span>Recipe submissions</span>
+        <span>Moderation reports</span>
       </nav>
 
       <div class="page-header">
         <div>
-          <h1 class="page-title">Recipe Submissions</h1>
-          <p class="page-meta">{{ total_submissions }} total &nbsp;·&nbsp; {{ pending_count }} pending &nbsp;·&nbsp; {{ approved_count }} approved &nbsp;·&nbsp; {{ rejected_count }} rejected</p>
+          <h1 class="page-title">Moderation Reports</h1>
+          <p class="page-meta">{{ counts.total }} total &nbsp;·&nbsp; {{ counts.active }} active &nbsp;·&nbsp; {{ counts.resolved }} resolved &nbsp;·&nbsp; {{ counts.dismissed }} dismissed</p>
         </div>
-        <a href="{% url 'admin:submissions_recipesubmission_add' %}" class="add-btn">
-          <i class="ti ti-plus" aria-hidden="true"></i>Add submission
-        </a>
       </div>
 
-      <div class="stat-row" aria-label="Submission overview">
+      <div class="stat-row" aria-label="Report overview">
         <div class="stat-card">
-          <div class="stat-icon" style="background:var(--bg-warning);color:var(--text-warning);"><i class="ti ti-clock-hour-4" aria-hidden="true"></i></div>
-          <div class="stat-val">{{ pending_count }}</div>
-          <div class="stat-lbl">Pending review</div>
+          <div class="stat-icon" style="background:var(--bg-warning);color:var(--text-warning);"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ counts.active }}</div>
+          <div class="stat-lbl">Active reports</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--bg-danger);color:var(--text-danger);"><i class="ti ti-eye-off" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ counts.auto_hidden }}</div>
+          <div class="stat-lbl">Auto-hidden</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:var(--bg-success);color:var(--text-success);"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
-          <div class="stat-val">{{ approved_count }}</div>
-          <div class="stat-lbl">Approved</div>
+          <div class="stat-val">{{ counts.resolved }}</div>
+          <div class="stat-lbl">Resolved</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:var(--bg-danger);color:var(--text-danger);"><i class="ti ti-circle-x" aria-hidden="true"></i></div>
-          <div class="stat-val">{{ rejected_count }}</div>
-          <div class="stat-lbl">Rejected</div>
+          <div class="stat-icon" style="background:var(--surface-1);color:var(--text-muted);"><i class="ti ti-circle-x" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ counts.dismissed }}</div>
+          <div class="stat-lbl">Dismissed</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon" style="background:#fff3e0;color:#E8650A;"><i class="ti ti-send" aria-hidden="true"></i></div>
-          <div class="stat-val">{{ total_submissions }}</div>
-          <div class="stat-lbl">Total submissions</div>
+          <div class="stat-icon" style="background:#fff3e0;color:#E8650A;"><i class="ti ti-flag" aria-hidden="true"></i></div>
+          <div class="stat-val">{{ counts.total }}</div>
+          <div class="stat-lbl">Total reports</div>
         </div>
       </div>
 
-      <div class="filter-row" role="group" aria-label="Filter submissions">
-        <a href="?" class="chip active"><i class="ti ti-list"></i>All ({{ total_submissions }})</a>
-        <a href="?status=pending" class="chip pending"><i class="ti ti-clock-hour-4"></i>Pending ({{ pending_count }})</a>
-        <a href="?status=approved" class="chip approved"><i class="ti ti-circle-check"></i>Approved ({{ approved_count }})</a>
-        <a href="?status=rejected" class="chip rejected"><i class="ti ti-circle-x"></i>Rejected ({{ rejected_count }})</a>
-        <div class="chip-sep" aria-hidden="true"></div>
-        <a href="?date=today" class="chip"><i class="ti ti-calendar"></i>Today</a>
-        <a href="?date=week" class="chip"><i class="ti ti-calendar-week"></i>Past 7 days</a>
-        <a href="?date=month" class="chip"><i class="ti ti-calendar-month"></i>This month</a>
+      <div class="filter-row" role="group" aria-label="Filter reports">
+        <a href="?status=active" class="chip {% if status == 'active' %}active{% endif %}"><i class="ti ti-alert-triangle"></i>Active ({{ counts.active }})</a>
+        <a href="?status=pending" class="chip pending {% if status == 'pending' %}active{% endif %}"><i class="ti ti-clock-hour-4"></i>Pending ({{ counts.pending }})</a>
+        <a href="?status=auto_hidden" class="chip danger {% if status == 'auto_hidden' %}active{% endif %}"><i class="ti ti-eye-off"></i>Auto-hidden ({{ counts.auto_hidden }})</a>
+        <a href="?status=resolved" class="chip success {% if status == 'resolved' %}active{% endif %}"><i class="ti ti-circle-check"></i>Resolved ({{ counts.resolved }})</a>
+        <a href="?status=dismissed" class="chip {% if status == 'dismissed' %}active{% endif %}"><i class="ti ti-circle-x"></i>Dismissed ({{ counts.dismissed }})</a>
+        <a href="?status=all" class="chip {% if status == 'all' %}active{% endif %}"><i class="ti ti-list"></i>All ({{ counts.total }})</a>
       </div>
 
       <form method="get" class="toolbar">
         <div class="search-wrap">
           <i class="ti ti-search" aria-hidden="true"></i>
-          <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search by title or submitter email…" aria-label="Search submissions" />
+          <input type="text" name="q" value="{{ q }}" placeholder="Search by reported content or reporter email…" aria-label="Search reports" />
+          <input type="hidden" name="status" value="{{ status }}" />
         </div>
       </form>
 
-      <form method="post" id="changelist-form">
+      <form method="post" id="reports-form">
         {% csrf_token %}
         <div class="toolbar">
           <select class="action-select" name="action" aria-label="Bulk action">
             <option value="">Bulk action…</option>
-            <option value="approve_submissions">Approve selected</option>
-            <option value="reject_submissions">Reject selected</option>
-            <option value="delete_selected">Delete selected</option>
+            <option value="dismiss_reports">Dismiss — content is fine (restores)</option>
+            <option value="hide_content">Hide content from the feed</option>
+            <option value="delete_content">Delete content permanently</option>
+            <option value="warn_author">Warn the author (no content change)</option>
+            <option value="ban_user">Disable the author's account</option>
           </select>
           <button type="submit" class="run-btn" name="index" value="0">Run</button>
+          <div class="tsep" aria-hidden="true"></div>
+          <span style="font-size:11px;color:var(--text-muted);"><span id="selected-count">0</span> of {{ page_obj.paginator.count }} selected</span>
         </div>
 
         <div class="table-wrap">
-          <table aria-label="Recipe submissions list">
+          <table aria-label="Moderation reports list">
             <thead>
               <tr>
-                <th class="chk"><input type="checkbox" id="select-all" aria-label="Select all submissions" /></th>
-                <th class="sorted"><a href="?o=-id" style="color:inherit;text-decoration:none;">ID <i class="ti ti-arrow-down sort-icon" aria-hidden="true"></i></a></th>
-                <th><a href="?o=title" style="color:inherit;text-decoration:none;">Title <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
-                <th>Submitted by</th>
+                <th class="chk"><input type="checkbox" id="select-all" aria-label="Select all reports" /></th>
+                <th>ID</th>
+                <th>Target</th>
+                <th>Reported by</th>
+                <th>Reason</th>
                 <th>Status</th>
-                <th><a href="?o=submitted_at" style="color:inherit;text-decoration:none;">Submitted <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></a></th>
+                <th>Reports</th>
+                <th>Created</th>
                 <th>Actions</th>
-                <th aria-hidden="true"></th>
               </tr>
             </thead>
             <tbody>
-              {% for submission in cl.result_list %}
-              <tr class="{% if submission.status == 'pending' %}row-pending{% endif %}">
-                <td class="chk"><input type="checkbox" name="_selected_action" value="{{ submission.pk }}" class="action-select" aria-label="Select submission {{ submission.pk }}" /></td>
-                <td><a href="{% url 'admin:submissions_recipesubmission_change' submission.pk %}" class="id-link">{{ submission.pk }}</a></td>
-                <td><span class="recipe-name">{{ submission.title }}</span></td>
+              {% for report in reports %}
+              <tr class="{% if report.status == 'pending' %}row-pending{% elif report.status == 'auto_hidden' %}row-danger{% endif %}">
+                <td class="chk"><input type="checkbox" name="report_ids" value="{{ report.pk }}" class="action-select" aria-label="Select report {{ report.pk }}" /></td>
+                <td><a href="/admin/moderation/report/{{ report.pk }}/change/" class="id-link">{{ report.pk }}</a></td>
                 <td>
-                  <div class="submitter">
-                    <div class="avatar" style="background:#E8650A;" aria-hidden="true">{{ submission.user.email|slice:":2"|upper }}</div>
-                    <span class="submitter-email" title="{{ submission.user.email }}">{{ submission.user.email }}</span>
+                  <div class="target">
+                    <div class="target-head">
+                      {% if report.target_type == 'post' %}
+                        <i class="ti ti-photo" aria-hidden="true"></i>Post #{{ report.post_id|default:'—' }}
+                      {% else %}
+                        <i class="ti ti-message" aria-hidden="true"></i>Comment #{{ report.comment_id|default:'—' }}
+                      {% endif %}
+                    </div>
+                    <div class="target-snap" title="{{ report.content_snapshot }}">{% if report.content_snapshot %}{{ report.content_snapshot }}{% else %}(content deleted){% endif %}</div>
+                    {% if report.target_author %}
+                    <div class="target-author"><i class="ti ti-user" aria-hidden="true"></i>{{ report.target_author.email }}</div>
+                    {% endif %}
                   </div>
                 </td>
                 <td>
-                  <span class="status-badge status-{{ submission.status }}">
-                    {% if submission.status == 'pending' %}
+                  <div class="reporter">
+                    <div class="avatar" style="background:var(--text-accent);" aria-hidden="true">{{ report.reporter.email|slice:":2"|upper }}</div>
+                    <span class="reporter-email" title="{{ report.reporter.email }}">{{ report.reporter.email }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="reason-badge {% if report.reason == 'other' %}reason-other{% endif %}">
+                    <i class="ti ti-flag" aria-hidden="true"></i>{{ report.get_reason_display }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge status-{{ report.status }}">
+                    {% if report.status == 'pending' %}
                       <i class="ti ti-clock-hour-4" aria-hidden="true"></i>Pending
-                    {% elif submission.status == 'approved' %}
-                      <i class="ti ti-circle-check" aria-hidden="true"></i>Approved
+                    {% elif report.status == 'auto_hidden' %}
+                      <i class="ti ti-eye-off" aria-hidden="true"></i>Auto-hidden
+                    {% elif report.status == 'resolved' %}
+                      <i class="ti ti-circle-check" aria-hidden="true"></i>Resolved
                     {% else %}
-                      <i class="ti ti-circle-x" aria-hidden="true"></i>Rejected
+                      <i class="ti ti-circle-x" aria-hidden="true"></i>Dismissed
                     {% endif %}
                   </span>
                 </td>
-                <td class="date-cell">{{ submission.submitted_at|date:'M d, Y' }} · {{ submission.submitted_at|time:'g:i a' }}</td>
+                <td class="count-cell">
+                  {% if report.report_count > 1 %}<strong>{{ report.report_count }}</strong>{% else %}{{ report.report_count }}{% endif %}
+                </td>
+                <td class="date-cell">{{ report.created_at|date:'M d, Y' }} · {{ report.created_at|time:'g:i a' }}</td>
                 <td>
                   <div class="inline-actions">
-                    <a href="{% url 'admin:submissions_recipesubmission_change' submission.pk %}" class="act-btn view">
+                    <a href="/admin/moderation/report/{{ report.pk }}/change/" class="act-btn view">
                       <i class="ti ti-eye" aria-hidden="true"></i>View
                     </a>
-                  </div>
-                </td>
-                <td>
-                  <div class="row-actions{% if submission.status == 'pending' %} always{% endif %}" aria-label="More actions">
-                    <a href="{% url 'admin:submissions_recipesubmission_change' submission.pk %}" class="row-btn" title="Edit"><i class="ti ti-edit" aria-hidden="true"></i></a>
-                    <a href="{% url 'admin:submissions_recipesubmission_delete' submission.pk %}" class="row-btn del" title="Delete"><i class="ti ti-trash" aria-hidden="true"></i></a>
                   </div>
                 </td>
               </tr>
               {% empty %}
               <tr>
-                <td colspan="8" style="padding: 20px 14px; color: var(--text-muted); text-align: center;">No submissions found.</td>
+                <td colspan="9" style="padding: 24px 14px; color: var(--text-muted); text-align: center;">
+                  <i class="ti ti-check" style="font-size:18px; display:block; margin-bottom:6px;" aria-hidden="true"></i>
+                  No reports found.
+                </td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
           <div class="table-footer">
-            <span><span id="selected-count">0</span> of {{ total_submissions }} selected</span>
+            <span>{{ page_obj.paginator.count }} report(s) total</span>
             <div class="pagination" aria-label="Pagination">
-              <button class="pg-btn active" aria-current="page">1</button>
+              {% if page_obj.has_previous %}
+                <a class="pg-btn" href="?status={{ status }}&page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">‹</a>
+              {% else %}
+                <span class="pg-btn disabled">‹</span>
+              {% endif %}
+              {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                  <span class="pg-btn active" aria-current="page">{{ num }}</span>
+                {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                  <a class="pg-btn" href="?status={{ status }}&page={{ num }}{% if q %}&q={{ q }}{% endif %}">{{ num }}</a>
+                {% endif %}
+              {% endfor %}
+              {% if page_obj.has_next %}
+                <a class="pg-btn" href="?status={{ status }}&page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">›</a>
+              {% else %}
+                <span class="pg-btn disabled">›</span>
+              {% endif %}
             </div>
-            <span>{{ total_submissions }} submissions total</span>
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
           </div>
         </div>
       </form>
