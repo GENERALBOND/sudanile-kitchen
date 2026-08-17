@@ -74,12 +74,29 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
 
     final provider = Provider.of<CommunityProvider>(context, listen: false);
     // Update the shared feed state optimistically (keeps grid + detail in sync).
-    await provider.toggleLike(_post);
+    if (await provider.toggleLike(_post)) {
+      // The post lives in the shared feed — read the synced state back.
+      if (!mounted) return;
+      final refreshed = provider.posts
+          .firstWhere((p) => p.id == _post.id, orElse: () => _post);
+      setState(() {
+        _post = refreshed;
+        _isLiking = false;
+      });
+      return;
+    }
 
-    final refreshed = provider.posts
-        .firstWhere((p) => p.id == _post.id, orElse: () => _post);
+    // Post opened outside the feed (e.g. from a push tap) — the shared
+    // provider doesn't track it, so apply the like locally.
+    final result = await _communityService.toggleLike(_post.id);
+    if (!mounted) return;
     setState(() {
-      _post = refreshed;
+      if (result != null) {
+        _post = _post.copyWith(
+          isLikedByMe: result['liked'] as bool? ?? !_post.isLikedByMe,
+          likeCount: result['likeCount'] as int? ?? _post.likeCount,
+        );
+      }
       _isLiking = false;
     });
   }

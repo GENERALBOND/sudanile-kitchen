@@ -30,14 +30,16 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      role: json['role'],
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
+      role: json['role'] ?? 'member',
       isStaff: json['is_staff'] ?? false,
       isSuperuser: json['is_superuser'] ?? false,
       profilePicture: json['profile_picture'],
       bio: json['bio'],
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
       favoritesCount: json['favorites_count'] ?? 0,
       reviewsCount: json['reviews_count'] ?? 0,
       submissionsCount: json['submissions_count'] ?? 0,

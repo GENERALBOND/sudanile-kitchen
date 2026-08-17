@@ -28,10 +28,14 @@ class Review {
       userName: json['user_name'] ?? '',
       userProfilePicture: json['user_profile_picture'],
       recipe: json['recipe'],
-      rating: json['rating'],
-      comment: json['comment'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      rating: json['rating'] ?? 0,
+      comment: json['comment'] ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(),
     );
   }
 }

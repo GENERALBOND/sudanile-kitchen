@@ -50,6 +50,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       }
     }
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
@@ -66,8 +67,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final favProvider = Provider.of<FavoritesProvider>(context, listen: false);
     await favProvider.toggleFavorite(_recipe);
 
-    setState(() {});
     if (!mounted) return;
+    setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(favProvider.isFavorite(_recipe.id)

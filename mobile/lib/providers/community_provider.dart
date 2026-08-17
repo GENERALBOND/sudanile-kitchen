@@ -87,10 +87,14 @@ class CommunityProvider extends ChangeNotifier {
 
   Future<void> refresh() => loadFirstPage(sort: _sort, userId: _userId);
 
-  /// Optimistically toggles the like state; reverts if the API call fails.
-  Future<void> toggleLike(CommunityPost post) async {
+  /// Toggles a like on [post] optimistically and reverts on API failure.
+  /// Returns `true` if the post is in the shared feed (and was updated);
+  /// `false` when it is not (e.g. opened from a push tap) so the caller can
+  /// apply the like to its own copy instead of the button silently doing
+  /// nothing.
+  Future<bool> toggleLike(CommunityPost post) async {
     final index = _posts.indexWhere((p) => p.id == post.id);
-    if (index == -1) return;
+    if (index == -1) return false;
 
     final wasLiked = _posts[index].isLikedByMe;
     _posts[index] = _posts[index].copyWith(
@@ -100,14 +104,19 @@ class CommunityProvider extends ChangeNotifier {
     _safeNotify();
 
     final result = await _communityService.toggleLike(post.id);
-    if (result == null && _posts.length > index) {
-      // Revert on failure.
-      _posts[index] = _posts[index].copyWith(
-        isLikedByMe: wasLiked,
-        likeCount: post.likeCount,
-      );
-      _safeNotify();
+    if (result == null) {
+      // Recompute the index — the feed may have shifted while awaiting, so
+      // reverting the stale index could overwrite a different post.
+      final revertIndex = _posts.indexWhere((p) => p.id == post.id);
+      if (revertIndex != -1) {
+        _posts[revertIndex] = _posts[revertIndex].copyWith(
+          isLikedByMe: wasLiked,
+          likeCount: post.likeCount,
+        );
+        _safeNotify();
+      }
     }
+    return true;
   }
 
   void incrementComments(int postId) {
