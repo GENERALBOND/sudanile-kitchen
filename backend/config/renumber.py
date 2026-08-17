@@ -1,20 +1,6 @@
 from django.db import connection
 
 
-def lowest_free_id(sender):
-    """Return the smallest positive integer not currently used as a pk.
-
-    New rows are assigned this value so that deleting an item never leaves a
-    permanent gap in the displayed numbering (e.g. deleting ID 1 means the
-    next created item is numbered 1 again).
-    """
-    ids = set(sender.objects.values_list('id', flat=True))
-    candidate = 1
-    while candidate in ids:
-        candidate += 1
-    return candidate
-
-
 def sync_sequence(sender):
     """Keep SQLite's auto-increment sequence aligned with the highest pk.
 

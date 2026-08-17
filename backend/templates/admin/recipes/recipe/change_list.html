@@ -238,6 +238,8 @@
     .id-link { color: #E8650A; text-decoration: none; font-weight: 500; }
     .id-link:hover { text-decoration: underline; }
     .id-link.danger { color: var(--text-danger); }
+    .no-col { width: 44px; }
+    .no-cell { color: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 
     .recipe-title { font-weight: 500; color: var(--text-primary); }
     .recipe-title.xss { color: var(--text-danger); font-family: monospace; font-size: 11px; }
@@ -319,8 +321,8 @@
     @media (max-width: 700px) {
       .filter-row { overflow-x: auto; flex-wrap: nowrap; }
       table { font-size: 11px; }
-      th.thumb-col, td.thumb-col, th:nth-child(5), td:nth-child(5),
-      th:nth-child(8), td:nth-child(8) { display: none; }
+      th.thumb-col, td.thumb-col, th:nth-child(6), td:nth-child(6),
+      th:nth-child(9), td:nth-child(9) { display: none; }
     }
 
 
@@ -425,6 +427,7 @@
             <thead>
               <tr>
                 <th class="chk"><input type="checkbox" id="select-all" aria-label="Select all recipes" /></th>
+                <th class="no-col">No.</th>
                 <th class="thumb-col" aria-hidden="true"></th>
                 <th class="sorted">ID <i class="ti ti-arrow-down sort-icon" aria-hidden="true"></i></th>
                 <th>Title <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></th>
@@ -442,6 +445,7 @@
               {% for obj in cl.result_list %}
               <tr class="{% if obj.is_flagged %}row-flagged{% endif %}">
                 <td class="chk"><input type="checkbox" name="_selected_action" value="{{ obj.pk }}" class="action-select" aria-label="Select recipe {{ obj.pk }}" /></td>
+                <td class="no-cell">{% widthratio cl.list_per_page 1 cl.page_num|add:"-1" as offset %}{{ offset|add:forloop.counter }}</td>
                 <td class="thumb-col"><div class="thumb-img" aria-hidden="true">🍲</div></td>
                 <td><a href="{% url 'admin:recipes_recipe_change' obj.pk %}" class="id-link {% if obj.is_flagged %}danger{% endif %}">{{ obj.pk }}</a></td>
                 <td><span class="recipe-title {% if obj.is_flagged %}xss{% endif %}">{{ obj.title|default:''|escape }}</span></td>
