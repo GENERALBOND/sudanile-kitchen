@@ -49,9 +49,9 @@ urlpatterns = [
     # Direct category admin URL path
     path('admin/category/', category_admin.changelist_view, name='admin_category_changelist'),
     path('admin/category/add/', category_admin.add_view, name='admin_category_add'),
-    path('admin/category/<int:object_id>/change/', category_admin.change_view, name='admin_category_change'),
-    path('admin/category/<int:object_id>/delete/', category_admin.delete_view, name='admin_category_delete'),
-    path('admin/category/<int:object_id>/history/', category_admin.history_view, name='admin_category_history'),
+    path('admin/category/<path:object_id>/change/', category_admin.change_view, name='admin_category_change'),
+    path('admin/category/<path:object_id>/delete/', category_admin.delete_view, name='admin_category_delete'),
+    path('admin/category/<path:object_id>/history/', category_admin.history_view, name='admin_category_history'),
     # Direct submissions admin alias path
     path('admin/submissions/', RedirectView.as_view(pattern_name='admin:submissions_recipesubmission_changelist', query_string=True, permanent=False)),
     # Logout — accepts GET/POST and redirects to the landing page

@@ -1,0 +1,326 @@
+{% load admin_urls %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delete {% if object %}{{ opts.verbose_name|capfirst }}{% else %}{{ objects_name }}{% endif %} | Sudanile Kitchen Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f0ede6;
+      --surface-1: #f7f5f0;
+      --surface-2: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-strong: rgba(0,0,0,0.18);
+      --border-success: #9bcfaa;
+      --border-danger: #f4b8b8;
+      --border-warning: #f5d48a;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5955;
+      --text-muted: #8a8880;
+      --text-success: #276738;
+      --text-danger: #9c2424;
+      --text-warning: #7a4f0a;
+      --text-accent: #1a4f8a;
+      --bg-success: #eaf3de;
+      --bg-danger: #fcebeb;
+      --bg-warning: #faeeda;
+      --bg-accent: #e6f1fb;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18;
+        --surface-1: #242422;
+        --surface-2: #2e2e2b;
+        --border: rgba(255,255,255,0.1);
+        --border-strong: rgba(255,255,255,0.18);
+        --border-success: #1e5e30;
+        --border-danger: #7a2020;
+        --border-warning: #6b4209;
+        --text-primary: #f0ede6;
+        --text-secondary: #aaa89f;
+        --text-muted: #787570;
+        --text-success: #6fcf89;
+        --text-danger: #f08080;
+        --text-warning: #f0c060;
+        --text-accent: #80b8f0;
+        --bg-success: #173404;
+        --bg-danger: #501313;
+        --bg-warning: #412402;
+        --bg-accent: #042c53;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 0.5px solid var(--border); }
+
+    /* TOPBAR */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: #E8650A; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 17px; font-weight: 500; }
+    .topbar-brand i { font-size: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav a { color: rgba(255,255,255,0.85); font-size: 12px; text-decoration: none; padding: 5px 10px; border-radius: var(--radius); transition: background 0.12s; }
+    .topbar-nav a:hover { background: rgba(255,255,255,0.15); }
+    .topbar-nav .sep { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    /* LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 80px); background: var(--surface-0); }
+
+    /* SIDEBAR */
+    .sidebar { width: 210px; flex-shrink: 0; background: var(--surface-2); border-right: 0.5px solid var(--border); padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); padding: 10px 20px 4px; }
+    .sidebar-section { padding: 0 10px; }
+    .sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.12s, color 0.12s; border-left: 2px solid transparent; }
+    .sidebar-item:hover { background: var(--surface-1); color: var(--text-primary); }
+    .sidebar-item.active { background: #fff3e0; color: #E8650A; border-left-color: #E8650A; font-weight: 500; }
+    .sidebar-item i { font-size: 15px; flex-shrink: 0; }
+    .sidebar-divider { height: 0.5px; background: var(--border); margin: 6px 12px; }
+    .sidebar-sys { opacity: 0.72; }
+
+    /* MAIN */
+    .main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* BREADCRUMB */
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: #E8650A; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* PAGE HEADER */
+    .page-header { display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .back-btn { display: flex; align-items: center; gap: 6px; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 14px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.12s; }
+    .back-btn:hover { background: var(--surface-0); border-color: var(--border-strong); }
+
+    /* CONFIRM CARD */
+    .confirm-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 24px; max-width: 760px; }
+    .confirm-banner { display: flex; align-items: flex-start; gap: 12px; background: var(--bg-danger); border: 0.5px solid var(--border-danger); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 18px; }
+    .confirm-banner i { font-size: 18px; color: var(--text-danger); flex-shrink: 0; margin-top: 1px; }
+    .confirm-banner p { font-size: 13px; color: var(--text-danger); line-height: 1.5; }
+    .confirm-banner strong { color: var(--text-danger); }
+    .confirm-banner.warning { background: var(--bg-warning); border-color: var(--border-warning); }
+    .confirm-banner.warning i, .confirm-banner.warning p, .confirm-banner.warning strong { color: var(--text-warning); }
+
+    .object-summary { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+    .object-summary .obj-label { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+    .object-summary .obj-value { font-size: 14px; font-weight: 500; color: var(--text-primary); word-break: break-word; }
+
+    .count-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .count-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 11px; border-radius: 20px; background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+    .count-chip i { font-size: 12px; color: #E8650A; }
+
+    .deleted-objects { margin-bottom: 20px; }
+    .deleted-objects h3 { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .deleted-objects h3 i { color: var(--text-danger); }
+    .deleted-objects ul { list-style: none; padding: 0; margin: 0; font-size: 12px; color: var(--text-secondary); }
+    .deleted-objects ul ul { padding-left: 18px; }
+    .deleted-objects li { padding: 5px 12px; border-left: 2px solid var(--border-danger); margin-bottom: 4px; background: var(--surface-1); border-radius: 0 6px 6px 0; }
+    .deleted-objects li li { background: transparent; border-left-color: var(--border); margin-bottom: 0; }
+
+    .blocked-msg { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 14px; }
+    .blocked-list { list-style: none; padding: 0; margin: 0; }
+    .blocked-list li { font-size: 12px; color: var(--text-secondary); padding: 6px 12px; border-left: 2px solid var(--border-danger); background: var(--surface-1); border-radius: 0 6px 6px 0; margin-bottom: 4px; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.12s; text-decoration: none; font-family: var(--font-sans); }
+    .btn-danger { background: var(--text-danger); color: #fff; }
+    .btn-danger:hover { opacity: 0.88; }
+    .btn-secondary { background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface-0); border-color: var(--border-strong); }
+
+    .page-footer { text-align: center; font-size: 11px; color: var(--text-muted); padding: 12px 0 2px; border-top: 0.5px solid var(--border); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+    }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: stretch; gap: 10px; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>
+      Sudanile Kitchen Admin
+    </div>
+    <div class="topbar-right">
+      {% include 'admin/_user_greeting.html' %}
+      <nav class="topbar-nav" aria-label="Top navigation">
+        <a href="{% url 'admin:index' %}">View site</a><span class="sep">·</span>
+        <a href="{% url 'admin:logout' %}">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Admin navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Content</div>
+        <a class="sidebar-item{% if opts.app_label == 'recipes' and opts.model_name == 'recipe' %} active{% endif %}" href="{% url 'admin:recipes_recipe_changelist' %}"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i>Recipes</a>
+        <a class="sidebar-item{% if opts.app_label == 'recipes' and opts.model_name == 'category' %} active{% endif %}" href="/admin/category/"><i class="ti ti-tag" aria-hidden="true"></i>Categories</a>
+        <a class="sidebar-item{% if opts.app_label == 'submissions' %} active{% endif %}" href="/admin/submissions/"><i class="ti ti-send" aria-hidden="true"></i>Submissions</a>
+        <a class="sidebar-item{% if opts.app_label == 'reviews' %} active{% endif %}" href="{% url 'admin:reviews_review_changelist' %}"><i class="ti ti-star" aria-hidden="true"></i>Reviews</a>
+        <a class="sidebar-item{% if opts.app_label == 'favorites' %} active{% endif %}" href="{% url 'admin:favorites_favorite_changelist' %}"><i class="ti ti-heart" aria-hidden="true"></i>Favorites</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Users</div>
+        <a class="sidebar-item{% if opts.app_label == 'users' %} active{% endif %}" href="{% url 'admin:users_user_changelist' %}"><i class="ti ti-users" aria-hidden="true"></i>Users</a>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section sidebar-sys">
+        <div class="sidebar-label">System</div>
+        <a class="sidebar-item{% if opts.app_label == 'auth' %} active{% endif %}" href="{% url 'admin_auth_index' %}"><i class="ti ti-shield-lock" aria-hidden="true"></i>Authentication</a>
+        <a class="sidebar-item" href="/admin/reports/"><i class="ti ti-flag" aria-hidden="true"></i>Reports</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'admin:index' %}">Home</a>
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        {% if opts.app_label == 'recipes' and opts.model_name == 'category' %}
+          <a href="/admin/category/">Categories</a>
+        {% elif opts.app_label == 'submissions' %}
+          <a href="/admin/submissions/">Submissions</a>
+        {% elif opts.app_label == 'auth' %}
+          <a href="{% url 'admin_auth_index' %}">Authentication</a>
+        {% else %}
+          <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        {% endif %}
+        <i class="ti ti-chevron-right" style="font-size:11px;" aria-hidden="true"></i>
+        <span>Delete</span>
+      </nav>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            <i class="ti ti-trash" aria-hidden="true" style="color:var(--text-danger);font-size:20px;"></i>
+            Delete {% if object %}{{ opts.verbose_name|capfirst }}{% else %}{{ objects_name }}{% endif %}
+          </h1>
+          <p class="page-meta">
+            {% if object %}This action cannot be undone.{% else %}Delete {{ objects_name }} and everything linked to them.{% endif %}
+          </p>
+        </div>
+        {% if opts.app_label == 'recipes' and opts.model_name == 'category' %}
+          <a href="/admin/category/" class="back-btn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to categories</a>
+        {% elif opts.app_label == 'submissions' %}
+          <a href="/admin/submissions/" class="back-btn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to submissions</a>
+        {% elif opts.app_label == 'auth' %}
+          <a href="{% url 'admin_auth_index' %}" class="back-btn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to authentication</a>
+        {% else %}
+          <a href="{% url opts|admin_urlname:'changelist' %}" class="back-btn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to {{ opts.verbose_name_plural }}</a>
+        {% endif %}
+      </div>
+
+      {% if perms_lacking %}
+        <div class="confirm-card">
+          <div class="confirm-banner">
+            <i class="ti ti-shield-lock" aria-hidden="true"></i>
+            <p>
+              {% if object %}
+                Deleting the <strong>{{ object_name }}</strong> “{{ object }}” would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:
+              {% else %}
+                Deleting the selected <strong>{{ objects_name }}</strong> would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:
+              {% endif %}
+            </p>
+          </div>
+          <ul class="blocked-list">{{ perms_lacking|unordered_list }}</ul>
+        </div>
+      {% elif protected %}
+        <div class="confirm-card">
+          <div class="confirm-banner warning">
+            <i class="ti ti-lock" aria-hidden="true"></i>
+            <p>
+              {% if object %}
+                Deleting the <strong>{{ object_name }}</strong> “{{ object }}” would require deleting the following protected related objects:
+              {% else %}
+                Deleting the selected <strong>{{ objects_name }}</strong> would require deleting the following protected related objects:
+              {% endif %}
+            </p>
+          </div>
+          <ul class="blocked-list">{{ protected|unordered_list }}</ul>
+        </div>
+      {% else %}
+        <div class="confirm-card">
+          <div class="confirm-banner">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            <p>
+              {% if object %}
+                Are you sure you want to delete the <strong>{{ object_name }}</strong> “{{ object }}”? All of the following related items will be deleted:
+              {% else %}
+                Are you sure you want to delete the selected <strong>{{ objects_name }}</strong>? All of the following objects and their related items will be deleted:
+              {% endif %}
+            </p>
+          </div>
+
+          {% if object %}
+          <div class="object-summary">
+            <div class="obj-label"><i class="ti ti-tag" aria-hidden="true"></i>{{ opts.verbose_name|capfirst }}</div>
+            <div class="obj-value">{{ object }}</div>
+          </div>
+          {% endif %}
+
+          {% if model_count %}
+          <div class="count-row">
+            {% for label, count in model_count %}
+              <span class="count-chip"><i class="ti ti-list" aria-hidden="true"></i>{{ label }} · {{ count }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="deleted-objects">
+            <h3><i class="ti ti-arrow-down-right" aria-hidden="true"></i>Objects</h3>
+            {% if object %}
+              {{ deleted_objects|unordered_list }}
+            {% else %}
+              {% for deletable_object in deletable_objects %}{{ deletable_object|unordered_list }}{% endfor %}
+            {% endif %}
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            {% if object %}
+              <input type="hidden" name="post" value="yes">
+              {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
+              {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
+            {% else %}
+              {% for obj in queryset %}
+              <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+              {% endfor %}
+              <input type="hidden" name="action" value="delete_selected">
+              <input type="hidden" name="post" value="yes">
+            {% endif %}
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-danger"><i class="ti ti-trash" aria-hidden="true"></i> Yes, I'm sure</button>
+              <a href="#" class="btn btn-secondary" onclick="history.go(-1); return false;"><i class="ti ti-arrow-left" aria-hidden="true"></i> No, take me back</a>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+
+      <footer class="page-footer">
+        © 2026 Sudanile Kitchen — Preserving South Sudanese Culinary Heritage
+      </footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>
