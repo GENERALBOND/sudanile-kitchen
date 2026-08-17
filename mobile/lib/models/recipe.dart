@@ -40,6 +40,8 @@ class Recipe {
   final String? videoUrl;
   final String categoryName;
   final String authorName;
+  final List<String> mealTypes;
+  final String mealTypesDisplay;
   final double averageRating;
   final int totalReviews;
   final int viewCount;
@@ -64,11 +66,15 @@ class Recipe {
     this.videoUrl,
     required this.categoryName,
     required this.authorName,
+    this.mealTypes = const [],
+    this.mealTypesDisplay = '',
     required this.averageRating,
     required this.totalReviews,
     required this.viewCount,
     required this.createdAt,
   });
+
+  bool get isAnyTime => mealTypes.isEmpty || mealTypes.contains('any');
 
   int get totalTime {
     int totalSeconds = (prepHours * 3600) + (prepMinutes * 60) + prepSeconds +
@@ -126,6 +132,10 @@ class Recipe {
       videoUrl: json['video_url'],
       categoryName: json['category_name'] ?? '',
       authorName: json['author_name'] ?? '',
+      mealTypes: (json['meal_types'] as List<dynamic>? ?? [])
+          .map((m) => m.toString())
+          .toList(),
+      mealTypesDisplay: json['meal_types_display'] ?? '',
       averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0.0,
       totalReviews: json['total_reviews'] ?? 0,
       viewCount: json['view_count'] ?? 0,

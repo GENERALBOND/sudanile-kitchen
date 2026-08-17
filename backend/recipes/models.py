@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import User
+from config.meal_types import meal_types_display
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -46,6 +47,12 @@ class Recipe(models.Model):
     is_published = models.BooleanField(default=True)
     is_flagged = models.BooleanField(default=False)
     flagged_reason = models.TextField(blank=True, null=True)
+    meal_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='When this recipe is normally eaten. '
+                  'List of breakfast/lunch/dinner; empty = any time.',
+    )
     
     @property
     def preparation_time_seconds(self):
@@ -88,7 +95,11 @@ class Recipe(models.Model):
     @property
     def cooking_time_minutes(self):
         return self.cooking_time_seconds // 60
-    
+
+    @property
+    def meal_types_display(self):
+        return meal_types_display(self.meal_types)
+
     def __str__(self):
         return self.title
     

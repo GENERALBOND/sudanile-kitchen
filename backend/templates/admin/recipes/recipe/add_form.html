@@ -128,6 +128,10 @@
     .form-group label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
     .form-group label .required { color: var(--text-danger); margin-left: 2px; }
     .form-group .help-text { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 2px; }
+    .meal-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .meal-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; border: 0.5px solid var(--border); background: var(--surface-1); color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.12s; user-select: none; }
+    .meal-chip input { display: none; }
+    .meal-chip.checked { background: #fff3e0; color: #E8650A; border-color: #fcd5a8; font-weight: 500; }
     .form-group .error-text { font-size: 11px; color: var(--text-danger); margin-top: 2px; }
 
     .form-control { padding: 8px 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-1); color: var(--text-primary); font-size: 13px; font-family: var(--font-sans); transition: border-color 0.12s; width: 100%; }
@@ -364,6 +368,29 @@
           </div>
         </div>
 
+        <!-- Meal Time -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="ti ti-bowl-chopsticks" aria-hidden="true"></i>
+            Meal Time
+            <small>When is this recipe normally eaten?</small>
+          </div>
+          <div class="form-group full-width">
+            <div class="meal-row">
+              {% for val, label in adminform.form.meal_types.field.choices %}
+              <label class="meal-chip{% if val in adminform.form.meal_types.value %} checked{% endif %}">
+                <input type="checkbox" name="meal_types" value="{{ val }}"{% if val in adminform.form.meal_types.value %} checked{% endif %} onchange="handleMealToggle(this)" />
+                <span>{{ label }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            {% if adminform.form.meal_types.errors %}
+              <div class="error-text">{% for e in adminform.form.meal_types.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
+            {% endif %}
+            <div class="help-text">Select all meals this dish is normally eaten at, or none for any time.</div>
+          </div>
+        </div>
+
         <!-- Ingredients -->
         <div class="form-section">
           <div class="form-section-title">
@@ -457,6 +484,18 @@
     </main>
   </div>
 </div>
+
+<script>
+function handleMealToggle(cb) {
+  var any = cb.value === 'any';
+  document.querySelectorAll('input[name="meal_types"]').forEach(function(input) {
+    if (any && input.value !== 'any') input.checked = false;
+    if (!any && input.value === 'any') input.checked = false;
+    var label = input.closest('label');
+    if (label) label.classList.toggle('checked', input.checked);
+  });
+}
+</script>
 
 </body>
 </html>

@@ -7,6 +7,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.urls import path
 from .models import Category, Recipe
 from .duplicate_check import find_duplicates
+from config.meal_types import MEAL_TYPES, clean_meal_types
 
 
 class RecipeAdminForm(forms.ModelForm):
@@ -32,6 +33,12 @@ class RecipeAdminForm(forms.ModelForm):
         choices=[('draft', 'Draft'), ('published', 'Published'), ('archived', 'Archived')],
         required=False,
         initial='published',
+    )
+    meal_types = forms.MultipleChoiceField(
+        choices=MEAL_TYPES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        help_text='When is this recipe normally eaten? Select all that apply, or none for any time.',
     )
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +79,8 @@ class RecipeAdminForm(forms.ModelForm):
     class Meta:
         model = Recipe
         fields = ('title', 'description', 'cultural_info', 'author', 'category',
-                  'servings', 'difficulty', 'image_url', 'video_url')
+                  'servings', 'difficulty', 'image_url', 'video_url',
+                  'meal_types')
 
     def clean_ingredients(self):
         data = self.cleaned_data['ingredients']
@@ -81,6 +89,9 @@ class RecipeAdminForm(forms.ModelForm):
     def clean_instructions(self):
         data = self.cleaned_data['instructions']
         return [line.strip() for line in data.split('\n') if line.strip()]
+
+    def clean_meal_types(self):
+        return clean_meal_types(self.cleaned_data.get('meal_types'))
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -259,7 +270,7 @@ class RecipeAdmin(admin.ModelAdmin):
             'fields': ('ingredients', 'instructions')
         }),
         ('Media & Additional', {
-            'fields': ('servings', 'difficulty', 'image_url', 'video_url', 'is_published')
+            'fields': ('servings', 'difficulty', 'image_url', 'video_url', 'is_published', 'meal_types')
         }),
     )
 

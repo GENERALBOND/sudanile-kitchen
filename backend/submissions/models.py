@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import User
+from config.meal_types import meal_types_display
 
 class RecipeSubmission(models.Model):
     STATUS_CHOICES = [
@@ -26,10 +27,20 @@ class RecipeSubmission(models.Model):
     image_url = models.URLField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     category_name = models.CharField(max_length=100)
+    meal_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='When this recipe is normally eaten. '
+                  'List of breakfast/lunch/dinner; empty = any time.',
+    )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     admin_notes = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    @property
+    def meal_types_display(self):
+        return meal_types_display(self.meal_types)
     
     def __str__(self):
         return f"{self.title} - {self.user.email} - {self.status}"

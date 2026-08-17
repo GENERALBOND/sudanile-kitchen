@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import RecipeSubmission
+from config.meal_types import clean_meal_types
 
 ALLOWED_IMAGE_CONTENT_TYPES = {'image/jpeg', 'image/png', 'image/gif'}
 ALLOWED_IMAGE_FORMATS = {'JPEG', 'PNG', 'GIF'}
@@ -8,6 +9,7 @@ ALLOWED_IMAGE_FORMATS = {'JPEG', 'PNG', 'GIF'}
 class RecipeSubmissionSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)
     image = serializers.ImageField(required=False, allow_null=True)
+    meal_types_display = serializers.CharField(read_only=True)
 
     class Meta:
         model = RecipeSubmission
@@ -16,9 +18,13 @@ class RecipeSubmissionSerializer(serializers.ModelSerializer):
             'cultural_info', 'prep_hours', 'prep_minutes', 'prep_seconds',
             'cook_hours', 'cook_minutes', 'cook_seconds', 'servings',
             'difficulty', 'image', 'image_url', 'video_url', 'category_name',
+            'meal_types', 'meal_types_display',
             'user', 'user_name', 'status', 'admin_notes', 'submitted_at', 'reviewed_at'
         ]
         read_only_fields = ('user', 'status', 'submitted_at', 'reviewed_at')
+
+    def validate_meal_types(self, value):
+        return clean_meal_types(value)
 
     def validate_image(self, image):
         if image is None:

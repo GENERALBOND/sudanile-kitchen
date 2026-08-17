@@ -211,6 +211,33 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                       ],
                                     ),
                                   ),
+                                  if (!_recipe.isAnyTime) ...[
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.restaurant_menu,
+                                          size: 13,
+                                          color: Colors.white70,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _recipe.mealTypesDisplay,
+                                          style: TextStyle(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.8),
+                                            fontSize: 13,
+                                            shadows: const [
+                                              Shadow(
+                                                blurRadius: 6,
+                                                color: Colors.black45,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

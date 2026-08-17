@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
 import '../models/recipe.dart';
+import '../utils/meal_types.dart';
 import 'login_screen.dart';
 
 class SubmitRecipeScreen extends StatefulWidget {
@@ -49,6 +50,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   bool _isSubmitting = false;
   bool _submitted = false;
   String _selectedDifficulty = 'medium';
+  final Set<String> _selectedMeals = {};
 
   @override
   void initState() {
@@ -85,6 +87,20 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
       _pickedImage = file;
       _pickedImageBytes = bytes;
       _imageError = null;
+    });
+  }
+
+  void _toggleMeal(String key) {
+    setState(() {
+      if (_selectedMeals.contains(key)) {
+        _selectedMeals.remove(key);
+      } else if (key == anyTimeKey) {
+        _selectedMeals.clear();
+        _selectedMeals.add(anyTimeKey);
+      } else {
+        _selectedMeals.remove(anyTimeKey);
+        _selectedMeals.add(key);
+      }
     });
   }
 
@@ -185,6 +201,9 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         'servings': servings,
         'difficulty': _selectedDifficulty,
         'category_name': _selectedCategory!.name,
+        'meal_types': _selectedMeals.isEmpty
+            ? const ['any']
+            : _selectedMeals.toList(),
         'video_url': _videoUrlController.text.trim().isNotEmpty
             ? _videoUrlController.text.trim()
             : null,
@@ -265,6 +284,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                     _imageError = null;
                     _selectedCategory = null;
                     _selectedDifficulty = 'medium';
+                    _selectedMeals.clear();
                   });
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
@@ -359,6 +379,38 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                                 ? 'Please select a category'
                                 : null,
                           ),
+                    const SizedBox(height: 16),
+
+                    // Meal Time
+                    const Text(
+                      'Meal Time',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'When is this recipe normally eaten?',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: mealTypeOptions.map((option) {
+                        return FilterChip(
+                          label: Text(option.label),
+                          selected: _selectedMeals.contains(option.key),
+                          onSelected: (_) => _toggleMeal(option.key),
+                          selectedColor: Colors.orange.shade100,
+                          checkmarkColor: Colors.orange.shade800,
+                          labelStyle: TextStyle(
+                            color: _selectedMeals.contains(option.key)
+                                ? Colors.orange.shade800
+                                : null,
+                          ),
+                        );
+                      }).toList(),
+                    ),
                     const SizedBox(height: 16),
 
                     // Time & Servings Section

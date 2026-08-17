@@ -137,6 +137,7 @@ def create_recipe_on_approval(sender, instance, **kwargs):
             video_url=instance.video_url,
             category=category,
             author=instance.user,
+            meal_types=instance.meal_types,
             is_published=not bool(duplicates),
             is_flagged=bool(duplicates),
             flagged_reason=duplicates[0]['reason'] if duplicates else None,

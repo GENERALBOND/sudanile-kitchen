@@ -20,6 +20,7 @@ class RecipeService {
     String? category,
     String? difficulty,
     String? search,
+    String? mealTypes,
     String? ordering,
     int page = 1,
     bool forceRefresh = false,
@@ -29,6 +30,7 @@ class RecipeService {
       if (category != null) queryParams['category'] = category;
       if (difficulty != null) queryParams['difficulty'] = difficulty;
       if (search != null) queryParams['search'] = search;
+      if (mealTypes != null) queryParams['meal_types'] = mealTypes;
       if (ordering != null) queryParams['ordering'] = ordering;
       queryParams['page'] = page.toString();
 

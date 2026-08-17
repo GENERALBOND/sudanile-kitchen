@@ -6,6 +6,7 @@ import '../services/recipe_service.dart';
 import '../models/recipe.dart';
 import '../providers/favorites_provider.dart';
 import '../utils/category_icons.dart';
+import '../utils/meal_types.dart';
 import 'recipe_detail_screen.dart';
 import 'search_screen.dart';
 import 'favorites_screen.dart';
@@ -308,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisSpacing: 12,
                     childAspectRatio: 1.0,
                   ),
-                  itemCount: _categories.length > 4 ? 4 : _categories.length,
+                  itemCount: _categories.length > 2 ? 2 : _categories.length,
                   itemBuilder: (context, index) {
                     final category = _categories[index];
                     return _buildCategoryCard(context, category);
@@ -317,6 +318,50 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
             ],
+
+            // Meals
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Meals',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SearchScreen()),
+                      );
+                    },
+                    child: const Text('See All'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: mealTypeOptions.length,
+                itemBuilder: (context, index) {
+                  final option = mealTypeOptions[index];
+                  return _buildMealCard(context, option);
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
 
             // Latest Recipes
             if (_recentRecipes.isNotEmpty) ...[
@@ -471,6 +516,70 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildMealCard(BuildContext context, MealTypeOption option) {
+    final icon = switch (option.key) {
+      'breakfast' => Icons.free_breakfast,
+      'lunch' => Icons.lunch_dining,
+      'dinner' => Icons.dinner_dining,
+      _ => Icons.schedule,
+    };
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SearchScreen(initialMeal: option.key),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Icon(
+                icon,
+                size: 25,
+                color: Colors.orange.shade800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                option.label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildRecipeCard(BuildContext context, Recipe recipe) {
     return Container(
       decoration: BoxDecoration(
@@ -492,25 +601,51 @@ class _HomeScreenState extends State<HomeScreen> {
               topLeft: Radius.circular(12),
               topRight: Radius.circular(12),
             ),
-            child: Container(
-              height: 120,
-              width: double.infinity,
-              color: Colors.orange.shade100,
-              child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      recipe.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.restaurant,
-                        size: 50,
-                        color: Colors.orange,
+            child: Stack(
+              children: [
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  color: Colors.orange.shade100,
+                  child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          recipe.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.restaurant,
+                            size: 50,
+                            color: Colors.orange,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.restaurant,
+                          size: 50,
+                          color: Colors.orange,
+                        ),
+                ),
+                if (!recipe.isAnyTime) ...[
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade700.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    )
-                  : const Icon(
-                      Icons.restaurant,
-                      size: 50,
-                      color: Colors.orange,
+                      child: Text(
+                        recipe.mealTypesDisplay,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
+                  ),
+                ],
+              ],
             ),
           ),
           Expanded(

@@ -4,12 +4,14 @@ import '../services/recipe_service.dart';
 import '../services/search_history_service.dart';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
+import '../utils/meal_types.dart';
 import 'recipe_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? initialCategory;
+  final String? initialMeal;
 
-  const SearchScreen({super.key, this.initialCategory});
+  const SearchScreen({super.key, this.initialCategory, this.initialMeal});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -20,6 +22,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedCategory;
   String? _selectedDifficulty;
+  String? _selectedMeal;
   List<Category> _categories = [];
   List<Recipe> _suggestions = [];
   List<Recipe> _allRecipes = [];
@@ -43,6 +46,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (widget.initialCategory != null) {
       _selectedCategory = widget.initialCategory;
+    }
+
+    if (widget.initialMeal != null) {
+      _selectedMeal = widget.initialMeal;
     }
 
     _searchController.addListener(() {
@@ -115,6 +122,7 @@ class _SearchScreenState extends State<SearchScreen> {
         category: _selectedCategory,
         difficulty: _selectedDifficulty,
         search: _currentSearch,
+        mealTypes: _selectedMeal,
         ordering: _currentOrdering,
         page: pageKey,
       );
@@ -164,6 +172,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _selectedCategory = null;
       _selectedDifficulty = null;
+      _selectedMeal = null;
       _currentOrdering = '-created_at';
       _currentSearch = null;
       _searchController.clear();
@@ -217,12 +226,14 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 FilterChip(
                   label: const Text('All'),
-                  selected:
-                      _selectedCategory == null && _selectedDifficulty == null,
+                  selected: _selectedCategory == null &&
+                      _selectedDifficulty == null &&
+                      _selectedMeal == null,
                   onSelected: (_) {
                     setState(() {
                       _selectedCategory = null;
                       _selectedDifficulty = null;
+                      _selectedMeal = null;
                       _pagingController.refresh();
                     });
                   },
@@ -230,6 +241,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(width: 8),
                 if (_selectedCategory != null ||
                     _selectedDifficulty != null ||
+                    _selectedMeal != null ||
                     _currentOrdering != '-created_at')
                   FilterChip(
                     label: const Text('Clear Filters'),
@@ -277,6 +289,30 @@ class _SearchScreenState extends State<SearchScreen> {
                     PopupMenuItem(value: 'easy', child: Text('Easy')),
                     PopupMenuItem(value: 'medium', child: Text('Medium')),
                     PopupMenuItem(value: 'hard', child: Text('Hard')),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    setState(() {
+                      _selectedMeal = value == 'All' ? null : value;
+                      _pagingController.refresh();
+                    });
+                  },
+                  child: Chip(
+                    label: Text(
+                      _selectedMeal == null
+                          ? 'Meal'
+                          : mealLabel(_selectedMeal!) ?? 'Meal',
+                    ),
+                    avatar: const Icon(Icons.restaurant_menu, size: 18),
+                  ),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(value: 'All', child: Text('All Meals')),
+                    ...mealTypeOptions.map((option) => PopupMenuItem(
+                          value: option.key,
+                          child: Text(option.label),
+                        )),
                   ],
                 ),
                 const SizedBox(width: 8),

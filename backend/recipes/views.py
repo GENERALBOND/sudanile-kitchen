@@ -37,6 +37,15 @@ class RecipeListView(generics.ListAPIView):
         if difficulty:
             queryset = queryset.filter(difficulty__iexact=difficulty)
         
+        meal_types = self.request.query_params.get('meal_types')
+        if meal_types:
+            # SQLite stores JSON as text, so a quoted-key substring match is
+            # the portable way to filter array elements (JSON contains is not
+            # supported on the SQLite backend).
+            for meal_type in meal_types.split(','):
+                if meal_type:
+                    queryset = queryset.filter(meal_types__icontains=f'"{meal_type}"')
+        
         return queryset
 
 class RecipeDetailView(generics.RetrieveAPIView):

@@ -8,6 +8,7 @@ from django.utils import timezone
 from .models import RecipeSubmission
 from recipes.models import Recipe, Category
 from recipes.duplicate_check import find_duplicates
+from config.meal_types import MEAL_TYPES, clean_meal_types
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,12 @@ class SubmissionAdminForm(forms.ModelForm):
     category_name = forms.ChoiceField(
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+    meal_types = forms.MultipleChoiceField(
+        choices=MEAL_TYPES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        help_text='When is this recipe normally eaten? Select all that apply, or none for any time.',
     )
 
     class Meta:
@@ -55,6 +62,9 @@ class SubmissionAdminForm(forms.ModelForm):
     def clean_instructions(self):
         data = self.cleaned_data['instructions']
         return [line.strip() for line in data.split('\n') if line.strip()]
+
+    def clean_meal_types(self):
+        return clean_meal_types(self.cleaned_data.get('meal_types'))
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -158,6 +168,7 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
                     video_url=submission.video_url,
                     category=category,
                     author=submission.user,
+                    meal_types=submission.meal_types,
                     is_published=not bool(duplicates),
                     is_flagged=bool(duplicates),
                     flagged_reason=duplicates[0]['reason'] if duplicates else None,
@@ -218,7 +229,7 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Recipe Information', {
-            'fields': ('title', 'description', 'category_name', 'user')
+            'fields': ('title', 'description', 'category_name', 'user', 'meal_types')
         }),
         ('Preparation Time', {
             'fields': (('prep_hours', 'prep_minutes', 'prep_seconds'),)

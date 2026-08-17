@@ -255,6 +255,7 @@
     .badge-easy { background: var(--bg-success); color: var(--text-success); border: 0.5px solid var(--border-success); }
     .badge-medium { background: #fff3e0; color: #b85008; border: 0.5px solid #fcd5a8; }
     .badge-hard { background: var(--bg-danger); color: var(--text-danger); border: 0.5px solid var(--border-danger); }
+    .badge-meal { background: var(--bg-accent); color: var(--text-accent); border: 0.5px solid #b5d4f4; }
 
     /* RATING */
     .rating { display: flex; align-items: center; gap: 3px; }
@@ -433,6 +434,7 @@
                 <th>Title <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></th>
                 <th>Author</th>
                 <th>Category</th>
+                <th>Meals</th>
                 <th>Difficulty</th>
                 <th>Time <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></th>
                 <th>Rating <i class="ti ti-arrows-sort sort-icon" aria-hidden="true"></i></th>
@@ -451,6 +453,7 @@
                 <td><span class="recipe-title {% if obj.is_flagged %}xss{% endif %}">{{ obj.title|default:''|escape }}</span></td>
                 <td class="author-cell" title="{{ obj.author.email|default:'' }}">{{ obj.author.username|default:obj.author }}</td>
                 <td><span class="badge badge-maindish">{{ obj.category.name|default:'—' }}</span></td>
+                <td><span class="badge badge-meal">{{ obj.meal_types_display }}</span></td>
                 <td><span class="badge badge-none">{{ obj.difficulty|default:'—' }}</span></td>
                 <td><div class="time-cell"><i class="ti ti-clock" style="font-size:12px;" aria-hidden="true"></i>{{ obj.cooking_time_display|default:'—' }}</div></td>
                 <td>

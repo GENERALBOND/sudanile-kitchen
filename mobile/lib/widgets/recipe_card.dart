@@ -36,27 +36,54 @@ class RecipeCard extends StatelessWidget {
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.orange.shade200,
-                  child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                      ? Image.network(
-                          recipe.imageUrl!,
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
-                            Icons.restaurant,
-                            size: 40,
-                            color: Colors.orange,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      color: Colors.orange.shade200,
+                      child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
+                          ? Image.network(
+                              recipe.imageUrl!,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.restaurant,
+                                size: 40,
+                                color: Colors.orange,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.restaurant,
+                              size: 40,
+                              color: Colors.orange,
+                            ),
+                    ),
+                    if (!recipe.isAnyTime) ...[
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color:
+                                Colors.orange.shade700.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        )
-                      : const Icon(
-                          Icons.restaurant,
-                          size: 40,
-                          color: Colors.orange,
+                          child: Text(
+                            recipe.mealTypesDisplay,
+                            style: const TextStyle(
+                              fontSize: 8,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Expanded(
