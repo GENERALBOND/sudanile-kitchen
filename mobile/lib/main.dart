@@ -10,6 +10,8 @@ import 'providers/community_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
+import 'services/cache_service.dart';
+import 'services/connectivity_service.dart';
 import 'services/push_notification_service.dart';
 import 'utils/app_themes.dart';
 
@@ -18,6 +20,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Persistent disk cache (Hive) — must be ready before any screen renders so
+  // offline fallbacks have data to read. Connectivity is best-effort and
+  // fire-and-forget; the banner just appears when it becomes available.
+  await CacheService.instance.init();
+  unawaited(ConnectivityService.instance.init());
 
   // Initialise push notifications in the background. Fire-and-forget on
   // purpose: on some devices FCM's permission prompt / token fetch can block

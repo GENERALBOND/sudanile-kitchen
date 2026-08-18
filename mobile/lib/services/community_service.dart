@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import '../models/community_post.dart';
 import 'api_service.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
 
 class CommunityService {
   final ApiService _apiService = ApiService();
@@ -12,15 +14,18 @@ class CommunityService {
     String? sort,
     int page = 1,
   }) async {
+    final queryParams = <String, String>{'page': page.toString()};
+    if (userId != null) queryParams['user'] = userId.toString();
+    if (sort != null) queryParams['sort'] = sort;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+    final cacheKey = queryParams.entries
+        .map((e) => '${e.key}=${e.value}')
+        .join('&');
+
     try {
-      final queryParams = <String, String>{'page': page.toString()};
-      if (userId != null) queryParams['user'] = userId.toString();
-      if (sort != null) queryParams['sort'] = sort;
-
-      final queryString = queryParams.entries
-          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
-          .join('&');
-
       final response = await _apiService.get('/community/?$queryString');
 
       List<dynamic> results;
@@ -32,9 +37,28 @@ class CommunityService {
         results = [];
       }
 
-      return results.map((json) => CommunityPost.fromJson(json)).toList();
+      final posts =
+          results.map((json) => CommunityPost.fromJson(json)).toList();
+
+      // Persist the page + each post's detail so the feed and any post
+      // opened from it work offline.
+      await CacheService.instance.writeList(
+        'community',
+        posts.map((p) => p.toJson()).toList(),
+        key: cacheKey,
+      );
+      for (final post in posts) {
+        await CacheService.instance
+            .writeJson('community', post.id, post.toJson());
+      }
+
+      ConnectivityService.instance.reportNetworkOk();
+      return posts;
     } catch (e) {
       log('❌ Error fetching community posts: $e');
+      ConnectivityService.instance.reportNetworkError();
+      final cached = _cachedPosts(cacheKey);
+      if (cached.isNotEmpty) return cached;
       return [];
     }
   }
@@ -43,9 +67,18 @@ class CommunityService {
   Future<CommunityPost?> getPost(int postId) async {
     try {
       final response = await _apiService.get('/community/$postId/');
-      return CommunityPost.fromJson(response);
+      final post = CommunityPost.fromJson(response);
+      await CacheService.instance.writeJson('community', postId, post.toJson());
+      ConnectivityService.instance.reportNetworkOk();
+      return post;
     } catch (e) {
       log('❌ Error fetching community post: $e');
+      ConnectivityService.instance.reportNetworkError();
+      final cached = CacheService.instance.readJson('community', postId);
+      if (cached != null) {
+        log('📦 Using cached community post for $postId');
+        return CommunityPost.fromJson(cached);
+      }
       return null;
     }
   }
@@ -109,9 +142,25 @@ class CommunityService {
       final response = await _apiService.get('/community/$postId/comments/');
       final List<dynamic> data =
           response is List ? response : (response['results'] ?? []);
-      return data.map((json) => CommunityComment.fromJson(json)).toList();
+      final comments = data.map((json) => CommunityComment.fromJson(json)).toList();
+      await CacheService.instance.writeList(
+        'community_comments',
+        comments.map((c) => c.toJson()).toList(),
+        key: postId.toString(),
+      );
+      ConnectivityService.instance.reportNetworkOk();
+      return comments;
     } catch (e) {
       log('❌ Error fetching comments: $e');
+      ConnectivityService.instance.reportNetworkError();
+      final cached = CacheService.instance
+          .readList('community_comments', key: postId.toString());
+      if (cached != null) {
+        return cached
+            .map((json) =>
+                CommunityComment.fromJson(Map<String, dynamic>.from(json as Map)))
+            .toList();
+      }
       return [];
     }
   }
@@ -174,6 +223,16 @@ class CommunityService {
   String _errorMessage(Object e) {
     if (e is ApiException) return e.message;
     return e.toString().replaceFirst('Exception: ', '');
+  }
+
+  List<CommunityPost> _cachedPosts(String cacheKey) {
+    final cached =
+        CacheService.instance.readList('community', key: cacheKey);
+    if (cached == null) return [];
+    return cached
+        .map((json) =>
+            CommunityPost.fromJson(Map<String, dynamic>.from(json as Map)))
+        .toList();
   }
 
   MediaType _mediaTypeFor(XFile image) {

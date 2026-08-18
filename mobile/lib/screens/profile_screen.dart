@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 60,
                     backgroundImage: user.profilePicture != null
-                        ? NetworkImage(user.profilePicture!)
+                        ? CachedNetworkImageProvider(user.profilePicture!)
                         : null,
                     child: user.profilePicture == null
                         ? Text(

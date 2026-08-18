@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
 import 'api_service.dart';
+import 'cache_service.dart';
 
 class AuthService extends ChangeNotifier {
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
@@ -261,6 +262,9 @@ class AuthService extends ChangeNotifier {
 
     await _firebaseAuth.signOut();
     _user = null;
+    // Wipe per-user cached data (favorites, community, etc.) so it never
+    // leaks into a future session.
+    await CacheService.instance.clearAll();
     notifyListeners();
     return {'success': true};
   }
@@ -278,6 +282,9 @@ class AuthService extends ChangeNotifier {
     }
     await _firebaseAuth.signOut();
     _user = null;
+    // Wipe per-user cached data (favorites, community, etc.) so it never
+    // leaks into the next session.
+    await CacheService.instance.clearAll();
     notifyListeners();
   }
 

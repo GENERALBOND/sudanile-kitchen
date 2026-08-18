@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -351,7 +352,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundImage: user.profilePicture != null
-                            ? NetworkImage(user.profilePicture!)
+                            ? CachedNetworkImageProvider(user.profilePicture!)
                             : null,
                         child: user.profilePicture == null
                             ? Text(

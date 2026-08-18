@@ -6,6 +6,8 @@ import 'package:http_parser/http_parser.dart';
 import '../models/recipe.dart';
 import '../models/review.dart';
 import 'api_service.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
 
 class RecipeService {
   final ApiService _apiService = ApiService();
@@ -25,19 +27,21 @@ class RecipeService {
     int page = 1,
     bool forceRefresh = false,
   }) async {
+    Map<String, String> queryParams = {};
+    if (category != null) queryParams['category'] = category;
+    if (difficulty != null) queryParams['difficulty'] = difficulty;
+    if (search != null) queryParams['search'] = search;
+    if (mealTypes != null) queryParams['meal_types'] = mealTypes;
+    if (ordering != null) queryParams['ordering'] = ordering;
+    queryParams['page'] = page.toString();
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final cacheKey = _queryKey(queryParams);
+
     try {
-      Map<String, String> queryParams = {};
-      if (category != null) queryParams['category'] = category;
-      if (difficulty != null) queryParams['difficulty'] = difficulty;
-      if (search != null) queryParams['search'] = search;
-      if (mealTypes != null) queryParams['meal_types'] = mealTypes;
-      if (ordering != null) queryParams['ordering'] = ordering;
-      queryParams['page'] = page.toString();
-
-      final queryString = queryParams.entries
-          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
-          .join('&');
-
       final response = await _apiService.get('/recipes/?$queryString');
 
       List<dynamic> results;
@@ -57,21 +61,45 @@ class RecipeService {
         _lastFetchTime = DateTime.now();
       }
 
+      // Persist this page + each recipe's detail so the same view works
+      // fully offline (list render AND tapping into a recipe detail).
+      await CacheService.instance.writeList(
+        'recipe',
+        recipes.map((r) => r.toJson()).toList(),
+        key: cacheKey,
+      );
+      for (final recipe in recipes) {
+        await CacheService.instance
+            .writeJson('recipe', recipe.id, recipe.toJson());
+      }
+
+      ConnectivityService.instance.reportNetworkOk();
       return recipes;
     } catch (e) {
       log('❌ Error fetching recipes: $e');
-      return [];
+      ConnectivityService.instance.reportNetworkError();
+      return _cachedList<Recipe>('recipe', key: cacheKey, fromJson: Recipe.fromJson);
     }
   }
 
   Future<Recipe?> getRecipe(int id) async {
-    // Always fetch the live detail so ratings, view counts and any edits are
-    // reflected (a cached first-page copy would be stale).
+    // Always try the live detail first so ratings, view counts and any edits
+    // are reflected; only fall back to the persisted copy when the network
+    // is unavailable.
     try {
       final response = await _apiService.get('/recipes/$id/');
-      return Recipe.fromJson(response);
+      final recipe = Recipe.fromJson(response);
+      await CacheService.instance.writeJson('recipe', id, recipe.toJson());
+      ConnectivityService.instance.reportNetworkOk();
+      return recipe;
     } catch (e) {
       log('❌ Error fetching recipe: $e');
+      ConnectivityService.instance.reportNetworkError();
+      final cached = CacheService.instance.readJson('recipe', id);
+      if (cached != null) {
+        log('📦 Using cached recipe detail for $id');
+        return Recipe.fromJson(cached);
+      }
       return null;
     }
   }
@@ -81,10 +109,19 @@ class RecipeService {
       final response = await _apiService.get('/reviews/recipe/$recipeId/');
       final List<dynamic> data =
           response is List ? response : (response['results'] ?? []);
-      return data.map((json) => Review.fromJson(json)).toList();
+      final reviews = data.map((json) => Review.fromJson(json)).toList();
+      await CacheService.instance.writeList(
+        'review',
+        reviews.map((r) => r.toJson()).toList(),
+        key: recipeId.toString(),
+      );
+      ConnectivityService.instance.reportNetworkOk();
+      return reviews;
     } catch (e) {
       log('❌ Error fetching reviews: $e');
-      return [];
+      ConnectivityService.instance.reportNetworkError();
+      return _cachedList<Review>('review',
+          key: recipeId.toString(), fromJson: Review.fromJson);
     }
   }
 
@@ -112,10 +149,18 @@ class RecipeService {
 
       _cachedCategories =
           categoriesList.map((json) => Category.fromJson(json)).toList();
+      await CacheService.instance.writeList(
+        'category',
+        _cachedCategories.map((c) => c.toJson()).toList(),
+      );
       log('✅ Categories loaded: ${_cachedCategories.length}');
+      ConnectivityService.instance.reportNetworkOk();
       return _cachedCategories;
     } catch (e) {
       log('❌ Error fetching categories: $e');
+      ConnectivityService.instance.reportNetworkError();
+      final cached = _cachedList<Category>('category', fromJson: Category.fromJson);
+      if (cached.isNotEmpty) return cached;
       return _cachedCategories.isNotEmpty ? _cachedCategories : [];
     }
   }
@@ -170,9 +215,17 @@ class RecipeService {
         }
       }
 
+      // Persist so the Favorites tab is fully browsable offline. The cache is
+      // cleared on logout, so this never leaks between accounts.
+      await CacheService.instance
+          .writeList('favorite', favorites.map((r) => r.toJson()).toList());
+      ConnectivityService.instance.reportNetworkOk();
       return favorites;
     } catch (e) {
       log('❌ Error fetching favorites: $e');
+      ConnectivityService.instance.reportNetworkError();
+      final cached = _cachedList<Recipe>('favorite', fromJson: Recipe.fromJson);
+      if (cached.isNotEmpty) return cached;
       return [];
     }
   }
@@ -183,6 +236,10 @@ class RecipeService {
         'rating': rating,
         'comment': comment,
       });
+      // Drop the stale cached review list so the next (re)load reflects the
+      // new review instead of the old snapshot.
+      await CacheService.instance
+          .removeList('review', key: recipeId.toString());
       return true;
     } catch (e) {
       log('❌ Error submitting review: $e');
@@ -259,5 +316,27 @@ class RecipeService {
     _cachedCategories.clear();
     _lastFetchTime = null;
     log('🧹 Cache cleared');
+    CacheService.instance.clearAll();
+  }
+
+  /// Builds a stable cache key from query params (sorted so the same filter
+  /// set always maps to the same key regardless of insertion order).
+  String _queryKey(Map<String, String> params) {
+    final sorted = params.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return sorted.map((e) => '${e.key}=${e.value}').join('&');
+  }
+
+  /// Reads a persisted list as typed models, or `[]` when nothing is cached.
+  List<T> _cachedList<T>(
+    String collection, {
+    String? key,
+    required T Function(Map<String, dynamic>) fromJson,
+  }) {
+    final cached = CacheService.instance.readList(collection, key: key);
+    if (cached == null) return [];
+    return cached
+        .map((json) => fromJson(Map<String, dynamic>.from(json as Map)))
+        .toList();
   }
 }

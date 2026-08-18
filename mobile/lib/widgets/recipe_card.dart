@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../models/recipe.dart';
@@ -19,7 +20,7 @@ class RecipeCard extends StatelessWidget {
     // Preload image when widget builds
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty) {
-        precacheImage(NetworkImage(recipe.imageUrl!), context);
+        precacheImage(CachedNetworkImageProvider(recipe.imageUrl!), context);
       }
     });
 
@@ -43,12 +44,12 @@ class RecipeCard extends StatelessWidget {
                       height: 100,
                       color: Colors.orange.shade200,
                       child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                          ? Image.network(
-                              recipe.imageUrl!,
+                          ? CachedNetworkImage(
+                              imageUrl: recipe.imageUrl!,
                               width: 100,
                               height: 100,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
+                              errorWidget: (_, __, ___) => const Icon(
                                 Icons.restaurant,
                                 size: 40,
                                 color: Colors.orange,
@@ -166,12 +167,12 @@ class RecipeCard extends StatelessWidget {
                   width: double.infinity,
                   color: Colors.orange.shade200,
                   child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                      ? Image.network(
-                          recipe.imageUrl!,
+                      ? CachedNetworkImage(
+                          imageUrl: recipe.imageUrl!,
                           height: 130,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorWidget: (_, __, ___) => const Icon(
                             Icons.restaurant,
                             size: 50,
                             color: Colors.orange,

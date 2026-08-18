@@ -19,6 +19,13 @@ class Category {
       icon: json['icon'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'icon': icon,
+      };
 }
 
 class Recipe {
@@ -144,4 +151,31 @@ class Recipe {
           : DateTime.now(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'ingredients': ingredients,
+        'instructions': instructions,
+        'cultural_info': culturalInfo,
+        'prep_hours': prepHours,
+        'prep_minutes': prepMinutes,
+        'prep_seconds': prepSeconds,
+        'cook_hours': cookHours,
+        'cook_minutes': cookMinutes,
+        'cook_seconds': cookSeconds,
+        'servings': servings,
+        'difficulty': difficulty,
+        'image_url': imageUrl,
+        'video_url': videoUrl,
+        'category_name': categoryName,
+        'author_name': authorName,
+        'meal_types': mealTypes,
+        'meal_types_display': mealTypesDisplay,
+        'average_rating': averageRating,
+        'total_reviews': totalReviews,
+        'view_count': viewCount,
+        'created_at': createdAt.toIso8601String(),
+      };
 }

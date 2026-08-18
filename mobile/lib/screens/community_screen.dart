@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/community_post.dart';
@@ -280,7 +281,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
               radius: 20,
               backgroundColor: Colors.orange.shade100,
               backgroundImage: post.userProfilePicture != null
-                  ? NetworkImage(post.userProfilePicture!)
+                  ? CachedNetworkImageProvider(post.userProfilePicture!)
                   : null,
               child: post.userProfilePicture == null
                   ? Text(
@@ -472,10 +473,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
             color: Colors.orange.shade100,
             child: const Icon(Icons.food_bank, size: 60, color: Colors.orange),
           )
-        : Image.network(
-            post.imageUrl!,
+        : CachedNetworkImage(
+            imageUrl: post.imageUrl!,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
+            errorWidget: (_, __, ___) => Container(
               color: Colors.orange.shade100,
               child: const Icon(Icons.food_bank, size: 60, color: Colors.orange),
             ),

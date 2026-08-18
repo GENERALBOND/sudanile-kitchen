@@ -38,4 +38,16 @@ class Review {
           : DateTime.now(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user': user,
+        'user_name': userName,
+        'user_profile_picture': userProfilePicture,
+        'recipe': recipe,
+        'rating': rating,
+        'comment': comment,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt.toIso8601String(),
+      };
 }

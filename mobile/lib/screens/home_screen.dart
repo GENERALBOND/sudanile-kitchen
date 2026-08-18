@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
@@ -16,6 +17,7 @@ import 'submit_recipe_screen.dart';
 import 'all_categories_screen.dart';
 import 'community_screen.dart';
 import 'new_post_screen.dart';
+import '../widgets/offline_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isGuestMode;
@@ -76,14 +78,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final isGuest = widget.isGuestMode || !authService.isAuthenticated;
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: Column(
         children: [
-          _buildHomeContent(context),
-          const SearchScreen(),
-          isGuest ? _buildGuestFavorites(context) : const FavoritesScreen(),
-          const CommunityScreen(),
-          ProfileScreen(isGuestMode: isGuest),
+          const OfflineBanner(),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: [
+                _buildHomeContent(context),
+                const SearchScreen(),
+                isGuest
+                    ? _buildGuestFavorites(context)
+                    : const FavoritesScreen(),
+                const CommunityScreen(),
+                ProfileScreen(isGuestMode: isGuest),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -326,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Meals',
+                    'Meal Times',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -608,10 +619,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: double.infinity,
                   color: Colors.orange.shade100,
                   child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                      ? Image.network(
-                          recipe.imageUrl!,
+                      ? CachedNetworkImage(
+                          imageUrl: recipe.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorWidget: (_, __, ___) => const Icon(
                             Icons.restaurant,
                             size: 50,
                             color: Colors.orange,

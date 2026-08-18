@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import '../models/review.dart';
 import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
 import '../providers/favorites_provider.dart';
+import '../widgets/offline_banner.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;
@@ -127,7 +129,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         return Scaffold(
           body: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : CustomScrollView(
+              : Column(
+                  children: [
+                    const OfflineBanner(),
+                    Expanded(
+                      child: CustomScrollView(
                   slivers: [
                     // Hero Header with Image Background
                     SliverAppBar(
@@ -140,10 +146,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             // Background Image
                             _recipe.imageUrl != null &&
                                     _recipe.imageUrl!.isNotEmpty
-                                ? Image.network(
-                                    _recipe.imageUrl!,
+                                ? CachedNetworkImage(
+                                    imageUrl: _recipe.imageUrl!,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
+                                    errorWidget: (_, __, ___) => Container(
                                       color: Colors.orange.shade300,
                                       child: const Icon(
                                         Icons.restaurant,
@@ -466,7 +472,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     ),
                   ],
                 ),
-        );
+              ),
+            ],
+          ),
+      );
       },
     );
   }
@@ -520,7 +529,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               children: [
                 CircleAvatar(
                   backgroundImage: review.userProfilePicture != null
-                      ? NetworkImage(review.userProfilePicture!)
+                      ? CachedNetworkImageProvider(review.userProfilePicture!)
                       : null,
                   child: review.userProfilePicture == null
                       ? Text(

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -276,10 +277,10 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                       color: Colors.orange.shade100,
                       child: _post.imageUrl != null &&
                               _post.imageUrl!.isNotEmpty
-                          ? Image.network(
-                              _post.imageUrl!,
+                          ? CachedNetworkImage(
+                              imageUrl: _post.imageUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
+                              errorWidget: (_, __, ___) => const Icon(
                                 Icons.food_bank,
                                 size: 60,
                                 color: Colors.orange,
@@ -366,7 +367,7 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
               radius: 18,
               backgroundColor: Colors.orange.shade100,
               backgroundImage: _post.userProfilePicture != null
-                  ? NetworkImage(_post.userProfilePicture!)
+                  ? CachedNetworkImageProvider(_post.userProfilePicture!)
                   : null,
               child: _post.userProfilePicture == null
                   ? Text(
@@ -426,10 +427,10 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                 height: 48,
                 child: _post.recipeImageUrl != null &&
                         _post.recipeImageUrl!.isNotEmpty
-                    ? Image.network(
-                        _post.recipeImageUrl!,
+                    ? CachedNetworkImage(
+                        imageUrl: _post.recipeImageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
+                        errorWidget: (_, __, ___) => Icon(
                           Icons.restaurant,
                           color: Colors.orange.shade400,
                         ),
@@ -575,7 +576,7 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
               radius: 14,
               backgroundColor: Colors.orange.shade100,
               backgroundImage: comment.userProfilePicture != null
-                  ? NetworkImage(comment.userProfilePicture!)
+                  ? CachedNetworkImageProvider(comment.userProfilePicture!)
                   : null,
               child: comment.userProfilePicture == null
                   ? Text(

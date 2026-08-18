@@ -70,6 +70,22 @@ class CommunityPost {
       createdAt: createdAt,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user': userId,
+        'user_name': userName,
+        'user_profile_picture': userProfilePicture,
+        'caption': caption,
+        'image_url': imageUrl,
+        'recipe': recipeId,
+        'recipe_title': recipeTitle,
+        'recipe_image_url': recipeImageUrl,
+        'like_count': likeCount,
+        'comment_count': commentCount,
+        'is_liked_by_me': isLikedByMe,
+        'created_at': createdAt.toIso8601String(),
+      };
 }
 
 class CommunityComment {
@@ -101,6 +117,15 @@ class CommunityComment {
           : DateTime.now(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user': userId,
+        'user_name': userName,
+        'user_profile_picture': userProfilePicture,
+        'comment': comment,
+        'created_at': createdAt.toIso8601String(),
+      };
 }
 
 /// A member's public profile as returned by

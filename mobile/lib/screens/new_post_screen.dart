@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -317,12 +318,12 @@ class _NewPostScreenState extends State<NewPostScreen> {
                                 leading: recipe.imageUrl != null
                                     ? ClipRRect(
                                         borderRadius: BorderRadius.circular(4),
-                                        child: Image.network(
-                                          recipe.imageUrl!,
+                                        child: CachedNetworkImage(
+                                          imageUrl: recipe.imageUrl!,
                                           width: 40,
                                           height: 40,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
+                                          errorWidget: (_, __, ___) =>
                                               const Icon(Icons.restaurant),
                                         ),
                                       )
