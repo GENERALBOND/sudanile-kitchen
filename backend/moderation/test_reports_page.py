@@ -168,3 +168,96 @@ class ReportsPageTests(TestCase):
         self.comment.refresh_from_db()
         self.assertEqual(comment_report.status, 'resolved')
         self.assertTrue(self.comment.is_flagged)
+
+
+class ReportDetailPageTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            email='admin@example.com', username='admin@example.com', password='pw'
+        )
+        self.author = create_user(email='author@example.com')
+        self.reporter = create_user(email='reporter@example.com')
+        self.post = Post.objects.create(user=self.author, image=make_image(), caption='Flag me')
+        self.report = Report.objects.create(
+            target_type='post', post=self.post,
+            reporter=self.reporter, reason='harassment',
+        )
+
+    def login(self):
+        self.assertTrue(self.client.login(email='admin@example.com', password='pw'))
+
+    def detail_url(self, report):
+        return reverse('admin_report_detail', args=[report.pk])
+
+    def test_anonymous_redirected(self):
+        response = self.client.get(self.detail_url(self.report))
+        self.assertIn(response.status_code, (302, 403))
+
+    def test_staff_can_view_report(self):
+        self.login()
+        response = self.client.get(self.detail_url(self.report))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        for probe in ('Report #', 'Flag me', 'reporter@example.com', 'author@example.com',
+                      'Harassment or bullying', 'Moderation actions'):
+            self.assertIn(probe, content)
+
+    def test_missing_report_is_404(self):
+        self.login()
+        response = self.client.get(reverse('admin_report_detail', args=[99999]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_deleted_target_still_renders(self):
+        self.login()
+        self.post.delete()
+        self.report.refresh_from_db()
+        response = self.client.get(self.detail_url(self.report))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Flag me', response.content.decode())
+
+    def test_dismiss_from_detail_page(self):
+        self.post.is_flagged = True
+        self.post.save(update_fields=['is_flagged'])
+        Report.objects.filter(pk=self.report.pk).update(status='auto_hidden')
+        self.login()
+        response = self.client.post(self.detail_url(self.report), {'action': 'dismiss_reports'})
+        self.assertEqual(response.status_code, 302)
+        self.report.refresh_from_db()
+        self.post.refresh_from_db()
+        self.assertEqual(self.report.status, 'dismissed')
+        self.assertFalse(self.post.is_flagged)
+
+    def test_hide_content_from_detail_page(self):
+        self.login()
+        response = self.client.post(self.detail_url(self.report), {'action': 'hide_content'})
+        self.assertEqual(response.status_code, 302)
+        self.report.refresh_from_db()
+        self.post.refresh_from_db()
+        self.assertEqual(self.report.action_taken, 'hidden')
+        self.assertTrue(self.post.is_flagged)
+
+    def test_delete_content_from_detail_page(self):
+        self.login()
+        response = self.client.post(self.detail_url(self.report), {'action': 'delete_content'})
+        self.assertEqual(response.status_code, 302)
+        self.report.refresh_from_db()
+        self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
+        self.assertEqual(self.report.action_taken, 'deleted')
+        response = self.client.get(self.detail_url(self.report))
+        self.assertEqual(response.status_code, 200)
+
+    def test_save_admin_note(self):
+        self.login()
+        response = self.client.post(self.detail_url(self.report), {
+            'action': 'save_note', 'admin_note': 'Reviewed; keep an eye on this author.',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.report.refresh_from_db()
+        self.assertEqual(self.report.admin_note, 'Reviewed; keep an eye on this author.')
+
+    def test_unknown_action_redirects_without_changes(self):
+        self.login()
+        response = self.client.post(self.detail_url(self.report), {'action': 'delete_everything'})
+        self.assertEqual(response.status_code, 302)
+        self.report.refresh_from_db()
+        self.assertEqual(self.report.status, 'pending')

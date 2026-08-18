@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render
 from django.urls import path, include
 from django.views.generic import RedirectView
 from decouple import config
-from .admin_views import dashboard, auth_index, reports_index
+from .admin_views import dashboard, auth_index, reports_index, report_detail
 from recipes.admin import CategoryAdmin
 from recipes.models import Category
 from users.models import User
@@ -59,6 +59,7 @@ urlpatterns = [
     # Keep the dashboard and auth views available before the admin catch-all
     path('admin/dashboard/', dashboard, name='admin_dashboard'),
     path('admin/reports/', reports_index, name='admin_reports'),
+    path('admin/reports/<int:report_id>/', report_detail, name='admin_report_detail'),
     path('admin/authentication/', auth_index, name='admin_auth_index'),
     # Mount the Django admin at /admin/ and render the custom dashboard template
     path('admin/', admin.site.urls),

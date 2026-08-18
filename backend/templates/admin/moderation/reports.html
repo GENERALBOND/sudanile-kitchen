@@ -357,7 +357,7 @@
               {% for report in reports %}
               <tr class="{% if report.status == 'pending' %}row-pending{% elif report.status == 'auto_hidden' %}row-danger{% endif %}">
                 <td class="chk"><input type="checkbox" name="report_ids" value="{{ report.pk }}" class="action-select" aria-label="Select report {{ report.pk }}" /></td>
-                <td><a href="/admin/moderation/report/{{ report.pk }}/change/" class="id-link">{{ report.pk }}</a></td>
+                <td><a href="{% url 'admin_report_detail' report.pk %}" class="id-link">{{ report.pk }}</a></td>
                 <td>
                   <div class="target">
                     <div class="target-head">
@@ -403,7 +403,7 @@
                 <td class="date-cell">{{ report.created_at|date:'M d, Y' }} · {{ report.created_at|time:'g:i a' }}</td>
                 <td>
                   <div class="inline-actions">
-                    <a href="/admin/moderation/report/{{ report.pk }}/change/" class="act-btn view">
+                    <a href="{% url 'admin_report_detail' report.pk %}" class="act-btn view">
                       <i class="ti ti-eye" aria-hidden="true"></i>View
                     </a>
                   </div>

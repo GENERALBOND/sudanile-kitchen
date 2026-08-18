@@ -3,7 +3,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 @login_required
 @staff_member_required
@@ -114,3 +114,56 @@ def reports_index(request):
         'reports': page_obj.object_list,
     }
     return render(request, 'admin/moderation/reports.html', context)
+
+
+@login_required
+@staff_member_required
+def report_detail(request, report_id):
+    """Custom, crash-proof detail page for a single moderation report."""
+    from moderation.models import ModerationEvent, Report
+    from moderation.admin import ReportAdmin
+
+    report = get_object_or_404(
+        Report.objects.select_related('reporter', 'post', 'comment', 'post__user', 'comment__user'),
+        pk=report_id,
+    )
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        note = request.POST.get('admin_note', '').strip()
+        if action in MODERATION_ACTIONS:
+            report_admin = ReportAdmin(Report, admin.site)
+            getattr(report_admin, action)(request, Report.objects.filter(pk=report.pk))
+            report.refresh_from_db()
+            messages.success(request, f'Report #{report.pk} updated.')
+            return redirect('admin_report_detail', report_id=report.pk)
+        if action == 'save_note':
+            report.admin_note = note
+            report.save(update_fields=['admin_note', 'updated_at'])
+            messages.success(request, 'Admin note saved.')
+            return redirect('admin_report_detail', report_id=report.pk)
+        messages.warning(request, 'Choose a moderation action from the buttons below.')
+        return redirect('admin_report_detail', report_id=report.pk)
+
+    # Resolve the target author defensively so deleted content never crashes the page.
+    author = None
+    events = ModerationEvent.objects.none()
+    try:
+        author = report.target_author
+    except Exception:
+        author = None
+    if author is not None:
+        events = ModerationEvent.objects.filter(user=author).order_by('-created_at')
+
+    context = {
+        'user_email': request.user.email,
+        'report': report,
+        'author': author,
+        'events': events,
+        'active_report_count': report.report_count(),
+        'target_reports': Report.objects.filter(
+            **({'post_id': report.post_id} if report.target_type == Report.TARGET_POST
+               else {'comment_id': report.comment_id}),
+        ).exclude(pk=report.pk).order_by('-created_at')[:5],
+    }
+    return render(request, 'admin/moderation/report_detail.html', context)
