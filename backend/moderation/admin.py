@@ -1,10 +1,17 @@
+import logging
+import time
+
+from django.conf import settings
 from django.contrib import admin, messages
+from django.core.mail import send_mail
 from django.utils import timezone as dj_timezone
 from django.utils.html import format_html
 
 from notifications import push
 
 from .models import ModerationEvent, Report
+
+logger = logging.getLogger(__name__)
 
 REPORTER_ACTIONED = "Thanks — your report was reviewed and acted on."
 REPORTER_DISMISSED = "We reviewed your report and it doesn't break our rules."
@@ -17,6 +24,93 @@ def _notify_reporter(report, title, body):
 def _notify_author(author, title, body):
     if author is not None:
         push.notify_user(author, 'community_updates', title, body)
+
+
+MODERATION_EMAILS = {
+    'hidden': {
+        'subject': 'Your content was hidden - Sudanile Kitchen',
+        'action_line': 'Your content was hidden from the community feed because it goes '
+                       'against our community guidelines.',
+    },
+    'deleted': {
+        'subject': 'Your content was deleted - Sudanile Kitchen',
+        'action_line': 'Your content was deleted from the community feed because it goes '
+                       'against our community guidelines.',
+    },
+    'warned': {
+        'subject': 'Community warning - Sudanile Kitchen',
+        'action_line': 'You have received a warning because your content goes against our '
+                       'community guidelines.',
+    },
+    'banned': {
+        'subject': 'Your account has been disabled - Sudanile Kitchen',
+        'action_line': 'Your account has been disabled because of repeated violations of '
+                       'our community guidelines.',
+    },
+}
+
+
+def _notify_author_email(action_value, report):
+    """Sends a plain-text email to the content author explaining what happened.
+
+    Best-effort: a missing author/email or a failed SMTP send never breaks the
+    moderation action. Includes the report reason, any admin note and a snippet
+    of the reported content so the author knows exactly why.
+    """
+    author = report.target_author
+    if author is None or not author.email:
+        return
+    template = MODERATION_EMAILS.get(action_value)
+    if template is None:
+        return
+
+    snapshot = report.content_snapshot or ''
+    if len(snapshot) > 300:
+        snapshot = snapshot[:300] + '…'
+
+    lines = [
+        f'Hi {author.username or author.email},',
+        '',
+        template['action_line'],
+    ]
+    if report.reason:
+        lines += ['', f'Reason: {report.get_reason_display()}']
+    if report.admin_note:
+        lines += ['', f'Moderator note: {report.admin_note}']
+    if snapshot:
+        lines += ['', f'Content: "{snapshot}"']
+    if action_value == 'banned':
+        lines += ['', 'Your account will remain disabled until an admin re-enables it.']
+    lines += [
+        '',
+        'If you believe this was a mistake, reply to this email and our team will review it.',
+        '',
+        'Sudanile Kitchen',
+    ]
+
+    # Transient SMTP errors often clear on retry; each attempt is bounded by
+    # EMAIL_TIMEOUT so the total stays under gunicorn's worker timeout.
+    for attempt in (1, 2):
+        try:
+            send_mail(
+                subject=template['subject'],
+                message='\n'.join(lines),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[author.email],
+                fail_silently=False,
+            )
+            logger.info(
+                'Sent moderation email to %s (action=%s, report=%s)',
+                author.email, action_value, report.pk,
+            )
+            return
+        except Exception as exc:
+            logger.error(
+                'Failed to send moderation email to %s (attempt %s): %s',
+                author.email, attempt, exc,
+            )
+            if attempt == 1:
+                time.sleep(1)
 
 
 def _record_event(author, event_type, note):
@@ -160,6 +254,7 @@ class ReportAdmin(admin.ModelAdmin):
                 target.is_flagged = True
                 target.save(update_fields=['is_flagged'])
             _record_event(report.target_author, 'hidden', f'Post/comment hidden after report #{report.pk}.')
+            _notify_author_email('hidden', report)
             _notify_reporter(report, 'Report reviewed', REPORTER_ACTIONED)
         self.message_user(
             request, f'{len(resolved)} report(s) resolved; content hidden from the feed.', messages.SUCCESS,
@@ -170,10 +265,13 @@ class ReportAdmin(admin.ModelAdmin):
     def delete_content(self, request, queryset):
         resolved = _resolve_batch(queryset, request.user, 'resolved', 'deleted')
         for report in resolved:
+            author = report.target_author
+            # Email the author before deleting, since the FK becomes null afterwards.
+            _notify_author_email('deleted', report)
             target = report.target
             if target is not None:
                 _record_event(
-                    report.target_author, 'deleted',
+                    author, 'deleted',
                     f'Content deleted after report #{report.pk}.',
                 )
                 target.delete()
@@ -192,6 +290,7 @@ class ReportAdmin(admin.ModelAdmin):
                 author, 'warned',
                 f'Warned for report #{report.pk} ({report.get_reason_display()}).',
             )
+            _notify_author_email('warned', report)
             _notify_author(author, 'Community warning', 'Please keep posts and comments respectful.')
             _notify_reporter(report, 'Report reviewed', REPORTER_ACTIONED)
         self.message_user(
@@ -211,6 +310,7 @@ class ReportAdmin(admin.ModelAdmin):
                 )
                 author.is_active = False
                 author.save(update_fields=['is_active'])
+            _notify_author_email('banned', report)
             _notify_reporter(report, 'Report reviewed', REPORTER_ACTIONED)
         self.message_user(
             request, f'{len(resolved)} report(s) resolved; author account(s) disabled.', messages.SUCCESS,

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -261,3 +262,84 @@ class ReportDetailPageTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.report.refresh_from_db()
         self.assertEqual(self.report.status, 'pending')
+
+
+@override_settings(
+    FIREBASE_SERVICE_ACCOUNT='',
+    FIREBASE_SERVICE_ACCOUNT_JSON='',
+    FIREBASE_SERVICE_ACCOUNT_BASE64='',
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+)
+class ModerationEmailTests(TestCase):
+    """Every punitive action emails the content author with the reason."""
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            email='admin@example.com', username='admin@example.com', password='pw'
+        )
+        self.author = create_user(email='author@example.com')
+        self.reporter = create_user(email='reporter@example.com')
+        self.post = Post.objects.create(user=self.author, image=make_image(), caption='Flag me')
+        self.report = Report.objects.create(
+            target_type='post', post=self.post,
+            reporter=self.reporter, reason='harassment',
+        )
+        self.client.login(email='admin@example.com', password='pw')
+
+    def run_action(self, action):
+        return self.client.post(reverse('admin_reports'), {
+            'action': action, 'report_ids': [str(self.report.pk)],
+        })
+
+    def test_hide_content_emails_author_with_reason(self):
+        self.run_action('hide_content')
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ['author@example.com'])
+        self.assertIn('hidden', email.subject.lower())
+        self.assertIn('Harassment or bullying', email.body)
+        self.assertIn('Flag me', email.body)
+
+    def test_delete_content_emails_author(self):
+        self.run_action('delete_content')
+        self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['author@example.com'])
+        self.assertIn('deleted', mail.outbox[0].subject.lower())
+
+    def test_warn_author_emails_author(self):
+        self.run_action('warn_author')
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('warning', mail.outbox[0].subject.lower())
+
+    def test_ban_user_emails_author_with_appeal(self):
+        self.run_action('ban_user')
+        self.author.refresh_from_db()
+        self.assertFalse(self.author.is_active)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('disabled', mail.outbox[0].subject.lower())
+        self.assertIn('believe this was a mistake', mail.outbox[0].body.lower())
+
+    def test_dismiss_does_not_email_author(self):
+        self.run_action('dismiss_reports')
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_admin_note_is_included(self):
+        self.report.admin_note = 'Repeated violations of our guidelines'
+        self.report.save(update_fields=['admin_note'])
+        self.run_action('hide_content')
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Repeated violations of our guidelines', mail.outbox[0].body)
+
+    def test_comment_report_emails_comment_author(self):
+        comment = PostComment.objects.create(post=self.post, user=self.author, comment='Bad comment')
+        report = Report.objects.create(
+            target_type='comment', comment=comment,
+            reporter=self.reporter, reason='spam',
+        )
+        self.client.post(reverse('admin_reports'), {
+            'action': 'hide_content', 'report_ids': [str(report.pk)],
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['author@example.com'])
+        self.assertIn('Bad comment', mail.outbox[0].body)
