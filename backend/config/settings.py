@@ -1,3 +1,4 @@
+import logging
 import os
 import socket
 from pathlib import Path
@@ -179,3 +180,33 @@ FIREBASE_SERVICE_ACCOUNT_BASE64 = config('FIREBASE_SERVICE_ACCOUNT_BASE64', defa
 # Moderation: number of pending reports on one post/comment before it is
 # automatically hidden from the feed until a moderator reviews it.
 REPORT_AUTO_HIDE_THRESHOLD = config('REPORT_AUTO_HIDE_THRESHOLD', default=3, cast=int)
+
+# Logging: write WARNING+ (and all app-logger errors) to stdout so SMTP/email
+# failures are visible in Render's logs instead of being silently swallowed.
+# The submission/moderation code logs failed sends with logger.error().
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'submissions': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'moderation': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'notifications': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+    'root': {
+        'level': 'WARNING',
+        'handlers': ['console'],
+    },
+}

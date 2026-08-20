@@ -1,8 +1,12 @@
 import logging
+import socket
+import traceback
 
+from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django import forms
+from django.core.mail import EmailMessage, get_connection
 from django.db import transaction
 from django.utils import timezone
 from .models import RecipeSubmission
@@ -86,7 +90,7 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
     search_fields = ('title', 'user__email', 'category_name')
     readonly_fields = ('submitted_at', 'reviewed_at')
     
-    actions = ['approve_submissions', 'reject_submissions']
+    actions = ['approve_submissions', 'reject_submissions', 'send_test_email']
 
     def get_changeform_initial_data(self, request):
         return {'user': request.user}
@@ -226,6 +230,49 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
         self.message_user(request, f'Rejected {count} submission(s)', messages.WARNING)
     
     reject_submissions.short_description = "Reject selected submissions"
+    
+    def send_test_email(self, request, queryset):
+        """Sends a test email to the logged-in admin and surfaces the exact SMTP
+        error in the browser — no shell needed on Render's free tier."""
+        target = request.user.email or queryset.first().user.email if queryset.exists() else None
+        if not target:
+            self.message_user(request, 'No recipient: set an email on your admin account.', messages.ERROR)
+            return
+
+        host = settings.EMAIL_HOST
+        port = settings.EMAIL_PORT
+        try:
+            conn = get_connection(
+                backend=settings.EMAIL_BACKEND,
+                host=host,
+                port=port,
+                username=settings.EMAIL_HOST_USER,
+                password=settings.EMAIL_HOST_PASSWORD,
+                use_tls=settings.EMAIL_USE_TLS,
+                use_ssl=settings.EMAIL_USE_SSL,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                fail_silently=False,
+                timeout=getattr(settings, 'EMAIL_TIMEOUT', 5),
+            )
+            conn.open()
+            EmailMessage(
+                subject='Sudanile Kitchen test email',
+                body='This is a test email sent from the Django admin.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[target],
+                connection=conn,
+            ).send()
+            self.message_user(request, f'Test email sent to {target} via {host}:{port}.', messages.SUCCESS)
+        except Exception as exc:
+            tb = traceback.format_exc(limit=3)
+            logger.error('Test email failed: %s\n%s', exc, tb)
+            self.message_user(
+                request,
+                f'Test email FAILED to {target}: {type(exc).__name__}: {exc}',
+                messages.ERROR,
+            )
+
+    send_test_email.short_description = "Send test email to my account (SMTP check)"
     
     fieldsets = (
         ('Recipe Information', {
