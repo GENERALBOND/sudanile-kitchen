@@ -1,8 +1,17 @@
 import os
+import socket
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
 import dj_database_url
+
+# Render instances have no IPv6 route, and smtp.gmail.com resolves to an IPv6
+# address first, so SMTP connects fail with "Network is unreachable" (Errno 101).
+# Force IPv4 for outbound connections so email actually sends.
+_getaddrinfo = socket.getaddrinfo
+def _ipv4_first(*args, **kwargs):
+    return [r for r in _getaddrinfo(*args, **kwargs) if r[0] == socket.AF_INET]
+socket.getaddrinfo = _ipv4_first
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -152,7 +161,6 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@sudanile.com'
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=5, cast=int)
 
 # Templates Configuration
-import os
 TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
 
 # Firebase Cloud Messaging (push notifications).
