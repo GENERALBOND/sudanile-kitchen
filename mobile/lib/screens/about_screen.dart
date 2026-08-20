@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/recipe_service.dart';
+import '../utils/app_themes.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -115,7 +116,7 @@ class _AboutScreenState extends State<AboutScreen> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: context.appColors.chipBg,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -308,10 +309,10 @@ class _AboutScreenState extends State<AboutScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.orange.shade100,
+              color: context.appColors.iconCircleBg,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: Colors.orange.shade800, size: 20),
+            child: Icon(icon, color: context.appColors.iconCircleFg, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -352,8 +353,11 @@ class _AboutScreenState extends State<AboutScreen> {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: Colors.orange.shade200,
-            child: Text(name[0], style: const TextStyle(fontSize: 24, color: Colors.orange)),
+            backgroundColor: context.appColors.iconCircleBg,
+            child: Text(name[0],
+                style: TextStyle(
+                    fontSize: 24,
+                    color: context.appColors.iconCircleFg)),
           ),
           const SizedBox(width: 12),
           Expanded(

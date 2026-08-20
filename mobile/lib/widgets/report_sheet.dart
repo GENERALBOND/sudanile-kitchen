@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/community_service.dart';
+import '../utils/app_themes.dart';
 
 /// Opens the report bottom sheet for a community post or comment.
 ///
@@ -141,10 +142,10 @@ class _ReportSheetState extends State<_ReportSheet> {
                 onSelected: (value) {
                   setState(() => _selectedReason = value ? r.$1 : null);
                 },
-                selectedColor: Colors.orange.shade100,
+                selectedColor: context.appColors.chipBg,
                 labelStyle: TextStyle(
                   fontSize: 13,
-                  color: selected ? Colors.orange.shade900 : null,
+                  color: selected ? context.appColors.chipFg : null,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               );

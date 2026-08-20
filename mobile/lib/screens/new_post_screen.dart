@@ -8,6 +8,7 @@ import '../models/recipe.dart';
 import '../providers/community_provider.dart';
 import '../services/auth_service.dart';
 import '../services/community_service.dart';
+import '../utils/app_themes.dart';
 import '../services/recipe_service.dart';
 import 'login_screen.dart';
 
@@ -172,10 +173,10 @@ class _NewPostScreenState extends State<NewPostScreen> {
                       height: 260,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
+                        color: context.appColors.chipBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.orange.shade200,
+                          color: context.appColors.chipBorder,
                           width: 1.5,
                         ),
                       ),
@@ -193,7 +194,7 @@ class _NewPostScreenState extends State<NewPostScreen> {
                                 Icon(
                                   Icons.add_a_photo,
                                   size: 50,
-                                  color: Colors.orange.shade400,
+                                  color: context.appColors.chipFg,
                                 ),
                                 const SizedBox(height: 8),
                                 const Text(

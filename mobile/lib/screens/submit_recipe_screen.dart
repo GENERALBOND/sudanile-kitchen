@@ -7,6 +7,7 @@ import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
 import '../models/recipe.dart';
 import '../utils/meal_types.dart';
+import '../utils/app_themes.dart';
 import 'login_screen.dart';
 
 class SubmitRecipeScreen extends StatefulWidget {
@@ -401,11 +402,11 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                           label: Text(option.label),
                           selected: _selectedMeals.contains(option.key),
                           onSelected: (_) => _toggleMeal(option.key),
-                          selectedColor: Colors.orange.shade100,
-                          checkmarkColor: Colors.orange.shade800,
+                          selectedColor: context.appColors.chipBg,
+                          checkmarkColor: context.appColors.chipFg,
                           labelStyle: TextStyle(
                             color: _selectedMeals.contains(option.key)
-                                ? Colors.orange.shade800
+                                ? context.appColors.chipFg
                                 : null,
                           ),
                         );
@@ -596,10 +597,10 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                         height: 160,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
+                          color: context.appColors.chipBg,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.orange.shade200,
+                            color: context.appColors.chipBorder,
                             width: 1.5,
                           ),
                         ),
@@ -617,7 +618,7 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                                   Icon(
                                     Icons.add_a_photo,
                                     size: 40,
-                                    color: Colors.orange.shade400,
+                                    color: context.appColors.chipFg,
                                   ),
                                   const SizedBox(height: 8),
                                   const Text(

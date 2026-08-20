@@ -7,6 +7,7 @@ import '../providers/community_provider.dart';
 import '../services/auth_service.dart';
 import '../services/community_service.dart';
 import '../services/recipe_service.dart';
+import '../utils/app_themes.dart';
 import '../widgets/report_sheet.dart';
 import 'recipe_detail_screen.dart';
 import 'user_profile_screen.dart';
@@ -365,7 +366,7 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: Colors.orange.shade100,
+              backgroundColor: context.appColors.iconCircleBg,
               backgroundImage: _post.userProfilePicture != null
                   ? CachedNetworkImageProvider(_post.userProfilePicture!)
                   : null,
@@ -374,9 +375,9 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
                       _post.userName.isNotEmpty
                           ? _post.userName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 16,
-                          color: Colors.orange,
+                          color: context.appColors.iconCircleFg,
                           fontWeight: FontWeight.bold),
                     )
                   : null,
@@ -414,9 +415,9 @@ class _CommunityPostDetailScreenState extends State<CommunityPostDetailScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
+          color: context.appColors.chipBg,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.orange.shade200),
+          border: Border.all(color: context.appColors.chipBorder),
         ),
         child: Row(
           children: [

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/community_post.dart';
 import '../providers/community_provider.dart';
 import '../services/community_service.dart';
+import '../utils/app_themes.dart';
 import 'community_post_detail_screen.dart';
 
 /// A member's profile page in the community: avatar, bio, public stats and
@@ -84,7 +85,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_profile?.username ?? widget.userName ?? 'Profile'),
-        backgroundColor: Colors.orange,
       ),
       body: Consumer<CommunityProvider>(
         builder: (context, provider, _) {
@@ -174,7 +174,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.orange.shade50, Colors.white],
+          colors: [
+            context.appColors.headerGradientTop,
+            context.appColors.headerGradientBottom,
+          ],
         ),
         border: Border(
           bottom: BorderSide(color: Theme.of(context).dividerColor),
@@ -231,7 +234,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Center(
               child: CircleAvatar(
                 radius: 45,
-                backgroundColor: Colors.orange.shade100,
+                backgroundColor: context.appColors.iconCircleBg,
                 backgroundImage: profile!.profilePicture != null
                     ? CachedNetworkImageProvider(profile.profilePicture!)
                     : null,
@@ -266,14 +269,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade100,
+                      color: context.appColors.dangerChipBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Admin',
                       style: TextStyle(
                           fontSize: 11,
-                          color: Colors.red,
+                          color: context.appColors.dangerChipFg,
                           fontWeight: FontWeight.w600),
                     ),
                   ),

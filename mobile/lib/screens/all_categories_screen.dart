@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/recipe_service.dart';
 import '../models/recipe.dart';
 import '../utils/category_icons.dart';
+import '../utils/app_themes.dart';
 import 'search_screen.dart';
 
 class AllCategoriesScreen extends StatefulWidget {
@@ -81,13 +82,13 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                               width: 70,
                               height: 70,
                               decoration: BoxDecoration(
-                                color: Colors.orange.shade100,
+                                color: context.appColors.iconCircleBg,
                                 borderRadius: BorderRadius.circular(35),
                               ),
                               child: Icon(
                                 categoryIcon(category.icon, category.name),
                                 size: 35,
-                                color: Colors.orange.shade800,
+                                color: context.appColors.iconCircleFg,
                               ),
                             ),
                             const SizedBox(height: 12),

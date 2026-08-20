@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/community_post.dart';
 import '../providers/community_provider.dart';
 import '../services/auth_service.dart';
+import '../utils/app_themes.dart';
 import '../widgets/report_sheet.dart';
 import 'community_post_detail_screen.dart';
 import 'user_profile_screen.dart';
@@ -81,7 +82,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Community'),
-        backgroundColor: Colors.orange,
         actions: [
           IconButton(
             tooltip: 'My Posts',
@@ -279,7 +279,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundColor: Colors.orange.shade100,
+              backgroundColor: context.appColors.iconCircleBg,
               backgroundImage: post.userProfilePicture != null
                   ? CachedNetworkImageProvider(post.userProfilePicture!)
                   : null,
@@ -359,21 +359,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
+          color: context.appColors.chipBg,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.orange.shade200),
+          border: Border.all(color: context.appColors.chipBorder),
         ),
         child: Row(
           children: [
-            Icon(Icons.restaurant, size: 14, color: Colors.orange.shade700),
+            Icon(Icons.restaurant,
+                size: 14, color: context.appColors.chipFg),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
                 post.recipeTitle ?? 'View recipe',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.orange),
+                    color: context.appColors.chipFg),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

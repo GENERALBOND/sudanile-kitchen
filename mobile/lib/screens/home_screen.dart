@@ -8,6 +8,7 @@ import '../models/recipe.dart';
 import '../providers/favorites_provider.dart';
 import '../utils/category_icons.dart';
 import '../utils/meal_types.dart';
+import '../utils/app_themes.dart';
 import 'recipe_detail_screen.dart';
 import 'search_screen.dart';
 import 'favorites_screen.dart';
@@ -15,6 +16,7 @@ import 'profile_screen.dart';
 import 'login_screen.dart';
 import 'submit_recipe_screen.dart';
 import 'all_categories_screen.dart';
+import 'all_meal_times_screen.dart';
 import 'community_screen.dart';
 import 'new_post_screen.dart';
 import '../widgets/offline_banner.dart';
@@ -124,7 +126,9 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _selectedIndex == 4
+          ? null
+          : FloatingActionButton(
         onPressed: () {
           if (isGuest) {
             _showLoginRequiredDialog();
@@ -308,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GridView.builder(
@@ -316,9 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.0,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 1.25,
                   ),
                   itemCount: _categories.length > 2 ? 2 : _categories.length,
                   itemBuilder: (context, index) {
@@ -327,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
             ],
 
             // Meals
@@ -345,7 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SearchScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const AllMealTimesScreen()),
                       );
                     },
                     child: const Text('See All'),
@@ -353,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: GridView.builder(
@@ -361,18 +366,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1.25,
                 ),
-                itemCount: mealTypeOptions.length,
+                itemCount: mealTypeOptions.length > 2
+                    ? 2
+                    : mealTypeOptions.length,
                 itemBuilder: (context, index) {
                   final option = mealTypeOptions[index];
                   return _buildMealCard(context, option);
                 },
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Latest Recipes
             if (_recentRecipes.isNotEmpty) ...[
@@ -399,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GridView.builder(
@@ -407,9 +414,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.8,
                   ),
                   itemCount: _recentRecipes.length,
                   itemBuilder: (context, index) {
@@ -495,26 +502,26 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 50,
-              height: 50,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: Colors.orange.shade100,
-                borderRadius: BorderRadius.circular(25),
+                color: context.appColors.iconCircleBg,
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
                 categoryIcon(category.icon, category.name),
-                size: 25,
-                color: Colors.orange.shade800,
+                size: 20,
+                color: context.appColors.iconCircleFg,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 category.name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
@@ -559,26 +566,26 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 50,
-              height: 50,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: Colors.orange.shade100,
-                borderRadius: BorderRadius.circular(25),
+                color: context.appColors.iconCircleBg,
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
                 icon,
-                size: 25,
-                color: Colors.orange.shade800,
+                size: 20,
+                color: context.appColors.iconCircleFg,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 option.label,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
@@ -615,7 +622,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Stack(
               children: [
                 Container(
-                  height: 120,
+                  height: 90,
                   width: double.infinity,
                   color: Colors.orange.shade100,
                   child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
@@ -624,13 +631,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           fit: BoxFit.cover,
                           errorWidget: (_, __, ___) => const Icon(
                             Icons.restaurant,
-                            size: 50,
+                            size: 40,
                             color: Colors.orange,
                           ),
                         )
                       : const Icon(
                           Icons.restaurant,
-                          size: 50,
+                          size: 40,
                           color: Colors.orange,
                         ),
                 ),
@@ -661,14 +668,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     recipe.title,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 2,
@@ -704,14 +711,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: context.appColors.chipBg,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       recipe.categoryName,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.orange.shade700,
+                        color: context.appColors.chipFg,
                       ),
                     ),
                   ),

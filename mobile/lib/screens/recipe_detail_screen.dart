@@ -7,6 +7,7 @@ import '../models/recipe.dart';
 import '../models/review.dart';
 import '../services/recipe_service.dart';
 import '../services/auth_service.dart';
+import '../utils/app_themes.dart';
 import '../providers/favorites_provider.dart';
 import '../widgets/offline_banner.dart';
 
@@ -341,10 +342,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade50,
+                                  color: context.appColors.chipBg,
                                   borderRadius: BorderRadius.circular(12),
-                                  border:
-                                      Border.all(color: Colors.orange.shade200),
+                                  border: Border.all(
+                                      color: context.appColors.chipBorder),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,13 +353,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     Row(
                                       children: [
                                         Icon(Icons.history_edu,
-                                            color: Colors.orange.shade700),
+                                            color: context.appColors.chipFg),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Cultural Information',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.orange.shade700,
+                                            color: context.appColors.chipFg,
                                           ),
                                         ),
                                       ],
@@ -499,10 +500,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.orange.shade100,
+            color: context.appColors.iconCircleBg,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.orange.shade800),
+          child: Icon(icon, color: context.appColors.iconCircleFg),
         ),
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),

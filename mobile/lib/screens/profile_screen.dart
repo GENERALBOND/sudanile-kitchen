@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../utils/app_themes.dart';
 import '../providers/favorites_provider.dart';
 import 'login_screen.dart';
 import 'account_settings_screen.dart';
@@ -74,13 +75,17 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: authService.isAdmin ? Colors.red.shade100 : Colors.orange.shade100,
+                      color: authService.isAdmin
+                          ? context.appColors.dangerChipBg
+                          : context.appColors.chipBg,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       authService.isAdmin ? 'Administrator' : 'Member',
                       style: TextStyle(
-                        color: authService.isAdmin ? Colors.red.shade800 : Colors.orange.shade800,
+                        color: authService.isAdmin
+                            ? context.appColors.dangerChipFg
+                            : context.appColors.chipFg,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -170,7 +175,7 @@ class ProfileScreen extends StatelessWidget {
 
             if (authService.isAdmin) ...[
               Card(
-                color: Colors.orange.shade50,
+                color: context.appColors.chipBg,
                 child: ListTile(
                   leading: const Icon(Icons.admin_panel_settings, color: Colors.orange),
                   title: const Text('Admin Dashboard'),
@@ -184,11 +189,13 @@ class ProfileScreen extends StatelessWidget {
 
             // Sign Out Button
             Card(
-              color: Colors.red.shade50,
+              color: context.appColors.dangerChipBg,
               child: ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
-                trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                leading: Icon(Icons.logout, color: context.appColors.dangerChipFg),
+                title: Text('Sign Out',
+                    style: TextStyle(color: context.appColors.dangerChipFg)),
+                trailing:
+                    Icon(Icons.chevron_right, color: context.appColors.dangerChipFg),
                 onTap: () async {
                   final favProvider =
                       Provider.of<FavoritesProvider>(context, listen: false);

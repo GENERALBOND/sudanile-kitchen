@@ -114,21 +114,37 @@ class RecipeCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             '(${recipe.totalReviews})',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                          Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             recipe.totalTimeDisplay,
                             style: const TextStyle(fontSize: 12),
                           ),
                           const SizedBox(width: 12),
-                          const Icon(Icons.people, size: 14, color: Colors.grey),
+                          Icon(
+                            Icons.people,
+                            size: 14,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '${recipe.servings}',
@@ -211,14 +227,22 @@ class RecipeCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '(${recipe.totalReviews})',
-                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                        Icon(
+                          Icons.access_time,
+                          size: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           recipe.totalTimeDisplay,
