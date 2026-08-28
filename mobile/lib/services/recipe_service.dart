@@ -19,6 +19,10 @@ class RecipeService {
   DateTime? _lastFetchTime;
   static const Duration _cacheDuration = Duration(minutes: 5);
 
+  // Guards the one-at-a-time guarantee for the background catalog prefetch.
+  bool _prefetching = false;
+  static bool _prefetchScheduled = false;
+
   Future<List<Recipe>> getRecipes({
     String? category,
     String? difficulty,
@@ -74,13 +78,117 @@ class RecipeService {
             .writeJson('recipe', recipe.id, recipe.toJson());
       }
 
+      // Merge this page into the persistent pool so filters / search / sort
+      // still work offline over recipes the user has already seen.
+      await _mergePool(recipes);
+
       ConnectivityService.instance.reportNetworkOk();
       return recipes;
     } catch (e) {
       log('❌ Error fetching recipes: $e');
       ConnectivityService.instance.reportNetworkError();
-      return _cachedList<Recipe>('recipe', key: cacheKey, fromJson: Recipe.fromJson);
+      // Exact query-keyed snapshot first (fast path, byte-identical to what
+      // was originally served online)...
+      final exact =
+          _cachedList<Recipe>('recipe', key: cacheKey, fromJson: Recipe.fromJson);
+      if (exact.isNotEmpty) return exact;
+      // ...otherwise apply the requested category/difficulty/meal/search/sort
+      // locally to the persistent recipe pool so filters respond offline even
+      // for combinations that were never fetched before.
+      final pool = _readPool();
+      if (pool.isNotEmpty) {
+        final filtered = _filterLocally(pool,
+            category: category,
+            difficulty: difficulty,
+            search: search,
+            mealTypes: mealTypes);
+        return _pageList(_sortLocally(filtered, ordering), page);
+      }
+      return const [];
     }
+  }
+
+  /// The full set of recipes currently persisted for offline use — the merged
+  /// pool of everything fetched this session or earlier sessions.
+  Future<List<Recipe>> getCachedRecipes() async => _readPool();
+
+  /// Fetches every page of the published recipe catalog and merges it into
+  /// the offline pool, rooting off the DRF `count` returned by page 1 (so the
+  /// whole catalog is browsable/filterable offline, not just what was seen).
+  /// Background fire-and-forget: partial results are fine on failure, and it
+  /// never touches the offline banner — the app's regular requests already
+  /// report real connectivity problems.
+  Future<void> prefetchAllForOffline() async {
+    if (_prefetching) return;
+    _prefetching = true;
+    var fetched = 0;
+    try {
+      final first = await _apiService.get('/recipes/?page=1');
+
+      // Unpaginated fallback — shouldn't happen with DRF settings, but be safe.
+      List<dynamic> results;
+      if (first is List) {
+        results = first;
+      } else if (first is Map && first['results'] is List) {
+        results = first['results'] as List;
+      } else {
+        results = const [];
+      }
+      if (results.isEmpty) return;
+
+      await _absorbPage(results);
+      fetched += results.length;
+
+      final count = first is Map ? (first['count'] as num?)?.toInt() ?? 0 : 0;
+      final pageSize = results.length;
+      final totalPages = count > 0 ? (count / pageSize).ceil() : 1;
+
+      for (var page = 2; page <= totalPages; page++) {
+        final response = await _apiService.get('/recipes/?page=$page');
+        final items = response is Map && response['results'] is List
+            ? response['results'] as List
+            : <dynamic>[];
+        if (items.isEmpty) break;
+        await _absorbPage(items);
+        fetched += items.length;
+        if (fetched >= count) break;
+      }
+      log('🗄️ Prefetched $fetched recipes for offline use');
+    } catch (e) {
+      // Transient failure mid-sync is fine — keep whatever pages made it.
+      log('❌ Recipe prefetch incomplete at $fetched: $e');
+    } finally {
+      _prefetching = false;
+    }
+  }
+
+  /// Merges a fetched page's recipes into the pool and caches each detail so
+  /// tapping any recipe works offline too.
+  Future<void> _absorbPage(List<dynamic> results) async {
+    final recipes = results
+        .map((json) => Recipe.fromJson(Map<String, dynamic>.from(json as Map)))
+        .toList();
+    for (final recipe in recipes) {
+      await CacheService.instance.writeJson('recipe', recipe.id, recipe.toJson());
+    }
+    await _mergePool(recipes);
+  }
+
+  /// Syncs the full catalog the first time the app is online in this session.
+  /// Safe to call at startup: if the device is offline it simply waits until
+  /// connectivity returns, then runs [prefetchAllForOffline] once.
+  static void prefetchWhenOnline() {
+    if (_prefetchScheduled) return;
+    _prefetchScheduled = true;
+
+    void maybeStart() {
+      if (ConnectivityService.instance.isOffline.value) return;
+      ConnectivityService.instance.isOffline.removeListener(maybeStart);
+      unawaited(RecipeService().prefetchAllForOffline());
+    }
+
+    maybeStart();
+    ConnectivityService.instance.isOffline.addListener(maybeStart);
   }
 
   Future<Recipe?> getRecipe(int id) async {
@@ -375,4 +483,108 @@ class RecipeService {
         .map((json) => fromJson(Map<String, dynamic>.from(json as Map)))
         .toList();
   }
+
+  /// Reads the persistent recipe pool (recipes merged from every fetch).
+  List<Recipe> _readPool() =>
+      _cachedList<Recipe>('recipe', key: 'pool', fromJson: Recipe.fromJson);
+
+  /// Merges a freshly fetched page into the pool, de-duplicated by id so
+  /// repeating the same filter never grows it.
+  Future<void> _mergePool(List<Recipe> recipes) async {
+    if (recipes.isEmpty) return;
+    final byId = <int, Recipe>{
+      for (final r in _readPool()) r.id: r,
+      for (final r in recipes) r.id: r,
+    };
+    await CacheService.instance.writeList(
+      'recipe',
+      byId.values.map((r) => r.toJson()).toList(),
+      key: 'pool',
+    );
+  }
+
+  /// Applies the same category/difficulty/meal/search semantics the backend
+  /// uses server-side, but locally, so offline results match online ones.
+  List<Recipe> _filterLocally(
+    List<Recipe> all, {
+    String? category,
+    String? difficulty,
+    String? search,
+    String? mealTypes,
+  }) {
+    var list = all;
+    if (category != null) {
+      list = list
+          .where((r) => r.categoryName.toLowerCase() == category.toLowerCase())
+          .toList();
+    }
+    if (difficulty != null) {
+      list = list
+          .where((r) => r.difficulty.toLowerCase() == difficulty.toLowerCase())
+          .toList();
+    }
+    if (mealTypes != null) {
+      final wanted = mealTypes
+          .split(',')
+          .map((m) => m.trim())
+          .where((m) => m.isNotEmpty)
+          .toList();
+      if (wanted.isNotEmpty) {
+        list = list.where((r) {
+          final has = r.mealTypes.map((m) => m.toLowerCase()).toSet();
+          return wanted.every((w) => has.contains(w.toLowerCase()));
+        }).toList();
+      }
+    }
+    if (search != null && search.trim().isNotEmpty) {
+      final q = search.trim().toLowerCase();
+      list = list.where((r) {
+        return r.title.toLowerCase().contains(q) ||
+            r.description.toLowerCase().contains(q) ||
+            r.culturalInfo.toLowerCase().contains(q) ||
+            _flattenIngredients(r).contains(q);
+      }).toList();
+    }
+    return list;
+  }
+
+  /// Mirrors the backend's OrderingFilter for the orderings the app offers.
+  List<Recipe> _sortLocally(List<Recipe> list, String? ordering) {
+    final copy = [...list];
+    switch (ordering) {
+      case 'created_at':
+        copy.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      case '-created_at':
+        copy.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case '-average_rating':
+        copy.sort((a, b) {
+          final c = b.averageRating.compareTo(a.averageRating);
+          return c != 0 ? c : b.createdAt.compareTo(a.createdAt);
+        });
+      case '-view_count':
+        copy.sort((a, b) {
+          final c = b.viewCount.compareTo(a.viewCount);
+          return c != 0 ? c : b.createdAt.compareTo(a.createdAt);
+        });
+      default:
+        copy.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+    return copy;
+  }
+
+  /// Slices a locally-filtered result set into the same page size the app
+  /// already uses to detect the last page (`recipes.length < 10`).
+  List<Recipe> _pageList(List<Recipe> list, int page, {int pageSize = 10}) {
+    final start = (page - 1) * pageSize;
+    if (start >= list.length) return [];
+    final end = (start + pageSize).clamp(0, list.length);
+    return list.sublist(start, end);
+  }
+
+  /// Ingredients can be a mix of strings and maps (e.g. an
+  /// `{ingredient, amount}` shape) — flatten all of it to text for search.
+  String _flattenIngredients(Recipe recipe) => recipe.ingredients
+      .map((i) => i is Map ? i.values.join(' ') : i.toString())
+      .join(' ')
+      .toLowerCase();
 }

@@ -73,7 +73,13 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _loadAllRecipes() async {
-    _allRecipes = await _recipeService.getRecipes();
+    // Prefer the persisted pool so suggestions also work offline over every
+    // recipe the user has seen; fall back to a live fetch when nothing is
+    // cached yet (e.g. a brand-new online session).
+    final pool = await _recipeService.getCachedRecipes();
+    _allRecipes = pool.isNotEmpty
+        ? pool
+        : await _recipeService.getRecipes();
   }
 
   Future<void> _loadRecentSearches() async {
