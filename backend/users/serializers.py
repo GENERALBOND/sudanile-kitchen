@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from community.models import PostComment, PostLike
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -49,10 +50,14 @@ class PublicProfileSerializer(UserSerializer):
         return obj.community_posts.count()
 
     def get_like_count(self, obj):
-        return obj.community_likes.count()
+        # Likes this member's posts received, not likes the member gave.
+        # PostLike.user is the liker; PostLike.post.user is the post author.
+        return PostLike.objects.filter(post__user=obj).count()
 
     def get_comment_count(self, obj):
-        return obj.community_comments.count()
+        # Comments this member's posts received, not comments the member wrote.
+        # PostComment.user is the commenter; PostComment.post.user is the author.
+        return PostComment.objects.filter(post__user=obj).count()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
