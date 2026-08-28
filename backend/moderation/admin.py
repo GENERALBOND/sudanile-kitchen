@@ -88,8 +88,8 @@ def _notify_author_email(action_value, report):
         'Sudanile Kitchen',
     ]
 
-    # Transient SMTP errors often clear on retry; each attempt is bounded by
-    # EMAIL_TIMEOUT so the total stays under gunicorn's worker timeout.
+    # Transient delivery errors often clear on retry; each attempt is bounded
+    # by BREVO_TIMEOUT so the total stays under gunicorn's worker timeout.
     for attempt in (1, 2):
         try:
             send_mail(

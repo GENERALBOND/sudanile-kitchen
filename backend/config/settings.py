@@ -6,9 +6,9 @@ from decouple import config
 from datetime import timedelta
 import dj_database_url
 
-# Render instances have no IPv6 route, and smtp.gmail.com resolves to an IPv6
-# address first, so SMTP connects fail with "Network is unreachable" (Errno 101).
-# Force IPv4 for outbound connections so email actually sends.
+# Render instances have no IPv6 route, so outbound connects fail with
+# "Network is unreachable" (Errno 101) when DNS returns an IPv6 address first.
+# Force IPv4 for all outbound connections (email API, Firebase, etc.).
 _getaddrinfo = socket.getaddrinfo
 def _ipv4_first(*args, **kwargs):
     return [r for r in _getaddrinfo(*args, **kwargs) if r[0] == socket.AF_INET]
@@ -149,19 +149,17 @@ SIMPLE_JWT = {
 # Firebase project whose ID tokens the API accepts (see users.authentication).
 FIREBASE_PROJECT_ID = config('FIREBASE_PROJECT_ID')
 
-# Email Configuration (used for submission review notifications)
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp-relay.brevo.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-# Use SSL (port 465) instead of STARTTLS (587) if the host blocks 587.
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@sudanile.com')
-# Bound SMTP connects so a slow/unreachable mail server can't hang the request
-# past gunicorn's worker timeout (30s default) and take the whole site down.
-EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=5, cast=int)
+# Email Configuration (submission review + moderation notifications).
+# Sent through Brevo's transactional REST API (HTTPS) — Render instances
+# cannot open outbound SMTP connections, but HTTPS egress works.
+EMAIL_BACKEND = 'config.brevo_backend.BrevoEmailBackend'
+# Brevo -> SMTP & API -> API keys (a transactional API key, not an SMTP key).
+BREVO_API_KEY = config('BREVO_API_KEY')
+# Must be a verified sender in Brevo (Settings -> Senders & IPs).
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+# Bound API calls so a slow Brevo response can't hang the request past
+# gunicorn's worker timeout (30s default) and take the whole site down.
+BREVO_TIMEOUT = config('BREVO_TIMEOUT', default=10, cast=int)
 
 # Templates Configuration
 TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]

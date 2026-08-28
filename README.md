@@ -138,7 +138,8 @@ python manage.py runserver
 | `FIREBASE_PROJECT_ID` | Firebase project ID used to verify ID tokens (required for auth) |
 | `FIREBASE_SERVICE_ACCOUNT` / `FIREBASE_SERVICE_ACCOUNT_JSON` | FCM push credentials (optional; pushes are skipped without them) |
 | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Media storage in production (optional) |
-| `EMAIL_*` | SMTP settings for submission-review notifications (Gmail app password) |
+| `BREVO_API_KEY` | Brevo transactional API key for sending submission-review notifications (required for email) |
+| `DEFAULT_FROM_EMAIL` | Verified Brevo sender address used as the From on notifications |
 | `DEMO_LOGIN_HINT` | Optional hint shown on the admin landing page |
 
 ### 2. Mobile
@@ -351,4 +352,4 @@ cp scripts/pre-commit-secrets.sh .git/hooks/pre-commit && chmod +x .git/hooks/pr
 
 - **Heroku/Render-style** — `backend/Procfile` runs gunicorn (`config.wsgi:application`) and runs migrations on release; WhiteNoise serves static files.
 - **Media** — set the Cloudinary variables in production to serve uploaded images from Cloudinary; leave blank to keep local storage.
-- **Push/email** — configure FCM service-account credentials and SMTP settings for notifications to work in production.
+- **Push/email** — configure FCM service-account credentials and a Brevo API key (`BREVO_API_KEY` + `DEFAULT_FROM_EMAIL`) for notifications to work in production. Email goes through Brevo's REST API because Render blocks outbound SMTP.

@@ -1,4 +1,3 @@
-import socket
 import traceback
 
 from django.conf import settings
@@ -7,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    help = 'Send a test email through the configured SMTP backend to reveal the exact error.'
+    help = 'Send a test email through the Brevo backend to reveal the exact error.'
 
     def add_arguments(self, parser):
         parser.add_argument('recipient', nargs='?', default='')
@@ -23,58 +22,30 @@ class Command(BaseCommand):
         if not recipient:
             raise CommandError('Pass a recipient address, e.g. manage.py send_test_email you@gmail.com')
 
-        backend = settings.EMAIL_BACKEND
-        host = settings.EMAIL_HOST
-        port = settings.EMAIL_PORT
-        tls = settings.EMAIL_USE_TLS
-        ssl = settings.EMAIL_USE_SSL
-        user = settings.EMAIL_HOST_USER
-        password = settings.EMAIL_HOST_PASSWORD
-        from_email = settings.DEFAULT_FROM_EMAIL
+        api_key = getattr(settings, 'BREVO_API_KEY', '')
+        sender = getattr(settings, 'DEFAULT_FROM_EMAIL', '')
 
-        self.stdout.write(f'Backend   : {backend}')
-        self.stdout.write(f'Host      : {host}')
-        self.stdout.write(f'Port      : {port}')
-        self.stdout.write(f'TLS       : {tls}')
-        self.stdout.write(f'SSL       : {ssl}')
-        self.stdout.write(f'User      : {user or "(empty)"}')
-        self.stdout.write(f'Password  : {"(set, " + str(len(password)) + " chars)" if password else "(empty)"}')
-        self.stdout.write(f'From      : {from_email}')
-        self.stdout.write(f'To        : {recipient}')
+        self.stdout.write(f'Backend : {settings.EMAIL_BACKEND}')
+        self.stdout.write(f'API key : {"(set, " + str(len(api_key)) + " chars)" if api_key else "(empty)"}')
+        self.stdout.write(f'Sender  : {sender or "(empty)"}')
+        self.stdout.write(f'To      : {recipient}')
 
-        if not user or not password:
+        if not api_key:
             self.stderr.write(self.style.ERROR(
-                'EMAIL_HOST_USER / EMAIL_HOST_PASSWORD are not set. '
-                'Gmail requires an App Password (not your normal login).'
+                'BREVO_API_KEY is not set. Create one under Brevo -> SMTP & API -> API keys.'
+            ))
+        if not sender:
+            self.stderr.write(self.style.ERROR(
+                'DEFAULT_FROM_EMAIL is not set (and it must be a verified Brevo sender).'
             ))
 
-        self.stdout.write('\nResolving host...')
+        self.stdout.write('\nSending...')
         try:
-            for info in socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP):
-                self.stdout.write(f'  -> {info[0].name} {info[4]}')
-        except Exception as exc:
-            self.stderr.write(self.style.ERROR(f'DNS lookup failed: {exc}'))
-
-        self.stdout.write('\nConnecting & sending...')
-        try:
-            conn = get_connection(
-                backend=backend,
-                host=host,
-                port=port,
-                username=user,
-                password=password,
-                use_tls=tls,
-                use_ssl=ssl,
-                from_email=from_email,
-                fail_silently=False,
-                timeout=getattr(settings, 'EMAIL_TIMEOUT', 5),
-            )
-            conn.open()
-            self.stdout.write(f'Connected to {host}:{port} OK')
+            conn = get_connection(fail_silently=False)
             message = EmailMessage(
                 subject='Sudanile Kitchen test email',
                 body='This is a test email from the Sudanile Kitchen backend.',
-                from_email=from_email,
+                from_email=sender,
                 to=[recipient],
                 connection=conn,
             )

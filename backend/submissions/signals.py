@@ -46,9 +46,9 @@ def send_submission_review_email(submission):
             f"Sudanile Kitchen"
         )
 
-    # Transient network errors (e.g. "Network is unreachable" on some hosts)
+    # Transient network errors (e.g. timeout/host-unreachable on some hosts)
     # often clear on a retry, so try a couple of times before giving up. Each
-    # attempt is bounded by EMAIL_TIMEOUT so the total stays under gunicorn's
+    # attempt is bounded by BREVO_TIMEOUT so the total stays under gunicorn's
     # worker timeout.
     for attempt in (1, 2):
         try:

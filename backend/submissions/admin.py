@@ -1,5 +1,4 @@
 import logging
-import socket
 import traceback
 
 from django.conf import settings
@@ -232,29 +231,15 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
     reject_submissions.short_description = "Reject selected submissions"
     
     def send_test_email(self, request, queryset):
-        """Sends a test email to the logged-in admin and surfaces the exact SMTP
-        error in the browser — no shell needed on Render's free tier."""
+        """Sends a test email to the logged-in admin and surfaces the exact
+        delivery error in the browser — no shell needed on Render's free tier."""
         target = request.user.email or queryset.first().user.email if queryset.exists() else None
         if not target:
             self.message_user(request, 'No recipient: set an email on your admin account.', messages.ERROR)
             return
 
-        host = settings.EMAIL_HOST
-        port = settings.EMAIL_PORT
         try:
-            conn = get_connection(
-                backend=settings.EMAIL_BACKEND,
-                host=host,
-                port=port,
-                username=settings.EMAIL_HOST_USER,
-                password=settings.EMAIL_HOST_PASSWORD,
-                use_tls=settings.EMAIL_USE_TLS,
-                use_ssl=settings.EMAIL_USE_SSL,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                fail_silently=False,
-                timeout=getattr(settings, 'EMAIL_TIMEOUT', 5),
-            )
-            conn.open()
+            conn = get_connection(fail_silently=False)
             EmailMessage(
                 subject='Sudanile Kitchen test email',
                 body='This is a test email sent from the Django admin.',
@@ -262,7 +247,7 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
                 to=[target],
                 connection=conn,
             ).send()
-            self.message_user(request, f'Test email sent to {target} via {host}:{port}.', messages.SUCCESS)
+            self.message_user(request, f'Test email sent to {target} via Brevo.', messages.SUCCESS)
         except Exception as exc:
             tb = traceback.format_exc(limit=3)
             logger.error('Test email failed: %s\n%s', exc, tb)
