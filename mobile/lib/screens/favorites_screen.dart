@@ -38,7 +38,12 @@ class FavoritesScreen extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).brightness ==
+                          Brightness.dark
+                      ? Colors.orange.shade800
+                      : Colors.orange,
+                ),
                 child: const Text('Sign In'),
               ),
             ],
@@ -50,7 +55,6 @@ class FavoritesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Favorites'),
-        backgroundColor: Colors.orange,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -88,8 +92,13 @@ class FavoritesScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const SearchScreen()),
                       );
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                    child: const Text('Browse Recipes'),
+                    style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).brightness ==
+                          Brightness.dark
+                      ? Colors.orange.shade800
+                      : Colors.orange,
+                ),
+                child: const Text('Browse Recipes'),
                   ),
                 ],
               ),
@@ -107,7 +116,9 @@ class FavoritesScreen extends StatelessWidget {
                   key: Key(recipe.id.toString()),
                   direction: DismissDirection.endToStart,
                   background: Container(
-                    color: Colors.red,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.red.shade800
+                        : Colors.red,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
                     child: const Icon(Icons.delete, color: Colors.white),

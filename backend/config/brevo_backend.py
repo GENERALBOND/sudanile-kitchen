@@ -24,6 +24,16 @@ def _addr_spec(address, encoding):
     return sanitized[1]
 
 
+def _display_name(address, encoding):
+    """Extract the display name ('Name' from 'Name <x@y>') across Django versions."""
+    sanitized = sanitize_address(address, encoding)
+    if isinstance(sanitized, str):
+        if '>' in sanitized and '<' in sanitized:
+            return sanitized[:sanitized.rfind('<')].strip().strip('"')
+        return ''
+    return sanitized[0]
+
+
 class BrevoEmailBackend(BaseEmailBackend):
     """Sends email through Brevo's transactional REST API over plain HTTPS.
 
@@ -38,6 +48,7 @@ class BrevoEmailBackend(BaseEmailBackend):
         self.timeout = getattr(settings, 'BREVO_TIMEOUT', 10)
         default_from = getattr(settings, 'DEFAULT_FROM_EMAIL', '')
         self.sender = _addr_spec(default_from, settings.DEFAULT_CHARSET)
+        self.sender_name = getattr(settings, 'BREVO_SENDER_NAME', '')
 
     def send_messages(self, email_messages):
         messages = list(email_messages)
@@ -71,9 +82,10 @@ class BrevoEmailBackend(BaseEmailBackend):
             if not sender_email:
                 self._fail('DEFAULT_FROM_EMAIL is not set, and the message has no from_email.')
                 continue
+            sender_name = _display_name(message.from_email, message.encoding) or self.sender_name
 
             payload = {
-                'sender': {'name': '', 'email': sender_email},
+                'sender': {'name': sender_name, 'email': sender_email},
                 'to': [{'email': addr} for addr in recipients],
                 'subject': message.subject,
                 'textContent': body,

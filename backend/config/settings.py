@@ -157,6 +157,8 @@ EMAIL_BACKEND = 'config.brevo_backend.BrevoEmailBackend'
 BREVO_API_KEY = config('BREVO_API_KEY')
 # Must be a verified sender in Brevo (Settings -> Senders & IPs).
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+# Display name used on the From line; Brevo requires a non-empty sender name.
+BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='Sudanile Kitchen Team')
 # Bound API calls so a slow Brevo response can't hang the request past
 # gunicorn's worker timeout (30s default) and take the whole site down.
 BREVO_TIMEOUT = config('BREVO_TIMEOUT', default=10, cast=int)
