@@ -47,7 +47,9 @@ class PublicProfileSerializer(UserSerializer):
                   'comment_count')
 
     def get_post_count(self, obj):
-        return obj.community_posts.count()
+        # Only posts still visible in the community feed — hidden/flagged
+        # posts are removed from the UI and so shouldn't count.
+        return obj.community_posts.filter(is_flagged=False).count()
 
     def get_like_count(self, obj):
         # Likes this member's posts received, not likes the member gave.
