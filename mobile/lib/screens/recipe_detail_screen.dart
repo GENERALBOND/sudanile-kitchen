@@ -451,7 +451,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               icon: const Icon(Icons.rate_review),
                               label: const Text('Write a Review'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
+                                backgroundColor:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.orange.shade800
+                                        : Colors.orange,
+                                foregroundColor:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : null,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -653,7 +662,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     _submitReviewWithRating(reviewText);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
+                    backgroundColor: Theme.of(context).brightness ==
+                            Brightness.dark
+                        ? Colors.orange.shade800
+                        : Colors.orange,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

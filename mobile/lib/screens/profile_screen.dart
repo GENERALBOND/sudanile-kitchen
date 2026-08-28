@@ -8,6 +8,7 @@ import '../utils/app_themes.dart';
 import '../providers/favorites_provider.dart';
 import 'login_screen.dart';
 import 'account_settings_screen.dart';
+import 'my_submissions_screen.dart';
 import 'notifications_screen.dart';
 import 'privacy_security_screen.dart';
 import 'about_screen.dart';
@@ -108,6 +109,18 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const AccountSettingsScreen()),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1),
+                  _buildMenuItem(
+                    icon: Icons.assignment_outlined,
+                    title: 'My Submissions',
+                    subtitle: 'Track the status of your submitted recipes',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MySubmissionsScreen()),
                       );
                     },
                   ),

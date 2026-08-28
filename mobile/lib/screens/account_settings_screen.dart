@@ -33,6 +33,17 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   bool _obscureConfirm = true;
   bool _obscureDelete = true;
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _orange =>
+      _isDark ? Colors.orange.shade300 : Colors.orange;
+  Color get _orangeFill => _isDark ? Colors.orange.shade800 : Colors.orange;
+  Color get _red => _isDark ? Colors.red.shade300 : Colors.red;
+  Color get _redFill => _isDark ? Colors.red.shade800 : Colors.red;
+  Color get _redBorder =>
+      _isDark ? Colors.red.shade400 : Colors.red.shade200;
+  Color get _redBoxBg =>
+      _isDark ? const Color(0x2AF44336) : Colors.red.shade50;
+
   @override
   void initState() {
     super.initState();
@@ -92,20 +103,19 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.orange),
+              leading: Icon(Icons.photo_library, color: _orange),
               title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(context, 'gallery'),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.orange),
+              leading: Icon(Icons.camera_alt, color: _orange),
               title: const Text('Take Photo'),
               onTap: () => Navigator.pop(context, 'camera'),
             ),
             if (hasPhoto)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text('Remove Photo',
-                    style: TextStyle(color: Colors.red)),
+                leading: Icon(Icons.delete_outline, color: _red),
+                title: Text('Remove Photo', style: TextStyle(color: _red)),
                 onTap: () => Navigator.pop(context, 'remove'),
               ),
             ListTile(
@@ -336,7 +346,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account Settings'),
-        backgroundColor: Colors.orange,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -366,7 +375,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         right: 0,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.orange,
+                            color: _orangeFill,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -403,7 +412,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit Profile'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: _orangeFill,
                   minimumSize: const Size(double.infinity, 45),
                 ),
               ),
@@ -448,7 +457,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updateProfile,
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange),
+                          backgroundColor: _orangeFill),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -473,8 +482,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 icon: const Icon(Icons.lock_outline),
                 label: const Text('Change Password'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.orange,
-                  side: const BorderSide(color: Colors.orange),
+                  foregroundColor: _orange,
+                  side: BorderSide(
+                      color: _isDark ? Colors.orange.shade400 : Colors.orange),
                   minimumSize: const Size(double.infinity, 45),
                 ),
               ),
@@ -548,7 +558,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _changePassword,
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange),
+                          backgroundColor: _orangeFill),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -614,22 +624,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             // Danger Zone - Delete Account
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.red.shade200),
+                border: Border.all(color: _redBorder),
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.red.shade50,
+                color: _redBoxBg,
               ),
               child: Column(
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(16),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber, color: Colors.red),
-                        SizedBox(width: 8),
+                        Icon(Icons.warning_amber, color: _red),
+                        const SizedBox(width: 8),
                         Text(
                           'Danger Zone',
                           style: TextStyle(
-                            color: Colors.red,
+                            color: _red,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -637,17 +647,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ],
                     ),
                   ),
-                  const Divider(color: Colors.red, height: 1),
+                  Divider(color: _red, height: 1),
                   if (!_isDeletingAccount) ...[
                     ListTile(
-                      leading:
-                          const Icon(Icons.delete_forever, color: Colors.red),
-                      title: const Text('Delete Account',
-                          style: TextStyle(color: Colors.red)),
+                      leading: Icon(Icons.delete_forever, color: _red),
+                      title: Text('Delete Account',
+                          style: TextStyle(color: _red)),
                       subtitle: const Text(
                           'Permanently delete your account and all data'),
-                      trailing:
-                          const Icon(Icons.chevron_right, color: Colors.red),
+                      trailing: Icon(Icons.chevron_right, color: _red),
                       onTap: () => setState(() => _isDeletingAccount = true),
                     ),
                   ] else ...[
@@ -656,12 +664,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Delete Account',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.red,
+                              color: _red,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -705,7 +713,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                 child: ElevatedButton(
                                   onPressed: _isLoading ? null : _deleteAccount,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: _redFill,
+                                    foregroundColor:
+                                        _isDark ? Colors.white : null,
                                   ),
                                   child: _isLoading
                                       ? const SizedBox(

@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import '../models/recipe.dart';
+import '../models/recipe_submission.dart';
 import '../models/review.dart';
 import 'api_service.dart';
 import 'cache_service.dart';
@@ -290,6 +291,41 @@ class RecipeService {
     } catch (e) {
       log('❌ Error submitting recipe with image: $e');
       return _errorMessage(e);
+    }
+  }
+
+  /// Fetches the signed-in user's recipe submissions with their review status.
+  /// Returns an empty list when the request fails (e.g. offline).
+  Future<List<RecipeSubmission>> getMySubmissions() async {
+    try {
+      final response = await _apiService.get('/submissions/');
+
+      List<dynamic> data;
+      if (response is List) {
+        data = response;
+      } else if (response is Map && response['results'] != null) {
+        data = response['results'];
+      } else {
+        data = [];
+      }
+
+      final submissions = data
+          .map((json) => RecipeSubmission.fromJson(Map<String, dynamic>.from(json as Map)))
+          .toList();
+
+      await CacheService.instance.writeList(
+        'submission',
+        submissions.map((s) => s.toJson()).toList(),
+      );
+      ConnectivityService.instance.reportNetworkOk();
+      return submissions;
+    } catch (e) {
+      log('❌ Error fetching submissions: $e');
+      ConnectivityService.instance.reportNetworkError();
+      return _cachedList<RecipeSubmission>(
+        'submission',
+        fromJson: RecipeSubmission.fromJson,
+      );
     }
   }
 
