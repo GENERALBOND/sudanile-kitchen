@@ -428,7 +428,7 @@
           <div class="form-section-title">
             <i class="ti ti-photo" aria-hidden="true"></i>
             Media &amp; Additional
-            <small>Images, videos, and publishing settings</small>
+            <small>Images and publishing settings</small>
           </div>
           <div class="form-grid">
             <div class="form-group">
@@ -438,14 +438,6 @@
                 <div class="error-text">{% for e in adminform.form.image_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
               {% endif %}
               <div class="help-text">URL for the recipe image</div>
-            </div>
-            <div class="form-group">
-              <label for="id_video_url">Video URL</label>
-              <input type="url" id="id_video_url" name="video_url" class="form-control{% if adminform.form.video_url.errors %} error{% endif %}" placeholder="https://youtube.com/watch?v=..." value="{{ adminform.form.video_url.value|default:'' }}" />
-              {% if adminform.form.video_url.errors %}
-                <div class="error-text">{% for e in adminform.form.video_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
-              {% endif %}
-              <div class="help-text">Link to a recipe video tutorial</div>
             </div>
             <div class="form-group">
               <label for="id_status">Status</label>

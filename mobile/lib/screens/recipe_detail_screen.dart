@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/recipe.dart';
 import '../models/review.dart';
 import '../services/recipe_service.dart';
@@ -306,24 +305,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     _recipe.difficulty, 'Difficulty'),
                               ],
                             ),
-                            if (_recipe.videoUrl != null &&
-                                _recipe.videoUrl!.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _watchVideo(_recipe.videoUrl!),
-                                  icon: const Icon(Icons.play_circle_outline),
-                                  label: const Text('Watch Video Tutorial'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.orange.shade800,
-                                    side: BorderSide(color: Colors.orange.shade300),
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                ),
-                              ),
-                            ],
 
                             const SizedBox(height: 24),
 
@@ -488,18 +469,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       );
       },
     );
-  }
-
-  Future<void> _watchVideo(String url) async {
-    final uri = Uri.tryParse(url);
-    final launched = uri != null &&
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!launched) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the video link.')),
-      );
-    }
   }
 
   Widget _buildInfoChip(

@@ -17,7 +17,7 @@ class RecipeSubmissionSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'ingredients', 'instructions',
             'cultural_info', 'prep_hours', 'prep_minutes', 'prep_seconds',
             'cook_hours', 'cook_minutes', 'cook_seconds', 'servings',
-            'difficulty', 'image', 'image_url', 'video_url', 'category_name',
+            'difficulty', 'image', 'image_url', 'category_name',
             'meal_types', 'meal_types_display',
             'user', 'user_name', 'status', 'admin_notes', 'submitted_at', 'reviewed_at'
         ]

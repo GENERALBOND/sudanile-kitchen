@@ -14,7 +14,6 @@ class RecipeSubmission {
   final int servings;
   final String difficulty;
   final String? imageUrl;
-  final String? videoUrl;
   final String categoryName;
   final List<String> mealTypes;
   final String mealTypesDisplay;
@@ -39,7 +38,6 @@ class RecipeSubmission {
     required this.servings,
     required this.difficulty,
     this.imageUrl,
-    this.videoUrl,
     required this.categoryName,
     this.mealTypes = const [],
     this.mealTypesDisplay = '',
@@ -90,7 +88,6 @@ class RecipeSubmission {
       servings: json['servings'] ?? 4,
       difficulty: json['difficulty'] ?? 'medium',
       imageUrl: json['image_url'],
-      videoUrl: json['video_url'],
       categoryName: json['category_name'] ?? '',
       mealTypes: (json['meal_types'] as List<dynamic>? ?? [])
           .map((m) => m.toString())
@@ -123,7 +120,6 @@ class RecipeSubmission {
         'servings': servings,
         'difficulty': difficulty,
         'image_url': imageUrl,
-        'video_url': videoUrl,
         'category_name': categoryName,
         'meal_types': mealTypes,
         'meal_types_display': mealTypesDisplay,

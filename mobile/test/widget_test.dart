@@ -25,7 +25,6 @@ void main() {
         'servings': 4,
         'difficulty': 'medium',
         'image_url': 'https://example.com/kisra.jpg',
-        'video_url': 'https://example.com/kisra.mp4',
         'category_name': 'Bread',
         'author_name': 'Chef Amina',
         'average_rating': 4.5,

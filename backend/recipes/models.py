@@ -36,7 +36,6 @@ class Recipe(models.Model):
     servings = models.IntegerField(default=4)
     difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='medium')
     image_url = models.URLField(blank=True, null=True)
-    video_url = models.URLField(blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='recipes')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes')
     average_rating = models.FloatField(default=0)

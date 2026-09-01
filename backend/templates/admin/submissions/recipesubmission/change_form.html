@@ -472,7 +472,7 @@
           <div class="form-section-title">
             <i class="ti ti-photo" aria-hidden="true"></i>
             Media
-            <small>Images and video for the recipe</small>
+            <small>Images for the recipe</small>
           </div>
           <div class="form-grid">
             <div class="form-group">
@@ -493,11 +493,6 @@
               <label for="id_image_url">Image URL</label>
               <input type="url" id="id_image_url" name="image_url" class="form-control{% if adminform.form.image_url.errors %} error{% endif %}" placeholder="https://example.com/recipe-image.jpg" value="{{ adminform.form.image_url.value|default:'' }}" />
               {% if adminform.form.image_url.errors %}<div class="error-text">{% for e in adminform.form.image_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
-            </div>
-            <div class="form-group">
-              <label for="id_video_url">Video URL</label>
-              <input type="url" id="id_video_url" name="video_url" class="form-control{% if adminform.form.video_url.errors %} error{% endif %}" placeholder="https://youtube.com/watch?v=..." value="{{ adminform.form.video_url.value|default:'' }}" />
-              {% if adminform.form.video_url.errors %}<div class="error-text">{% for e in adminform.form.video_url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}
             </div>
           </div>
         </div>

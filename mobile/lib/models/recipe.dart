@@ -44,7 +44,6 @@ class Recipe {
   final int servings;
   final String difficulty;
   final String? imageUrl;
-  final String? videoUrl;
   final String categoryName;
   final String authorName;
   final List<String> mealTypes;
@@ -70,7 +69,6 @@ class Recipe {
     required this.servings,
     required this.difficulty,
     this.imageUrl,
-    this.videoUrl,
     required this.categoryName,
     required this.authorName,
     this.mealTypes = const [],
@@ -136,7 +134,6 @@ class Recipe {
       servings: json['servings'] ?? 4,
       difficulty: json['difficulty'] ?? 'medium',
       imageUrl: json['image_url'],
-      videoUrl: json['video_url'],
       categoryName: json['category_name'] ?? '',
       authorName: json['author_name'] ?? '',
       mealTypes: (json['meal_types'] as List<dynamic>? ?? [])
@@ -168,7 +165,6 @@ class Recipe {
         'servings': servings,
         'difficulty': difficulty,
         'image_url': imageUrl,
-        'video_url': videoUrl,
         'category_name': categoryName,
         'author_name': authorName,
         'meal_types': mealTypes,

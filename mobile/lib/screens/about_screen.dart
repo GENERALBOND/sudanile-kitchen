@@ -179,12 +179,6 @@ class _AboutScreenState extends State<AboutScreen> {
                     'Submit Recipes',
                     'Contribute your family recipes to preserve heritage',
                   ),
-                  _buildFeatureItem(
-                    context,
-                    Icons.video_library,
-                    'Video Tutorials',
-                    'Step-by-step cooking guides',
-                  ),
                 ],
               ),
             ),

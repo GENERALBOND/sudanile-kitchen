@@ -79,7 +79,7 @@ class RecipeAdminForm(forms.ModelForm):
     class Meta:
         model = Recipe
         fields = ('title', 'description', 'cultural_info', 'author', 'category',
-                  'servings', 'difficulty', 'image_url', 'video_url',
+                  'servings', 'difficulty', 'image_url',
                   'meal_types')
 
     def clean_ingredients(self):
@@ -270,7 +270,7 @@ class RecipeAdmin(admin.ModelAdmin):
             'fields': ('ingredients', 'instructions')
         }),
         ('Media & Additional', {
-            'fields': ('servings', 'difficulty', 'image_url', 'video_url', 'is_published', 'meal_types')
+            'fields': ('servings', 'difficulty', 'image_url', 'is_published', 'meal_types')
         }),
     )
 

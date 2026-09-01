@@ -31,7 +31,6 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
   final _cookMinutesController = TextEditingController();
   final _cookSecondsController = TextEditingController();
   final _servingsController = TextEditingController();
-  final _videoUrlController = TextEditingController();
   final _ingredientsController = TextEditingController();
   final _instructionsController = TextEditingController();
 
@@ -205,9 +204,6 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
         'meal_types': _selectedMeals.isEmpty
             ? const ['any']
             : _selectedMeals.toList(),
-        'video_url': _videoUrlController.text.trim().isNotEmpty
-            ? _videoUrlController.text.trim()
-            : null,
       };
 
       final currentContext = context;
@@ -279,7 +275,6 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                     _cookMinutesController.clear();
                     _cookSecondsController.clear();
                     _servingsController.clear();
-                    _videoUrlController.clear();
                     _pickedImage = null;
                     _pickedImageBytes = null;
                     _imageError = null;
@@ -675,15 +670,6 @@ class _SubmitRecipeScreenState extends State<SubmitRecipeScreen> {
                           ),
                         ),
                       ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _videoUrlController,
-                      decoration: const InputDecoration(
-                        labelText: 'Video URL',
-                        hintText: 'https://www.youtube.com/watch?v=...',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
                     const SizedBox(height: 24),
 
                     // Submit Button

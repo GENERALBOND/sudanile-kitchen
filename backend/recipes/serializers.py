@@ -23,7 +23,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'cook_hours', 'cook_minutes', 'cook_seconds',
                   'preparation_time', 'cooking_time', 
                   'preparation_time_display', 'cooking_time_display',
-                  'servings', 'difficulty', 'image_url', 'video_url',
+                  'servings', 'difficulty', 'image_url',
                   'category', 'category_name', 'author', 'author_name', 
                   'average_rating', 'total_reviews', 'view_count',
                   'meal_types', 'meal_types_display',
@@ -39,7 +39,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         fields = ['title', 'description', 'ingredients', 'instructions', 'cultural_info',
                   'prep_hours', 'prep_minutes', 'prep_seconds',
                   'cook_hours', 'cook_minutes', 'cook_seconds',
-                  'servings', 'difficulty', 'image_url', 'video_url',
+                  'servings', 'difficulty', 'image_url',
                   'category', 'meal_types']
 
     def validate_meal_types(self, value):

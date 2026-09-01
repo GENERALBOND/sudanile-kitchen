@@ -25,7 +25,6 @@ class RecipeSubmission(models.Model):
     difficulty = models.CharField(max_length=20, default='medium')
     image = models.ImageField(upload_to='submissions/', blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
-    video_url = models.URLField(blank=True, null=True)
     category_name = models.CharField(max_length=100)
     meal_types = models.JSONField(
         default=list,

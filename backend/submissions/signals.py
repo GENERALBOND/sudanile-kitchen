@@ -134,7 +134,6 @@ def create_recipe_on_approval(sender, instance, **kwargs):
             servings=instance.servings,
             difficulty=instance.difficulty,
             image_url=instance.image_url,
-            video_url=instance.video_url,
             category=category,
             author=instance.user,
             meal_types=instance.meal_types,

@@ -168,7 +168,6 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
                     servings=submission.servings,
                     difficulty=submission.difficulty,
                     image_url=submission.image_url,
-                    video_url=submission.video_url,
                     category=category,
                     author=submission.user,
                     meal_types=submission.meal_types,
@@ -273,7 +272,7 @@ class RecipeSubmissionAdmin(admin.ModelAdmin):
             'fields': ('ingredients', 'instructions', 'cultural_info')
         }),
         ('Media', {
-            'fields': ('image_url', 'video_url')
+            'fields': ('image_url',)
         }),
         ('Status', {
             'fields': ('status', 'admin_notes', 'submitted_at', 'reviewed_at')

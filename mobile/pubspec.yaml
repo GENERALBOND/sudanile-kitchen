@@ -1,7 +1,7 @@
 name: sudanile_kitchen
 description: Sudanile Kitchen - South Sudanese Culinary Heritage App
 publish_to: 'none'
-version: 1.6.3+10
+version: 1.7.0+11
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
