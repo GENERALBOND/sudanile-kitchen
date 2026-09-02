@@ -8,9 +8,13 @@ from .models import DeviceToken
 
 class PushStatusView(APIView):
     """Health check: whether FCM push credentials are configured and valid,
-    plus aggregate registration stats (no per-user data)."""
+    plus aggregate registration stats (no per-user data).
 
-    permission_classes = [permissions.AllowAny]
+    Restricted to staff: the device-token counts and per-tag breakdown are
+    internal operational metrics and would otherwise be browsable by anyone.
+    """
+
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         from . import push
@@ -65,6 +69,7 @@ class UnregisterDeviceTokenView(APIView):
     """
 
     permission_classes = [permissions.AllowAny]
+    throttle_scopes = ['device_unregister']
 
     def post(self, request):
         token = request.data.get('token', '').strip()

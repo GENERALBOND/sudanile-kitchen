@@ -18,7 +18,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*,localhost,127.0.0.1').split(',')
+# Explicit host allowlist. The `*` wildcard is only safe while DEBUG is on and
+# Django restricts `*` to localhost anyway; production must set ALLOWED_HOSTS
+# to the real domain(s) so Host-header injection / DNS-rebinding is blocked.
+_ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='*,localhost,127.0.0.1' if DEBUG else '',
+).split(',')
+ALLOWED_HOSTS = [h.strip() for h in _ALLOWED_HOSTS if h.strip()]
+if DEBUG:
+    # In development, `*` resolves to localhost; keep 127.0.0.1 available too,
+    # plus `testserver` which Django's test client uses.
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]', 'testserver']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -30,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'users',
     'recipes.apps.RecipesConfig',
     'reviews.apps.ReviewsConfig',
@@ -121,29 +133,73 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-# CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Configuration.
+# Only the app's own origins are allowed to make credentialed requests. Wildcard
+# CORS with credentials is a security hole: any origin could attach the user's
+# cookies/session to its requests. Allowed origins come from ALLOWED_ORIGINS
+# (comma-separated in the environment), falling back to a safe explicit list.
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+_CORS_ALLOWED_ORIGINS = config(
+    'ALLOWED_ORIGINS',
+    default='https://sudanile-5b766.web.app,http://localhost:3000,http://localhost:8080',
+).split(',')
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED_ORIGINS if o.strip()]
+# No cookies/session are required by the JSON API (auth is Bearer-based), so we
+# still restrict methods to what the app uses. CSRF remains enforced for the
+# session-based Django admin.
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 
-# REST Framework settings - NO RATE LIMITING
+# REST Framework settings.
+# The default permission is IsAuthenticatedOrReadOnly so every endpoint is
+# locked down unless a view explicitly opts into anonymous access (register,
+# login, public profiles, push-status). Individual public views set AllowAny.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'users.authentication.FirebaseAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    # Rate limiting: anonymous clients are throttled globally, and the auth
+    # endpoints (login/registration) get a tighter burst limit to blunt
+    # brute-force and credential-stuffing. Logged-in users are less restricted.
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'auth': '30/hour',
+        'device_unregister': '50/hour',
+    },
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # Short access tokens limit the blast radius of a leaked token. Refresh
+    # tokens can be revoked server-side (token_blacklist) to invalidate a whole
+    # session on sign-out / password change.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    # Bind each token to a unique jti so blacklisting individual tokens works.
+    'UPDATE_LAST_LOGIN': True,
 }
 
 # Firebase project whose ID tokens the API accepts (see users.authentication).

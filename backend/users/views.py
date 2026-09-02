@@ -17,6 +17,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_scopes = ['auth']
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -32,6 +33,7 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scopes = ['auth']
     
     def post(self, request):
         email = request.data.get('email')
@@ -175,22 +177,29 @@ class ProfilePictureUploadView(APIView):
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         user = request.user
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
-        
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
+
         if not user.check_password(old_password):
-            return Response({'error': 'Current password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if len(new_password) < 6:
-            return Response({'error': 'Password must be at least 6 characters'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {'error': 'Current password is incorrect'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user.set_password(new_password)
         user.save()
-        
+
+        # Rotate the token pair: the old refresh/access tokens are blacklisted
+        # so any previously issued session is invalidated after the change.
         refresh = RefreshToken.for_user(user)
+        refresh.set_jti()
+        refresh.set_exp()
         return Response({
             'message': 'Password changed successfully',
             'refresh': str(refresh),

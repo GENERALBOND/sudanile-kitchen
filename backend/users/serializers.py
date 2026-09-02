@@ -69,11 +69,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password', 'password2')
     
-    def validate_email(self, value):
-        if not value.endswith('@gmail.com'):
-            raise serializers.ValidationError('Only @gmail.com email addresses are allowed.')
-        return value
-
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})

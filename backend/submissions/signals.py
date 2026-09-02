@@ -146,9 +146,15 @@ def create_recipe_on_approval(sender, instance, **kwargs):
             instance.reviewed_at = timezone.now()
 
         if duplicates:
-            print(f"FLAGGED as duplicate: {recipe.title} (ID: {recipe.id}) - {duplicates[0]['reason']}")
+            logger.warning(
+                "FLAGGED as duplicate: %s (ID: %s) - %s",
+                recipe.title, recipe.id, duplicates[0]['reason'],
+            )
         else:
-            print(f"Auto-created recipe from submission: {recipe.title} (ID: {recipe.id})")
+            logger.info(
+                "Auto-created recipe from submission: %s (ID: %s)",
+                recipe.title, recipe.id,
+            )
     except Exception:
         logger.exception(
             'Failed to auto-create recipe from submission pk=%s', instance.pk

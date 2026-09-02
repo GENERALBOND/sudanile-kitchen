@@ -225,7 +225,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       _buildSocialButton(Icons.email, 'Email', () async {
                         final Uri emailUri = Uri(
                           scheme: 'mailto',
-                          path: 'support@sudanile.com',
+                          path: 'sudanilekitchen@gmail.com',
                         );
                         await _launchExternal(emailUri);
                       }),

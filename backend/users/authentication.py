@@ -160,6 +160,13 @@ class FirebaseAuthentication(BaseAuthentication):
             user.is_email_verified = is_verified
             user.save(update_fields=['is_email_verified'])
 
+        # A disabled account (moderation ban via is_active=False) must not be
+        # able to authenticate, even with a valid Firebase ID token. Django's
+        # ModelBackend already refuses inactive users for the password login,
+        # so enforce the same rule here.
+        if not user.is_active:
+            raise AuthenticationFailed('This account has been disabled.')
+
         return (user, token)
 
     def authenticate_header(self, request):
