@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import authenticate, login, logout as auth_logout
+from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect, render
 from django.urls import path, include
 from django.views.generic import RedirectView
@@ -61,6 +62,12 @@ urlpatterns = [
     path('admin/reports/', reports_index, name='admin_reports'),
     path('admin/reports/<int:report_id>/', report_detail, name='admin_report_detail'),
     path('admin/authentication/', auth_index, name='admin_auth_index'),
+    # Admin password reset (Django 6 removed these from AdminSite).
+    # MUST be defined before the /admin/ catch-all so they stay public.
+    path('admin/password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('admin/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('admin/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('admin/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     # Mount the Django admin at /admin/ and render the custom dashboard template
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
